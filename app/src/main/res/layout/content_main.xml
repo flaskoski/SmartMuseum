@@ -8,10 +8,18 @@
     tools:context=".MainActivity"
     tools:showIn="@layout/app_bar_main">
 
-    <SurfaceView
-        android:id="@+id/surfaceView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:layout_editor_absoluteX="166dp"
-        tools:layout_editor_absoluteY="16dp" />
+    <FrameLayout
+        android:id="@+id/frame_list_items"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#fff"
+        android:elevation="4dp">
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/itemsGridList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
 </android.support.constraint.ConstraintLayout>
