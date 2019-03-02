@@ -125,7 +125,7 @@ public class MyUserKNNRecommender extends AbstractRecommender {
                 sum += sim * (rate - userMeans.get(similarUserIdx));
                 ws += Math.abs(sim);
             }
-            //sum/ws = mean of (each ones (k similar users) grade for the item - their mean)
+            //sum/ws = mean of (each ones (k similar users) rating for the item - their mean)
             return ws > 0 ? userMeans.get(userIdx) + sum / ws : globalMean;
         }
     }
