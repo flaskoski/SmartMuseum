@@ -11,4 +11,5 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
     <string name="title_activity_main2">Main2Activity</string>
+    <string name="option_feature">Preferências</string>
 </resources>

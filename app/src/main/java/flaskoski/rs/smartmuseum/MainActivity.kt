@@ -1,11 +1,14 @@
 package flaskoski.rs.smartmuseum
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
+import android.view.Menu
+import android.view.MenuItem
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.User
@@ -56,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         val user3 = User("Carlos")
         val user4 = User("Diego")
 
-        val databaseIoRequests : DatabaseIORequests
+//        val databaseIoRequests : DatabaseIORequests
         if(savedInstanceState == null){
             itemsList.add(Item(id="1", title = "Item 1", avgRating = 4.3F))
             itemsList.add(Item(id="2", title = "Item 2", avgRating = 2.0F))
@@ -83,16 +86,16 @@ class MainActivity : AppCompatActivity() {
                     "${user4.id} ${itemsList.get(1).id} 3\n"+
                     "${user4.id} ${itemsList.get(2).id} 3\n"+
                     "Felipe ${itemsList.get(2).id} 3\n"
-            databaseIoRequests = DatabaseIORequests(applicationContext, ratings)
+            DatabaseIORequests(applicationContext, ratings)
         }
         else
-            databaseIoRequests = DatabaseIORequests(applicationContext)
+            DatabaseIORequests(applicationContext)
 
         val recommender = RecommenderBuilder().buildKNNRecommender("ratings.txt", applicationContext)
         val numberOfColumns = 2
-        itemsGridList.setLayoutManager(GridLayoutManager(this, numberOfColumns))
+        itemsGridList.layoutManager = GridLayoutManager(this, numberOfColumns)
         adapter = ItemsGridListAdapter(itemsList, applicationContext, recommender)
-        itemsGridList.setAdapter(adapter)
+        itemsGridList.adapter = adapter
 
 
 
@@ -104,8 +107,22 @@ class MainActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
     }
 
-    private fun writeToFile() {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.menu_main_activity, menu)
+        return true
+    }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.option_features -> {
+                val goToFeaturePreferences = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+               // goToPlayerProfileIntent.putExtra("uid", uid)
+                startActivity(goToFeaturePreferences)
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
     }
 
 }

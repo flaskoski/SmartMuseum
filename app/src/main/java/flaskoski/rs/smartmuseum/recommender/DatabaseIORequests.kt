@@ -23,7 +23,22 @@ class DatabaseIORequests(val context : Context,
     }
 
     fun write(userId : String, itemId : String, rating : Float){
-        ratings.plus("$userId $itemId $rating")
+        this.ratings = ratings.plus("$userId $itemId $rating")
+
+        val outputStream: FileOutputStream
+        val writer : OutputStreamWriter
+        try {
+            outputStream = context.openFileOutput(filename, Context.MODE_PRIVATE)
+            writer = OutputStreamWriter(outputStream)
+            writer.append(ratings)
+            writer.close()
+            outputStream.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    fun write(ratings : String){
+        this.ratings = this.ratings.plus(ratings)
 
         val outputStream: FileOutputStream
         val writer : OutputStreamWriter
