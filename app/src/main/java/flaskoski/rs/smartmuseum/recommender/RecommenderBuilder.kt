@@ -9,35 +9,38 @@ import net.librec.recommender.RecommenderContext
 import net.librec.recommender.cf.UserKNNRecommender
 import net.librec.similarity.CosineSimilarity
 
-class Recommender(val type: String,
-                  val source : String,
-                  val context: Context,
-                  val knn : Int =  4,
-                  val useRanking : Boolean = false) {
+class RecommenderBuilder{
 
     private lateinit var recommender : Recommender
+    private lateinit var source : String
+    private lateinit var knn : String
+    private var useRanking: Boolean = false
 
-    init {
-        when(type){
-            "CF" -> {
-                var conf = setConfiguration();
-                var dataModel = NioFreeTextDataModel(conf, context)
-                try {
-                    dataModel.buildDataModel()
+    fun buildKNNRecommender(source : String,
+                            context: Context,
+                            knn : Int =  4,
+                            useRanking : Boolean = false) : Recommender {
+        this.source = source
+        this.knn = knn.toString()
+        this.useRanking = useRanking
+
+        var conf = setConfiguration();
+        var dataModel = NioFreeTextDataModel(conf, context)
+        try {
+            dataModel.buildDataModel()
 
 
-                    val similarity = CosineSimilarity()
-                    similarity.buildSimilarityMatrix(dataModel)
+            val similarity = CosineSimilarity()
+            similarity.buildSimilarityMatrix(dataModel)
 
 
-                    recommender = UserKNNRecommender()
-                    (recommender as UserKNNRecommender).recommend(RecommenderContext(conf, dataModel, similarity))
+            recommender = UserKNNRecommender()
+            (recommender as UserKNNRecommender).recommend(RecommenderContext(conf, dataModel, similarity))
 
-                } catch (e: LibrecException) {
-                    e.printStackTrace()
-                }
-
-            }
+        } catch (e: LibrecException) {
+            e.printStackTrace()
+        }finally {
+            return recommender
         }
     }
 
