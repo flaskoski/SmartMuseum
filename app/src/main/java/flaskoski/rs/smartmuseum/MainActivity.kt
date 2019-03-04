@@ -7,8 +7,10 @@ import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import com.google.firebase.firestore.FirebaseFirestore
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.User
@@ -18,7 +20,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity() {
 
     private val itemsList: ArrayList<Item> = ArrayList<Item>()
-
+    private val TAG = "MainActivity"
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.navigation_home -> {
@@ -54,10 +56,22 @@ class MainActivity : AppCompatActivity() {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         //---------------------------------------------------------------------
 
+        // Access a Cloud Firestore instance from your Activity
+        val db = FirebaseFirestore.getInstance()
+
         val user1 = User("Alberto")
         val user2 = User("Beto")
         val user3 = User("Carlos")
         val user4 = User("Diego")
+
+        db.collection("users")
+                .add(user1)
+                .addOnSuccessListener { documentReference ->
+                    Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.id)
+                }
+                .addOnFailureListener { e ->
+                    Log.w(TAG, "Error adding document", e)
+                }
 
 //        val databaseIoRequests : DatabaseIORequests
         if(savedInstanceState == null){
