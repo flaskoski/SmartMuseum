@@ -35,7 +35,7 @@ class ItemDetailActivity  : AppCompatActivity() {
     }
 
     fun rate(v : View){
-        var rating : Float = 1.0F
+        var rating = 1.0F
 
         txt_rating.visibility = View.VISIBLE
         img_star2.setImageResource(android.R.drawable.btn_star_big_off)
