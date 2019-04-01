@@ -1,7 +1,12 @@
 package flaskoski.rs.rs_cf_test.recommender
 
 import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import com.google.firebase.firestore.FirebaseFirestore
+import flaskoski.rs.smartmuseum.DAO.ItemDAO
+import flaskoski.rs.smartmuseum.DAO.RatingDAO
+import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
 import net.librec.conf.Configuration
 import flaskoski.rs.smartmuseum.recommender.RSCustomConvertor.NioFreeTextDataModel
@@ -14,16 +19,14 @@ import net.librec.similarity.CosineSimilarity
 class RecommenderBuilder{
 
     private var recommender : Recommender? = null
-    private lateinit var source : String
     private lateinit var knn : String
     private var useRanking: Boolean = false
+    private val TAG = "RecommenderBuilder"
 
-    fun buildKNNRecommender(source : String,
-                            ratings : List<Rating>,
+    fun buildKNNRecommender(ratings : List<Rating>,
                             context: Context,
                             knn : Int =  4,
                             useRanking : Boolean = false) : Recommender{
-        this.source = source
         this.knn = knn.toString()
         this.useRanking = useRanking
 
@@ -45,7 +48,7 @@ class RecommenderBuilder{
     private fun setConfiguration(): Configuration {
         val conf = Configuration()
         conf.set("dfs.data.dir", "")
-        conf.set("data.input.path", source)
+        conf.set("data.input.path", "")
         conf.set("data.column.format", "UIR")
         conf.set("data.conver.binariza.threshold", "-1.0")
 

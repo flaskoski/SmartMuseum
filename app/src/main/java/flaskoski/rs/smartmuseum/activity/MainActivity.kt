@@ -7,12 +7,11 @@ import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
-import com.google.firebase.firestore.FirebaseFirestore
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
+import flaskoski.rs.smartmuseum.DAO.ItemDAO
+import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
@@ -22,8 +21,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private val itemsList: ArrayList<Item> = ArrayList<Item>()
-    private val ratings = ArrayList<Rating>()
+    private val itemsList = ArrayList<Item>()
+    private val ratingsList  = ArrayList<Rating>()
     private val TAG = "MainActivity"
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
@@ -65,48 +64,28 @@ class MainActivity : AppCompatActivity() {
         parallelRequestsManager = ParallelRequestsManager(2)
 
         // Access a Cloud Firestore instance from your Activity
-        val db = FirebaseFirestore.getInstance()
 
         itemsGridList.layoutManager = GridLayoutManager(this, 2)
         adapter = ItemsGridListAdapter(itemsList, applicationContext)
         itemsGridList.adapter = adapter
 
-
-
-        //add items to grid from DB
-        db.collection("items")
-                .get()
-                .addOnSuccessListener { result ->
-                    for (document in result) {
-                        Log.d(TAG, document.id + " => " + document.data)
-                        val item = document.toObject(Item::class.java)
-                        item.id = document.id
-                        itemsList.add(item)
-                    }
-                    parallelRequestsManager.decreaseRemainingRequests()
-                    buildRecommender()
-                }
-                .addOnFailureListener { exception ->
-                    Log.w(TAG, "Error getting documents.", exception)
-                    Toast.makeText(applicationContext, "Erro ao obter informações! Verifique sua conexão com a internet.", Toast.LENGTH_LONG)
-                }
-        db.collection("ratings")
-                .get()
-                .addOnSuccessListener { result ->
-                    for (document in result) {
-                        ratings.add(document.toObject(Rating::class.java))
-                    }
-                    parallelRequestsManager.decreaseRemainingRequests()
-                    buildRecommender()
-                }.addOnFailureListener { exception ->
-                    Log.w(TAG, "Error getting documents.", exception)
-                    Toast.makeText(applicationContext, "Erro ao obter informações! Verifique sua conexão com a internet.", Toast.LENGTH_LONG)
-                }
+        val itemDAO = ItemDAO()
+        itemDAO.getAllItems {
+            itemsList.addAll(it)
+            parallelRequestsManager.decreaseRemainingRequests()
+            buildRecommender()
+        }
+        val ratingDAO = RatingDAO()
+        ratingDAO.getAllItems {
+            ratingsList.addAll(it)
+            parallelRequestsManager.decreaseRemainingRequests()
+            buildRecommender()
+        }
     }
 
     private fun buildRecommender() {
         if(parallelRequestsManager.isComplete!!){
-            val recommender = RecommenderBuilder().buildKNNRecommender("ratings.txt", ratings, applicationContext)
+            val recommender = RecommenderBuilder().buildKNNRecommender(ratingsList, applicationContext)
 
             adapter.recommender = recommender
             adapter.notifyDataSetChanged()
@@ -115,8 +94,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-//        adapter.recommender = RecommenderBuilder().buildKNNRecommender("ratings.txt", applicationContext)
-//        adapter.notifyDataSetChanged()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
