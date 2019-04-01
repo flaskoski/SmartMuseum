@@ -19,8 +19,14 @@ package flaskoski.rs.smartmuseum.recommender.RSCustomConvertor;
  */
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.common.collect.*;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import net.librec.data.convertor.AbstractDataConvertor;
 import net.librec.math.structure.SparseMatrix;
@@ -31,8 +37,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import flaskoski.rs.smartmuseum.model.Rating;
 
 /**
  * A <tt>TextDataConvertor</tt> is a class to convert a data file from CSV
@@ -78,7 +86,9 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
     private float loadDataFileRate;
 
     /** loaded data size /total data size in all data file */
-    private float loadAllFileRate;
+    private float ratingsLoadedProgress;
+
+    private List<Rating> ratings;
 
     /**
      * Initializes a newly created {@code TextDataConvertor} object with the
@@ -87,11 +97,13 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
      * @param dataColumnFormat
      * @param inputDataPath
      * @param aDouble
+     * @param ratings
      * @param applicationContex
      */
-    public NioFreeTextDataConvertor(String dataColumnFormat, String inputDataPath, Double aDouble, Context applicationContex) {
+    public NioFreeTextDataConvertor(String dataColumnFormat, String inputDataPath, Double aDouble, List<Rating> ratings, Context applicationContex) {
         this(DATA_COLUMN_DEFAULT_FORMAT, inputDataPath, -1.0);
         this.applicationContex = applicationContex;
+        this.ratings = ratings;
     }
 
     /**
@@ -174,14 +186,14 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
      * @throws IOException
      *            if the <code>inputDataPath</code> is not valid.
      */
-    private void readData(String dataColumnFormat, String inputDataPath, double binThold) throws IOException {
+    private void readData(final String dataColumnFormat, String inputDataPath, final double binThold) throws IOException {
         LOG.info(String.format("Dataset: %s", StringUtil.last(inputDataPath, 38)));
         // Table {row-id, col-id, rate}
-        Table<Integer, Integer, Double> dataTable = HashBasedTable.create();
+        final Table<Integer, Integer, Double> dataTable = HashBasedTable.create();
         // Table {row-id, col-id, timestamp}
-        Table<Integer, Integer, Long> timeTable = null;
+        //final Table<Integer, Integer, Long> timeTable = null;
         // Map {col-id, multiple row-id}: used to fast build a rating matrix
-        Multimap<Integer, Integer> colMap = HashMultimap.create();
+        final Multimap<Integer, Integer> colMap = HashMultimap.create();
         // BiMap {raw id, inner id} userIds, itemIds
         if (this.userIds == null){
             this.userIds = HashBiMap.create();
@@ -221,90 +233,66 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
         //    ByteSource source = Files.asByteSource(dataFile);
 //            InputStream inputStream = source.openBufferedStream();
 //**********            InputStream inputStream = applicationContex.getAssets().open(inputDataPath);
-        InputStream inputStream = applicationContex.openFileInput(inputDataPath);
+       // InputStream inputStream = applicationContex.openFileInput(inputDataPath);
 //            FileChannel fileRead = fis.getChannel();
 //            ByteBuffer buffer = ByteBuffer.allocate(BSIZE);
         //    loadFilePathRate = readingFileCount / (float) source.size();
 
-        int len;
-        String bufferLine = new String();
-        byte[] bytes = new byte[BSIZE];
-        while ((len = inputStream.read(bytes)) != -1) {
-            //while ((len = fileRead.read(buffer)) != -1) {
-                readingOneFileByte += len;
-           //     loadDataFileRate = readingOneFileByte / (float) source.size();
-                loadAllFileByte += len;
-               // loadAllFileRate = loadAllFileByte / (float) allFileSize;
-                //buffer.flip();
-                //buffer.get(bytes, 0, len);
-                bufferLine = bufferLine.concat(new String(bytes, 0, len));
-                bufferLine = bufferLine.replaceAll("\r", "\n");
-                String[] bufferData = bufferLine.split("(\n)+");
-                boolean isComplete = bufferLine.endsWith("\n");
-                int loopLength = isComplete ? bufferData.length : bufferData.length - 1;
-                for (int i = 0; i < loopLength; i++) {
-                    String line = new String(bufferData[i]);
-                    String[] data = line.trim().split("[ \t,]+");
-                    String user = data[0];
-                    String item = data[1];
-                    Double rate = ((dataColumnFormat.equals("UIR") || dataColumnFormat.equals("UIRT")) && data.length >= 3) ? Double.valueOf(data[2]) : 1.0;
-
-                    // binarize the rating for item recommendation task
-                    if (binThold >= 0) {
-                        rate = rate > binThold ? 1.0 : 0.0;
-                    }
-
-                    // inner id starting from 0
-                    int row = userIds.containsKey(user) ? userIds.get(user) : userIds.size();
-                    userIds.put(user, row);
-
-                    int col = itemIds.containsKey(item) ? itemIds.get(item) : itemIds.size();
-                    itemIds.put(item, col);
-
-                    dataTable.put(row, col, rate);
-                    colMap.put(col, row);
-                    // record rating's issuing time
-                    if (StringUtils.equals(dataColumnFormat, "UIRT") && data.length >= 4) {
-                        if (timeTable == null) {
-                            timeTable = HashBasedTable.create();
-                        }
-                        // convert to million-seconds
-                        long mms = 0L;
-                        try {
-                            mms = Long.parseLong(data[3]); // cannot format
-                            // 9.7323480e+008
-                        } catch (NumberFormatException e) {
-                            mms = (long) Double.parseDouble(data[3]);
-                        }
-                        long timestamp = timeUnit.toMillis(mms);
-                        timeTable.put(row, col, timestamp);
-                    }
-                }
-                if (!isComplete) {
-                    bufferLine = bufferData[bufferData.length - 1];
-                }
-                //buffer.clear();
+        ratingsLoadedProgress = 0;
+        int counter = 1;
+        Table<Integer, Integer, Long> timeTable = null;
+        for (Rating rating : ratings) {
+            LOG.info(rating.getUser() + " => " + rating.getItem());
+            String[] data = rating.toString().trim().split("[ \t,]+");
+            String user = data[0];
+            String item = data[1];
+            Double rate = ((dataColumnFormat.equals("UIR") || dataColumnFormat.equals("UIRT")) && data.length >= 3) ? Double.valueOf(data[2]) : 1.0;
+            if (binThold >= 0) {
+                rate = rate > binThold ? 1.0 : 0.0;
             }
-            inputStream.close();
-            //fileRead.close();
-            //fis.close();
-      //  }
+
+            // inner id starting from 0
+            int row = userIds.containsKey(user) ? userIds.get(user) : userIds.size();
+            userIds.put(user, row);
+
+            int col = itemIds.containsKey(item) ? itemIds.get(item) : itemIds.size();
+            itemIds.put(item, col);
+
+            dataTable.put(row, col, rate);
+            colMap.put(col, row);
+            // record rating's issuing time
+            if (StringUtils.equals(dataColumnFormat, "UIRT") && data.length >= 4) {
+                if (timeTable == null) timeTable = HashBasedTable.create();
+                // convert to million-seconds
+                long mms = 0L;
+                try {
+                    mms = Long.parseLong(data[3]); // cannot format
+                    // 9.7323480e+008
+                } catch (NumberFormatException e) {
+                    mms = (long) Double.parseDouble(data[3]);
+                }
+                long timestamp = timeUnit.toMillis(mms);
+                timeTable.put(row, col, timestamp);
+            }
+            ratingsLoadedProgress = (float) counter /ratings.size();
+            progress();
+        }
+
         int numRows = numUsers(), numCols = numItems();
         // build rating matrix
         preferenceMatrix = new SparseMatrix(numRows, numCols, dataTable, colMap);
         if (timeTable != null)
             datetimeMatrix = new SparseMatrix(numRows, numCols, timeTable, colMap);
         // release memory of data table
-        dataTable = null;
-        timeTable = null;
     }
+
 
     /**
      * Set the progress for job status.
      */
     @Override
     public void progress() {
-        getJobStatus().setProgress(loadAllFileRate);
+        getJobStatus().setProgress(ratingsLoadedProgress);
     }
 
     /**
@@ -328,10 +316,10 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
     /**
      * Return rate of alreadyLoaded/allData in all files.
      *
-     * @return {@link #loadAllFileRate}
+     * @return {@link #ratingsLoadedProgress}
      */
-    public double getLoadAllFileRate() {
-        return loadAllFileRate;
+    public double getRatingsLoadedProgress() {
+        return ratingsLoadedProgress;
     }
 
     /**

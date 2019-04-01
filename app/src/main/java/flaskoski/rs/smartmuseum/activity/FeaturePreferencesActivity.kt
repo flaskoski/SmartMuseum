@@ -1,11 +1,11 @@
-package flaskoski.rs.smartmuseum
+package flaskoski.rs.smartmuseum.activity
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
-import android.view.View
+import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.listAdapter.FeaturesListAdapter
 import flaskoski.rs.smartmuseum.model.Feature
-import flaskoski.rs.smartmuseum.recommender.DatabaseIORequests
 import kotlinx.android.synthetic.main.activity_feature_preferences.*
 
 class FeaturePreferencesActivity : AppCompatActivity() {
@@ -30,12 +30,12 @@ class FeaturePreferencesActivity : AppCompatActivity() {
 
     }
 
-    fun saveFeaturePreferences(v : View) {
-        val databaseIORequests: DatabaseIORequests = DatabaseIORequests(applicationContext)
+    fun saveFeaturePreferences() {
+//        val databaseIORequests: DatabaseIORequests = DatabaseIORequests(applicationContext)
         var ratings = ""
         for(feature in featureList)
             ratings = ratings.plus("Felipe ${feature.name} ${feature.rating}\n")
-        databaseIORequests.write(ratings)
+//        databaseIORequests.write(ratings)
         finish()
     }
 }

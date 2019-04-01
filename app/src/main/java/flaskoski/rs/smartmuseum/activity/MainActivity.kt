@@ -1,4 +1,4 @@
-package flaskoski.rs.smartmuseum
+package flaskoski.rs.smartmuseum.activity
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,16 +10,20 @@ import android.support.v7.widget.GridLayoutManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import com.google.firebase.firestore.FirebaseFirestore
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
+import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
+import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.model.Item
-import flaskoski.rs.smartmuseum.model.User
-import flaskoski.rs.smartmuseum.recommender.DatabaseIORequests
+import flaskoski.rs.smartmuseum.model.Rating
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     private val itemsList: ArrayList<Item> = ArrayList<Item>()
+    private val ratings = ArrayList<Rating>()
     private val TAG = "MainActivity"
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
@@ -39,6 +43,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var adapter: ItemsGridListAdapter
 
+    private lateinit var parallelRequestsManager: ParallelRequestsManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         //------------Standard Side Menu Screen---------------------------
         super.onCreate(savedInstanceState)
@@ -56,69 +62,61 @@ class MainActivity : AppCompatActivity() {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         //---------------------------------------------------------------------
 
+        parallelRequestsManager = ParallelRequestsManager(2)
+
         // Access a Cloud Firestore instance from your Activity
         val db = FirebaseFirestore.getInstance()
 
-        val user1 = User("Alberto")
-        val user2 = User("Beto")
-        val user3 = User("Carlos")
-        val user4 = User("Diego")
-
-        db.collection("users")
-                .add(user1)
-                .addOnSuccessListener { documentReference ->
-                    Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.id)
-                }
-                .addOnFailureListener { e ->
-                    Log.w(TAG, "Error adding document", e)
-                }
-
-//        val databaseIoRequests : DatabaseIORequests
-        if(savedInstanceState == null){
-            itemsList.add(Item(id="1", title = "Item 1", avgRating = 4.3F))
-            itemsList.add(Item(id="2", title = "Item 2", avgRating = 2.0F))
-            itemsList.add(Item(id="3", title = "Item 3", avgRating = 3.0F))
-            itemsList.add(Item(id="4", title = "Item 4", avgRating = 3.0F))
-            itemsList.add(Item(id="5", title = "Item 5", avgRating = 3.0F))
-            itemsList.add(Item(id="6", title = "Item 6", avgRating = 3.0F))
-
-            val ratings = "${user1.id} ${itemsList.get(0).id} 4\n"+
-                    "${user1.id} ${itemsList.get(0).id} 3\n"+
-                    "${user1.id} ${itemsList.get(1).id} 2\n"+
-                    "${user1.id} ${itemsList.get(2).id} 4\n"+
-                    "${user1.id} ${itemsList.get(3).id} 4\n"+
-                    "${user1.id} ${itemsList.get(4).id} 4\n"+
-                    "${user1.id} ${itemsList.get(5).id} 5\n"+
-                    "${user2.id} ${itemsList.get(5).id} 1\n"+
-                    "${user2.id} ${itemsList.get(3).id} 3\n"+
-                    "${user2.id} ${itemsList.get(1).id} 3\n"+
-                    "${user3.id} ${itemsList.get(0).id} 4\n"+
-                    "${user3.id} ${itemsList.get(2).id} 2\n"+
-                    "${user3.id} ${itemsList.get(4).id} 3\n"+
-                    "${user3.id} ${itemsList.get(5).id} 5\n"+
-                    "${user4.id} ${itemsList.get(0).id} 2\n"+
-                    "${user4.id} ${itemsList.get(1).id} 3\n"+
-                    "${user4.id} ${itemsList.get(2).id} 3\n"+
-                    "Felipe ${itemsList.get(2).id} 3\n"
-            DatabaseIORequests(applicationContext, ratings)
-        }
-        else
-            DatabaseIORequests(applicationContext)
-
-        val recommender = RecommenderBuilder().buildKNNRecommender("ratings.txt", applicationContext)
-        val numberOfColumns = 2
-        itemsGridList.layoutManager = GridLayoutManager(this, numberOfColumns)
-        adapter = ItemsGridListAdapter(itemsList, applicationContext, recommender)
+        itemsGridList.layoutManager = GridLayoutManager(this, 2)
+        adapter = ItemsGridListAdapter(itemsList, applicationContext)
         itemsGridList.adapter = adapter
 
 
 
+        //add items to grid from DB
+        db.collection("items")
+                .get()
+                .addOnSuccessListener { result ->
+                    for (document in result) {
+                        Log.d(TAG, document.id + " => " + document.data)
+                        val item = document.toObject(Item::class.java)
+                        item.id = document.id
+                        itemsList.add(item)
+                    }
+                    parallelRequestsManager.decreaseRemainingRequests()
+                    buildRecommender()
+                }
+                .addOnFailureListener { exception ->
+                    Log.w(TAG, "Error getting documents.", exception)
+                    Toast.makeText(applicationContext, "Erro ao obter informações! Verifique sua conexão com a internet.", Toast.LENGTH_LONG)
+                }
+        db.collection("ratings")
+                .get()
+                .addOnSuccessListener { result ->
+                    for (document in result) {
+                        ratings.add(document.toObject(Rating::class.java))
+                    }
+                    parallelRequestsManager.decreaseRemainingRequests()
+                    buildRecommender()
+                }.addOnFailureListener { exception ->
+                    Log.w(TAG, "Error getting documents.", exception)
+                    Toast.makeText(applicationContext, "Erro ao obter informações! Verifique sua conexão com a internet.", Toast.LENGTH_LONG)
+                }
+    }
+
+    private fun buildRecommender() {
+        if(parallelRequestsManager.isComplete!!){
+            val recommender = RecommenderBuilder().buildKNNRecommender("ratings.txt", ratings, applicationContext)
+
+            adapter.recommender = recommender
+            adapter.notifyDataSetChanged()
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        adapter.recommender = RecommenderBuilder().buildKNNRecommender("ratings.txt", applicationContext)
-        adapter.notifyDataSetChanged()
+//        adapter.recommender = RecommenderBuilder().buildKNNRecommender("ratings.txt", applicationContext)
+//        adapter.notifyDataSetChanged()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

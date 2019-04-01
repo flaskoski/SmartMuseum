@@ -21,6 +21,7 @@ package flaskoski.rs.smartmuseum.recommender.RSCustomConvertor;
 import android.content.Context;
 
 import com.google.common.collect.BiMap;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import net.librec.common.LibrecException;
 import net.librec.conf.Configuration;
@@ -29,6 +30,9 @@ import net.librec.data.DataModel;
 import net.librec.math.structure.DataSet;
 
 import java.io.IOException;
+import java.util.List;
+
+import flaskoski.rs.smartmuseum.model.Rating;
 
 /**
  * A <tt>TextDataModel</tt> represents a data access class to the CSV format
@@ -38,14 +42,18 @@ import java.io.IOException;
  */
 public class NioFreeTextDataModel extends NioFreeAbstractDataModel implements DataModel {
 
+
+    private List<Rating> ratings;
+
     /**
      * Empty constructor.
      * @param conf
      * @param applicationContext
      */
-    public NioFreeTextDataModel(Configuration conf, Context applicationContext) {
+    public NioFreeTextDataModel(Configuration conf, List<Rating> ratings, Context applicationContext) {
         this.conf = conf;
         this.applicationContex = applicationContext;
+        this.ratings = ratings;
     }
 
     /**
@@ -69,7 +77,7 @@ public class NioFreeTextDataModel extends NioFreeAbstractDataModel implements Da
     public void buildConvert() throws LibrecException {
         String inputDataPath = conf.get(Configured.CONF_DFS_DATA_DIR) /*+ File.separator */+ conf.get(Configured.CONF_DATA_INPUT_PATH);
         String dataColumnFormat = conf.get(Configured.CONF_DATA_COLUMN_FORMAT, "UIR");
-        dataConvertor = new NioFreeTextDataConvertor(dataColumnFormat, inputDataPath, conf.getDouble("data.convert.binarize.threshold", -1.0), applicationContex);
+        dataConvertor = new NioFreeTextDataConvertor(dataColumnFormat, inputDataPath, conf.getDouble("data.convert.binarize.threshold", -1.0), ratings, applicationContex);
         try {
             dataConvertor.processData();
         } catch (IOException e) {

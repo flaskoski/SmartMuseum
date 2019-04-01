@@ -1,37 +1,26 @@
-package flaskoski.rs.smartmuseum
+package flaskoski.rs.smartmuseum.activity
 
-import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.support.design.widget.FloatingActionButton
-import android.support.design.widget.NavigationView
-import android.support.design.widget.Snackbar
-import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
-import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.widget.Toolbar
-import android.view.Menu
-import android.view.MenuItem
+import android.util.Log
 import android.view.View
-import android.widget.ImageView
-import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
-import flaskoski.rs.smartmuseum.recommender.DatabaseIORequests
+import com.google.firebase.firestore.FirebaseFirestore
+import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.model.Rating
 import kotlinx.android.synthetic.main.activity_item_detail.*
 
 class ItemDetailActivity  : AppCompatActivity() {
 
-    private lateinit var databaseIORequests: DatabaseIORequests
-
     private var itemId: String? = null
+    private val TAG = "ItemDetails"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_item_detail)
 
-        val extras = Intent()
+        val extras = intent
         itemId = extras.getStringExtra("itemHash")
 
-        databaseIORequests = DatabaseIORequests(applicationContext)
     }
 
     fun rate(v : View){
@@ -68,6 +57,18 @@ class ItemDetailActivity  : AppCompatActivity() {
             }
         }else txt_rating.text = "Muito Ruim!"
 
-        itemId?.let { databaseIORequests.write("Felipe", it, rating) }
+        //itemId?.let { databaseIORequests.write("Felipe", it, rating) }
+        val db = FirebaseFirestore.getInstance()
+        itemId?.let {db.collection("ratings")
+                .add( Rating("Felipe", it, rating) )
+                .addOnSuccessListener { documentReference ->
+                    Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.id)
+
+                }
+                .addOnFailureListener { e ->
+                    Log.w(TAG, "Error adding document", e)
+                    //TODO offline mode with sync button
+                }
+        }
     }
 }
