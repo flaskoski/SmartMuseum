@@ -21,4 +21,24 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                     throw Exception("Error getting ratings")
                 }
     }
+
+    fun add(rating: Rating){
+        db.collection("ratings")
+                .whereEqualTo("user", rating.user)
+                .whereEqualTo("item", rating.item)
+                .get().addOnSuccessListener { ratingsList ->
+                    if(ratingsList.isEmpty)
+                        db.collection("ratings").add(rating)
+                    else
+                        for(ratingItem in ratingsList){
+                            ratingItem.reference.set(rating)
+                        }
+                }
+                .addOnFailureListener { e ->
+                    Log.w(TAG, "Error adding document", e)
+                    //TODO offline mode with sync button
+                }
+
+
+    }
 }

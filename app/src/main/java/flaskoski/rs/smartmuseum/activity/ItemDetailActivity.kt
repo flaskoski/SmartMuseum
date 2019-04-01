@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import com.google.firebase.firestore.FirebaseFirestore
+import flaskoski.rs.smartmuseum.DAO.ItemDAO
+import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Rating
 import kotlinx.android.synthetic.main.activity_item_detail.*
@@ -57,18 +59,9 @@ class ItemDetailActivity  : AppCompatActivity() {
             }
         }else txt_rating.text = "Muito Ruim!"
 
-        //itemId?.let { databaseIORequests.write("Felipe", it, rating) }
-        val db = FirebaseFirestore.getInstance()
-        itemId?.let {db.collection("ratings")
-                .add( Rating("Felipe", it, rating) )
-                .addOnSuccessListener { documentReference ->
-                    Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.id)
-
-                }
-                .addOnFailureListener { e ->
-                    Log.w(TAG, "Error adding document", e)
-                    //TODO offline mode with sync button
-                }
+        itemId?.let {
+            val ratingDAO = RatingDAO()
+            ratingDAO.add(Rating("Felipe", it, rating))
         }
     }
 }
