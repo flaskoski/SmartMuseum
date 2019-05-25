@@ -6,7 +6,25 @@ import flaskoski.rs.smartmuseum.model.Rating
 
 class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
     private val TAG = "RatingDAO"
-    fun getAllItems(callback : (itemsList : List<Rating>) -> Unit) {
+
+    fun getAllByType(type : String, callback : (ratingList : List<Rating>) -> Unit) {
+        //add items to grid from DB
+        db.collection("ratings")
+                .whereEqualTo("type", type)
+                .get()
+                .addOnSuccessListener { result ->
+                    val ratingsList : ArrayList<Rating> = ArrayList()
+                    for (document in result) {
+                        ratingsList.add(document.toObject(Rating::class.java))
+                    }
+                    callback(ratingsList)
+                }.addOnFailureListener { exception ->
+                    Log.w(TAG, "Error getting documents.", exception)
+                    throw Exception("Error getting ratings")
+                }
+    }
+
+    fun getAllItems(callback : (ratingList : List<Rating>) -> Unit) {
         //add items to grid from DB
         db.collection("ratings")
                 .get()
@@ -37,7 +55,5 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                     Log.w(TAG, "Error adding document", e)
                     //TODO offline mode with sync button
                 }
-
-
     }
 }

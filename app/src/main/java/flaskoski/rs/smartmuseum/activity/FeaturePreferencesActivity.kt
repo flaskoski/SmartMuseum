@@ -6,12 +6,14 @@ import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.listAdapter.FeaturesListAdapter
 import flaskoski.rs.smartmuseum.model.Feature
 import flaskoski.rs.smartmuseum.model.Rating
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_feature_preferences.*
 
 class FeaturePreferencesActivity : AppCompatActivity() {
@@ -24,8 +26,6 @@ class FeaturePreferencesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_feature_preferences)
-
-
 
         featureList.add(Feature("Física"))
         featureList.add(Feature("Química"))
@@ -43,11 +43,11 @@ class FeaturePreferencesActivity : AppCompatActivity() {
 //        val databaseIORequests: DatabaseIORequests = DatabaseIORequests(applicationContext)
         var rating : Rating
         for(feature in featureList) {
-            rating = Rating("Felipe", feature.name, feature.rating)
+            rating = Rating(ApplicationProperties.user.id, feature.name, feature.rating, Rating.TYPE_FEATURE)
             db.add(rating)
             Log.i(TAG, rating.toString())
         }
-
+        //TODO check if correctly saved on db
         setResult(Activity.RESULT_OK)
         finish()
     }

@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
@@ -17,9 +18,13 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
+import flaskoski.rs.smartmuseum.model.User
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+    companion object{
+        val user = User("Felipe", "Felipe")
+    }
 
     private val itemsList = ArrayList<Item>()
     private var ratingsList  = ArrayList<Rating>()
@@ -118,6 +123,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == RESULT_OK) {
+            Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
             updateRecommender()
         }
     }
@@ -127,6 +133,7 @@ class MainActivity : AppCompatActivity() {
             ratingsList = it as ArrayList<Rating>
             adapter.recommender = RecommenderBuilder().buildKNNRecommender(it, applicationContext)
             adapter.notifyDataSetChanged()
+            Toast.makeText(applicationContext, "Atualizado!", Toast.LENGTH_SHORT).show()
         }
     }
 
