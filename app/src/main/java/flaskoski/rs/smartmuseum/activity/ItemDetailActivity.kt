@@ -1,5 +1,6 @@
 package flaskoski.rs.smartmuseum.activity
 
+import android.app.Activity
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -60,8 +61,12 @@ class ItemDetailActivity  : AppCompatActivity() {
         }else txt_rating.text = "Muito Ruim!"
 
         itemId?.let {
-            val ratingDAO = RatingDAO()
-            ratingDAO.add(Rating("Felipe", it, rating))
+            RatingDAO().add(Rating("Felipe", it, rating))
         }
+    }
+
+    override fun onBackPressed() {
+        setResult(Activity.RESULT_OK)
+        finish()
     }
 }

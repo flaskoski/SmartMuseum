@@ -21,7 +21,18 @@ import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.model.User
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
+
+    private val REQUEST_GET_PREFERENCES: Int = 1
+    private val REQUEST_ITEM_RATING_CHANGE: Int = 2
+
+    override fun shareOnItemClicked(p1: Int) {
+        val viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
+        viewItemDetails.putExtra("itemHash", itemsList[p1].id)
+
+        startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
+    }
+
     companion object{
         val user = User("Felipe", "Felipe")
     }
@@ -71,7 +82,7 @@ class MainActivity : AppCompatActivity() {
         // Access a Cloud Firestore instance from your Activity
 
         itemsGridList.layoutManager = GridLayoutManager(this, 2)
-        adapter = ItemsGridListAdapter(itemsList, applicationContext)
+        adapter = ItemsGridListAdapter(itemsList, applicationContext, this)
         itemsGridList.adapter = adapter
 
         val itemDAO = ItemDAO()
@@ -107,14 +118,12 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    private val GET_PREFERENCES: Int = 1
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.option_features -> {
                 val goToFeaturePreferences = Intent(applicationContext, FeaturePreferencesActivity::class.java)
                // goToPlayerProfileIntent.putExtra("uid", uid)
-                startActivityForResult(goToFeaturePreferences, GET_PREFERENCES)
+                startActivityForResult(goToFeaturePreferences, REQUEST_GET_PREFERENCES)
                 return true
             }
             else -> return super.onOptionsItemSelected(item)
@@ -123,8 +132,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == RESULT_OK) {
-            Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
-            updateRecommender()
+            if(requestCode == REQUEST_GET_PREFERENCES || requestCode == REQUEST_ITEM_RATING_CHANGE) {
+                Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
+                updateRecommender()
+            }
         }
     }
 
