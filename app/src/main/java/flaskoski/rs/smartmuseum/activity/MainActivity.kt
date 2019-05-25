@@ -28,7 +28,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     override fun shareOnItemClicked(p1: Int) {
         val viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
-        viewItemDetails.putExtra("itemHash", itemsList[p1].id)
+        val itemId = itemsList[p1].id
+        var itemRating : Float = 0F
+        ratingsList.find { it.item == itemId }?.let { itemRating = it.rating}
+        viewItemDetails.putExtra("itemHash", itemId)
+        viewItemDetails.putExtra("itemRating", itemRating)
 
         startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
     }
