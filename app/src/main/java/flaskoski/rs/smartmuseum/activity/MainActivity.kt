@@ -22,7 +22,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity() {
 
     private val itemsList = ArrayList<Item>()
-    private val ratingsList  = ArrayList<Rating>()
+    private var ratingsList  = ArrayList<Rating>()
     private val TAG = "MainActivity"
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
@@ -102,15 +102,31 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    private val GET_PREFERENCES: Int = 1
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.option_features -> {
                 val goToFeaturePreferences = Intent(applicationContext, FeaturePreferencesActivity::class.java)
                // goToPlayerProfileIntent.putExtra("uid", uid)
-                startActivity(goToFeaturePreferences)
+                startActivityForResult(goToFeaturePreferences, GET_PREFERENCES)
                 return true
             }
             else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == RESULT_OK) {
+            updateRecommender()
+        }
+    }
+
+    private fun updateRecommender() {
+        RatingDAO().getAllItems{
+            ratingsList = it as ArrayList<Rating>
+            adapter.recommender = RecommenderBuilder().buildKNNRecommender(it, applicationContext)
+            adapter.notifyDataSetChanged()
         }
     }
 

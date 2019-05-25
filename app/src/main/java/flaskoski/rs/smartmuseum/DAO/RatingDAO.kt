@@ -21,7 +21,6 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                     throw Exception("Error getting ratings")
                 }
     }
-
     fun add(rating: Rating){
         db.collection("ratings")
                 .whereEqualTo("user", rating.user)

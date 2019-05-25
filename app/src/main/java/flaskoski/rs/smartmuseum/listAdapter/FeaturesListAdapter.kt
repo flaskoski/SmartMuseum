@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Feature
 import kotlinx.android.synthetic.main.feature_item.view.*
+import net.librec.recommender.Recommender
 
 class FeaturesListAdapter(private val featuresList: List<Feature>, private val context: Context) : RecyclerView.Adapter<FeaturesListAdapter.ItemViewHolder>() {
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
