@@ -55,31 +55,6 @@ class ItemDetailActivity  : AppCompatActivity() {
         setStars(rating)
         txt_rating.setText(ratingTexts[index])
 
-
-//        if(!v.equals(img_star1)){
-//            img_star2.setImageResource(android.R.drawable.btn_star_big_on)
-//            if(!v.equals(img_star2)){
-//                img_star3.setImageResource(android.R.drawable.btn_star_big_on)
-//                if(!v.equals(img_star3)){
-//                    img_star4.setImageResource(android.R.drawable.btn_star_big_on)
-//                    if(!v.equals(img_star4)){
-//                        img_star5.setImageResource(android.R.drawable.btn_star_big_on)
-//                        txt_rating.text = "Adorei!"
-//                        rating = 5F
-//                    }else{
-//                        txt_rating.text = "Gostei!"
-//                        rating = 4F
-//                    }
-//                }else{
-//                    txt_rating.text = "Regular"
-//                    rating = 3F
-//                }
-//            }else {
-//                txt_rating.text = "Não Gostei!"
-//                rating = 2F
-//            }
-//        }else txt_rating.text = "Muito Ruim!"
-
         ApplicationProperties.user?.id?.let {
             RatingDAO().add(Rating(it, currentItem!!.id, rating))
         }

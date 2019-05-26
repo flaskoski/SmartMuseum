@@ -7,15 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
-import kotlinx.android.synthetic.main.activity_item_detail.view.*
+import flaskoski.rs.smartmuseum.recommender.RecommenderManager
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.grid_item.view.*
-import net.librec.recommender.Recommender
-import net.librec.recommender.cf.UserKNNRecommender
 
 class ItemsGridListAdapter(private val itemsList: List<Item>,
                            private val context: Context,
                            val mainActivityCallback : OnShareClickListener,
-                           var recommender: Recommender? = null)
+                           var recommenderManager: RecommenderManager)
     : RecyclerView.Adapter<ItemsGridListAdapter.ItemViewHolder>() {
 
 
@@ -27,13 +26,12 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
         p0.itemView.img_itemThumb.setImageResource(context.resources.getIdentifier(itemsList[p1].photoId, "drawable", context.packageName))
         //p0.itemView.ratingBar.rating = itemsList.get(p1).avgRating
 
-        if(recommender != null) {
-            val userIndex = (recommender as UserKNNRecommender).userMappingData.get("Felipe")
-            val itemIndex = (recommender as UserKNNRecommender).itemMappingData.get(itemsList.get(p1).id)?.toInt()
-            if (userIndex != null && itemIndex != null)
-                p0.itemView.ratingBar.rating = (recommender as UserKNNRecommender).predict(userIndex, itemIndex).toFloat()
+        if(!ApplicationProperties.userNotDefinedYet()) {
+            val rating = recommenderManager.getPrediction(ApplicationProperties.user!!.id, itemsList.get(p1).id)
+            if(rating != null)
+                p0.itemView.ratingBar.rating = rating
             else p0.itemView.ratingBar.rating = 0F
-        }
+        }else p0.itemView.ratingBar.rating = 0F
 
         p0.itemView.setOnClickListener{
             mainActivityCallback.shareOnItemClicked(p1)

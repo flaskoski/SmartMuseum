@@ -22,17 +22,10 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_margin="4dp"
+        app:layout_constraintBottom_toTopOf="@+id/navigation"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        tools:layout_editor_absoluteX="4dp"
+        tools:layout_editor_absoluteX="16dp"
         tools:listitem="@layout/grid_item" />
-
-    <!--<FrameLayout
-        android:id="@+id/frame_list_items"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#fff"
-        android:elevation="4dp">
-    </FrameLayout> -->
 
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/navigation"

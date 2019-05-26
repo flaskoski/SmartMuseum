@@ -19,50 +19,42 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/itemsGridList"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="4dp"
         android:layout_marginBottom="8dp"
-        android:clipChildren="true"
-        android:clipToPadding="true"
-        app:layout_constraintBottom_toTopOf="@+id/navigation"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:layout_constraintVertical_bias="0.0"
-        tools:layout_editor_absoluteX="4dp"
         tools:listitem="@layout/grid_item" />
 
-    <!--<FrameLayout
-        android:id="@+id/frame_list_items"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#fff"
-        android:elevation="4dp">
-    </FrameLayout> -->
-
     <android.support.design.widget.BottomNavigationView
-        android:id="@+id/navigation"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:menu="@menu/navigation" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:scaleType="center"
-        android:scaleX="1.3"
-        android:scaleY="1.3"
-        app:fabSize="mini"
-        app:layout_constraintBottom_toTopOf="@+id/navigation"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@mipmap/qr_code_icon" />
+         android:id="@+id/navigation"
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintLeft_toLeftOf="parent"
+         app:layout_constraintRight_toRightOf="parent"
+         app:menu="@menu/navigation" />
 
 
-</android.support.constraint.ConstraintLayout>
+     <android.support.design.widget.FloatingActionButton
+         android:id="@+id/fab"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="bottom|end"
+         android:layout_margin="@dimen/fab_margin"
+         android:layout_marginEnd="16dp"
+         android:layout_marginBottom="16dp"
+         android:scaleType="center"
+         android:scaleX="1.3"
+         android:scaleY="1.3"
+         app:fabSize="mini"
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:srcCompat="@mipmap/qr_code_icon" />
+
+
+ </android.support.constraint.ConstraintLayout>

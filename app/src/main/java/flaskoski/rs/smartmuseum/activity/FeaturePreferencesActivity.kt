@@ -1,6 +1,7 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.app.Activity
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
@@ -29,8 +30,8 @@ class FeaturePreferencesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_feature_preferences)
 
-        if(!ApplicationProperties.isTheBeginning())
-            txt_username.text = ApplicationProperties.user?.name as Editable
+        if(!ApplicationProperties.userNotDefinedYet())
+            txt_username.setText(ApplicationProperties.user?.name)
 
         featureList.add(Feature("Física"))
         featureList.add(Feature("Química"))
@@ -53,24 +54,26 @@ class FeaturePreferencesActivity : AppCompatActivity() {
         }
 
         //username informed
-        if(ApplicationProperties.isTheBeginning())
+        if(ApplicationProperties.userNotDefinedYet())
             saveCurrentUserOnDb()
         //username already exists -> update name and keep id
         else ApplicationProperties.user!!.name = txt_username.text.toString()
 
-
+        var ratings = ArrayList<Rating>()
         //save ratings
         ApplicationProperties.user?.id?.let {
-            var rating : Rating
             for(feature in featureList) {
-                rating = Rating(it, feature.name, feature.rating, Rating.TYPE_FEATURE)
+                var rating = Rating(it, feature.name, feature.rating, Rating.TYPE_FEATURE)
                 db.add(rating)
+                ratings.add(rating)
                 Log.i(TAG, rating.toString())
             }
         }
 
         //TODO check if correctly saved on db
-        setResult(Activity.RESULT_OK)
+        val returningRatingsIntent = Intent()
+        returningRatingsIntent.putExtra("featureRatings", ratings)
+        setResult(Activity.RESULT_OK, returningRatingsIntent)
         finish()
     }
 

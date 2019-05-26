@@ -1,7 +1,6 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.content.Intent
-import android.content.res.Resources
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.FloatingActionButton
@@ -19,9 +18,11 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
-import flaskoski.rs.smartmuseum.model.User
+import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.grid_item.view.*
+import java.util.*
 
 class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
 
@@ -73,31 +74,48 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         // Access a Cloud Firestore instance from your Activity
 
         itemsGridList.layoutManager = GridLayoutManager(this, 2)
-        adapter = ItemsGridListAdapter(itemsList, applicationContext, this)
+        adapter = ItemsGridListAdapter(itemsList, applicationContext, this, RecommenderManager())
         itemsGridList.adapter = adapter
 
         val itemDAO = ItemDAO()
         itemDAO.getAllItems {
             itemsList.addAll(it)
             parallelRequestsManager.decreaseRemainingRequests()
-            buildRecommender()
+            if(parallelRequestsManager.isComplete!!)
+                buildRecommender()
         }
         val ratingDAO = RatingDAO()
         ratingDAO.getAllItems {
             ratingsList.addAll(it)
             parallelRequestsManager.decreaseRemainingRequests()
-            buildRecommender()
+            if(parallelRequestsManager.isComplete!!)
+                buildRecommender()
         }
+        if(ApplicationProperties.userNotDefinedYet()){
+            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
+        }
+    }
 
+
+    private fun updateRecommender() {
+            buildRecommender()
+            Toast.makeText(applicationContext, "Atualizado!", Toast.LENGTH_SHORT).show()
     }
 
     private fun buildRecommender() {
-        if(parallelRequestsManager.isComplete!!){
-            val recommender = RecommenderBuilder().buildKNNRecommender(ratingsList, applicationContext)
+        adapter.recommenderManager.recommender = RecommenderBuilder().buildKNNRecommender(ratingsList, applicationContext)
 
-            adapter.recommender = recommender
-            adapter.notifyDataSetChanged()
+        if(!ApplicationProperties.userNotDefinedYet()) {
+            for(item in itemsList){
+                val rating = adapter.recommenderManager.getPrediction(ApplicationProperties.user!!.id, item.id)
+                if (rating != null)
+                    item.recommedationRating = rating
+                else item.recommedationRating = 0F
+            }
+            itemsList.sortByDescending{it.recommedationRating}
         }
+        adapter.notifyDataSetChanged()
     }
 
     override fun onResume() {
@@ -126,19 +144,13 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         if (resultCode == RESULT_OK) {
             if(requestCode == REQUEST_GET_PREFERENCES || requestCode == REQUEST_ITEM_RATING_CHANGE) {
                 Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
+                if(data != null)
+                    ratingsList.addAll(data.getSerializableExtra("featureRatings") as List<Rating>)
                 updateRecommender()
             }
         }
     }
 
-    private fun updateRecommender() {
-        RatingDAO().getAllItems{
-            ratingsList = it as ArrayList<Rating>
-            adapter.recommender = RecommenderBuilder().buildKNNRecommender(it, applicationContext)
-            adapter.notifyDataSetChanged()
-            Toast.makeText(applicationContext, "Atualizado!", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     override fun shareOnItemClicked(p1: Int) {
         if(ApplicationProperties.user == null)

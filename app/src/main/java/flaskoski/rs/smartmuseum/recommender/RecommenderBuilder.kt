@@ -55,10 +55,10 @@ class RecommenderBuilder{
         conf.set("data.model.splitter", "kcv")
         conf.set("data.splitter.cv.number", "5")
         conf.set("data.splitter.cv.index", "1")
-        conf.set("rec.recommender.similarities", "user")
+        conf.set("rec.recommenderManager.similarities", "user")
 
         conf.set("rec.neighbors.knn.number", knn.toString())
-        conf.set("rec.recommender.isranking", useRanking.toString())
+        conf.set("rec.recommenderManager.isranking", useRanking.toString())
 
         return conf;
     }
