@@ -1,20 +1,23 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.app.Activity
+import android.app.Application
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_item_detail.*
 
 class ItemDetailActivity  : AppCompatActivity() {
 
-    private var itemId: String? = null
     private var itemRating: Float = 0F
     private var isRatingChanged = false
+    private var currentItem : Item? = null
     private val TAG = "ItemDetails"
     lateinit var starViews : List<ImageView>
     val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
@@ -25,11 +28,15 @@ class ItemDetailActivity  : AppCompatActivity() {
         starViews = listOf<ImageView>(img_star1, img_star2, img_star3, img_star4, img_star5)
 
         val extras = intent
-        itemId = extras.getStringExtra("itemHash")
+        currentItem = extras.getSerializableExtra("itemClicked") as Item?
         itemRating = extras.getFloatExtra("itemRating", 0F)
-        setStarts(itemRating)
+        setStars(itemRating)
+        currentItem?.let {
+            imageView.setImageResource(this.resources.getIdentifier(it.photoId, "drawable", applicationContext.packageName))
+            item_description.text = it.description
+        }
     }
-    private fun setStarts(rating: Float) {
+    private fun setStars(rating: Float) {
         var count = 0
         starViews.forEach{
             if(count++ < rating)
@@ -45,7 +52,7 @@ class ItemDetailActivity  : AppCompatActivity() {
         txt_rating.visibility = View.VISIBLE
         val index = starViews.indexOf(v)
         rating = (index+1).toFloat()
-        setStarts(rating)
+        setStars(rating)
         txt_rating.setText(ratingTexts[index])
 
 
@@ -73,8 +80,8 @@ class ItemDetailActivity  : AppCompatActivity() {
 //            }
 //        }else txt_rating.text = "Muito Ruim!"
 
-        itemId?.let {
-            RatingDAO().add(Rating("Felipe", it, rating))
+        ApplicationProperties.user?.id?.let {
+            RatingDAO().add(Rating(it, currentItem!!.id, rating))
         }
         isRatingChanged = true
     }

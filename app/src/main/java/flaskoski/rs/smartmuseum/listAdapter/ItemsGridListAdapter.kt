@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
+import kotlinx.android.synthetic.main.activity_item_detail.view.*
 import kotlinx.android.synthetic.main.grid_item.view.*
 import net.librec.recommender.Recommender
 import net.librec.recommender.cf.UserKNNRecommender
@@ -23,6 +24,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
     }
     override fun onBindViewHolder(p0: ItemViewHolder, p1: Int) {
         p0.itemView.itemName.text = itemsList.get(p1).title
+        p0.itemView.img_itemThumb.setImageResource(context.resources.getIdentifier(itemsList[p1].photoId, "drawable", context.packageName))
         //p0.itemView.ratingBar.rating = itemsList.get(p1).avgRating
 
         if(recommender != null) {

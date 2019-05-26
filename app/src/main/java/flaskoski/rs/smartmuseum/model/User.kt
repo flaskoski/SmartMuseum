@@ -2,7 +2,7 @@ package flaskoski.rs.smartmuseum.model
 
 import java.util.*
 
-class User(val id : String, val login : String) {
+class User(val id : String, var name : String) {
 
 
 }

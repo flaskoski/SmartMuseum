@@ -10,6 +10,7 @@ import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Feature
 import flaskoski.rs.smartmuseum.model.Rating
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.feature_item.view.*
 
 class FeaturesListAdapter(private val featuresList: List<Feature>, private val context: Context) : RecyclerView.Adapter<FeaturesListAdapter.ItemViewHolder>() {
@@ -20,12 +21,14 @@ class FeaturesListAdapter(private val featuresList: List<Feature>, private val c
             featureNames.add(feature.name)
         }
         //look for feature ratings on db and update
-        RatingDAO().getAllByType(Rating.TYPE_FEATURE) {
-            Toast.makeText(context, "Carregando valores...", Toast.LENGTH_SHORT)
-            for(rating in it){
-                featuresList.find{ i -> i.name == rating.item }.let { feature -> feature?.rating = rating.rating }
+        ApplicationProperties.user?.id?.let {userId ->
+            RatingDAO().getAllFromUserByType(userId, Rating.TYPE_FEATURE) {featureRatings ->
+                Toast.makeText(context, "Carregando valores...", Toast.LENGTH_SHORT)
+                for(rating in featureRatings){
+                    featuresList.find{ i -> i.name == rating.item }.let { feature -> feature?.rating = rating.rating }
+                }
+                notifyDataSetChanged()
             }
-            notifyDataSetChanged()
         }
     }
 

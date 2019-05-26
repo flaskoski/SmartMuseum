@@ -1,6 +1,7 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.content.Intent
+import android.content.res.Resources
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.FloatingActionButton
@@ -19,27 +20,13 @@ import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.model.User
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
 
     private val REQUEST_GET_PREFERENCES: Int = 1
     private val REQUEST_ITEM_RATING_CHANGE: Int = 2
-
-    override fun shareOnItemClicked(p1: Int) {
-        val viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
-        val itemId = itemsList[p1].id
-        var itemRating : Float = 0F
-        ratingsList.find { it.item == itemId }?.let { itemRating = it.rating}
-        viewItemDetails.putExtra("itemHash", itemId)
-        viewItemDetails.putExtra("itemRating", itemRating)
-
-        startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
-    }
-
-    companion object{
-        val user = User("Felipe", "Felipe")
-    }
 
     private val itemsList = ArrayList<Item>()
     private var ratingsList  = ArrayList<Rating>()
@@ -101,6 +88,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             parallelRequestsManager.decreaseRemainingRequests()
             buildRecommender()
         }
+
     }
 
     private fun buildRecommender() {
@@ -152,4 +140,22 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
+    override fun shareOnItemClicked(p1: Int) {
+        if(ApplicationProperties.user == null)
+        {
+            Toast.makeText(applicationContext, "Usário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG).show()
+            return
+        }
+        val viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
+        val itemId = itemsList[p1].id
+        var itemRating : Float
+        ratingsList.find { it.user == ApplicationProperties.user?.id
+                && it.item == itemId }?.let {
+            itemRating = it.rating
+            viewItemDetails.putExtra("itemRating", itemRating)
+        }
+
+        viewItemDetails.putExtra("itemClicked", itemsList[p1])
+        startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
+    }
 }

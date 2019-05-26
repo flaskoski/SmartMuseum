@@ -12,7 +12,7 @@
     <string name="title_notifications">Notifications</string>
     <string name="title_activity_main2">Main2Activity</string>
     <string name="option_feature">Preferências</string>
-    <string name="rating1">Detestei! Não Gostei! Regular Gostei! Adorei!</string>
+    <string name="rating1">Detestei!</string>
     <string name="rating2">Não Gostei! </string>
     <string name="rating3">Regular </string>
     <string name="rating4">Gostei!</string>

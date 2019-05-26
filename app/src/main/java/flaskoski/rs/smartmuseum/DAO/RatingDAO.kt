@@ -7,10 +7,11 @@ import flaskoski.rs.smartmuseum.model.Rating
 class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
     private val TAG = "RatingDAO"
 
-    fun getAllByType(type : String, callback : (ratingList : List<Rating>) -> Unit) {
+    fun getAllFromUserByType(userId : String, type : String, callback : (ratingList : List<Rating>) -> Unit) {
         //add items to grid from DB
         db.collection("ratings")
                 .whereEqualTo("type", type)
+                .whereEqualTo("user", userId)
                 .get()
                 .addOnSuccessListener { result ->
                     val ratingsList : ArrayList<Rating> = ArrayList()
