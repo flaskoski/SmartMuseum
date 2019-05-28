@@ -6,7 +6,7 @@ import android.R.attr.name
 
 
 
-class Rating(val user : String ="", val item : String = "", val rating : Float = 0F, val type : String = TYPE_ITEM) : Serializable{
+class Rating(val user : String ="", val item : String = "", var rating : Float = 0F, val type : String = TYPE_ITEM) : Serializable{
     companion object {
         fun containsRating(ratingsList: ArrayList<Rating>, element: Rating): Boolean {
             return ratingsList.filter { rating ->

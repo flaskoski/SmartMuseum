@@ -31,21 +31,21 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private val itemsList = ArrayList<Item>()
     private var ratingsList  = HashSet<Rating>()
     private val TAG = "MainActivity"
-    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
-        when (item.itemId) {
-            R.id.navigation_home -> {
-                return@OnNavigationItemSelectedListener true
-            }
-            R.id.navigation_dashboard -> {
-                return@OnNavigationItemSelectedListener true
-            }
-            R.id.navigation_notifications -> {
-              //  message.setText(R.string.title_notifications)
-                return@OnNavigationItemSelectedListener true
-            }
-        }
-        false
-    }
+//    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
+//        when (item.itemId) {
+//            R.id.navigation_home -> {
+//                return@OnNavigationItemSelectedListener true
+//            }
+//            R.id.navigation_dashboard -> {
+//                return@OnNavigationItemSelectedListener true
+//            }
+//            R.id.navigation_notifications -> {
+//              //  message.setText(R.string.title_notifications)
+//                return@OnNavigationItemSelectedListener true
+//            }
+//        }
+//        false
+//    }
 
     private lateinit var adapter: ItemsGridListAdapter
 
@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
         }
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
+   //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         //---------------------------------------------------------------------
 
         parallelRequestsManager = ParallelRequestsManager(2)
@@ -141,15 +141,18 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == RESULT_OK) {
-            if(requestCode == REQUEST_GET_PREFERENCES || requestCode == REQUEST_ITEM_RATING_CHANGE) {
-                Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
+            if(requestCode == REQUEST_GET_PREFERENCES) {
                 if(data != null)
                     (data.getSerializableExtra("featureRatings") as List<Rating>).forEach{
-                        //TODO CHECK IF ITS NOT ADDING "DUPLICATES"
                         ratingsList.add(it)
                     }
-                updateRecommender()
             }
+            if(requestCode == REQUEST_ITEM_RATING_CHANGE){
+                if(data != null)
+                    ratingsList.add(data.getSerializableExtra("itemRating") as Rating)
+            }
+            updateRecommender()
         }
     }
 

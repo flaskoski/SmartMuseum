@@ -1,11 +1,13 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.app.Activity
-import android.app.Application
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import android.widget.Toast
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
@@ -15,12 +17,12 @@ import kotlinx.android.synthetic.main.activity_item_detail.*
 
 class ItemDetailActivity  : AppCompatActivity() {
 
-    private var itemRating: Float = 0F
     private var isRatingChanged = false
     private var currentItem : Item? = null
     private val TAG = "ItemDetails"
+    private lateinit var itemRating : Rating
     lateinit var starViews : List<ImageView>
-    val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
+    private val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,9 +31,10 @@ class ItemDetailActivity  : AppCompatActivity() {
 
         val extras = intent
         currentItem = extras.getSerializableExtra("itemClicked") as Item?
-        itemRating = extras.getFloatExtra("itemRating", 0F)
-        setStars(itemRating)
+        val rating = extras.getFloatExtra("itemRating", 0F)
+        setStars(rating)
         currentItem?.let {
+            itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating)
             imageView.setImageResource(this.resources.getIdentifier(it.photoId, "drawable", applicationContext.packageName))
             item_description.text = it.description
         }
@@ -47,24 +50,29 @@ class ItemDetailActivity  : AppCompatActivity() {
     }
 
     fun rate(v : View){
-        var rating : Float = 1.0F
-
         txt_rating.visibility = View.VISIBLE
         val index = starViews.indexOf(v)
-        rating = (index+1).toFloat()
-        setStars(rating)
-        txt_rating.setText(ratingTexts[index])
+        itemRating.rating = (index+1).toFloat()
+        setStars(itemRating.rating)
+        Toast.makeText(applicationContext, ratingTexts[index], Toast.LENGTH_SHORT).show()
+//        txt_rating.setText(ratingTexts[index])
 
         ApplicationProperties.user?.id?.let {
-            RatingDAO().add(Rating(it, currentItem!!.id, rating))
+            RatingDAO().add(itemRating)
+
         }
         isRatingChanged = true
     }
 
     override fun onBackPressed() {
-        if(!isRatingChanged) super.onBackPressed()
+        if(!isRatingChanged){
+            super.onBackPressed()
+            finish()
+        }
 
-        setResult(Activity.RESULT_OK)
+        val returnRatingIntent = Intent()
+        returnRatingIntent.putExtra("itemRating", itemRating)
+        setResult(Activity.RESULT_OK, returnRatingIntent)
         finish()
     }
 }

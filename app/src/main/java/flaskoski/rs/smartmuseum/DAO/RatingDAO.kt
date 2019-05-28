@@ -45,11 +45,15 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                 .whereEqualTo("user", rating.user)
                 .whereEqualTo("item", rating.item)
                 .get().addOnSuccessListener { ratingsList ->
-                    if(ratingsList.isEmpty)
+                    if(ratingsList.isEmpty){
                         db.collection("ratings").add(rating)
+                        Log.i(TAG, "Rating added on db: $rating")
+                    }
+
                     else
                         for(ratingItem in ratingsList){
                             ratingItem.reference.set(rating)
+                            Log.i(TAG, "Rating changed on db: $rating")
                         }
                 }
                 .addOnFailureListener { e ->
