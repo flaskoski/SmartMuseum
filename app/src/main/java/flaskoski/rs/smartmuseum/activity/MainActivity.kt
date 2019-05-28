@@ -21,7 +21,6 @@ import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.grid_item.view.*
 import java.util.*
 
 class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
@@ -30,7 +29,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private val REQUEST_ITEM_RATING_CHANGE: Int = 2
 
     private val itemsList = ArrayList<Item>()
-    private var ratingsList  = ArrayList<Rating>()
+    private var ratingsList  = HashSet<Rating>()
     private val TAG = "MainActivity"
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
@@ -145,7 +144,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             if(requestCode == REQUEST_GET_PREFERENCES || requestCode == REQUEST_ITEM_RATING_CHANGE) {
                 Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
                 if(data != null)
-                    ratingsList.addAll(data.getSerializableExtra("featureRatings") as List<Rating>)
+                    (data.getSerializableExtra("featureRatings") as List<Rating>).forEach{
+                        //TODO CHECK IF ITS NOT ADDING "DUPLICATES"
+                        ratingsList.add(it)
+                    }
                 updateRecommender()
             }
         }

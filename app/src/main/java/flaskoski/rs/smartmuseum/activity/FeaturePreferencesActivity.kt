@@ -5,7 +5,6 @@ import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
-import android.text.Editable
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -19,11 +18,12 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import java.util.*
 
-class FeaturePreferencesActivity : AppCompatActivity() {
+class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
 
     val featureList = ArrayList<Feature>()
     val db = RatingDAO()
     private val TAG = "##--FeaturePreferences"
+    private var allFeaturesRated : Boolean = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +39,7 @@ class FeaturePreferencesActivity : AppCompatActivity() {
         featureList.add(Feature("Geologia"))
         featureList.add(Feature("Biologia"))
 
-        val adapter = FeaturesListAdapter(featureList, applicationContext)
+        val adapter = FeaturesListAdapter(featureList, applicationContext, this)
         list_features.layoutManager = LinearLayoutManager(applicationContext)
         list_features.adapter = adapter
 
@@ -50,6 +50,10 @@ class FeaturePreferencesActivity : AppCompatActivity() {
         if(txt_username.text.isBlank()){
             Toast.makeText(applicationContext, "Nome em branco! Por favor, informe um nome de usuário.", Toast.LENGTH_SHORT).show()
             txt_username.setError("Nome em branco!")
+            return
+        }
+        if(!allFeaturesRated){
+            Toast.makeText(applicationContext, "Por favor, informe seu nível de interesse em cada categoria antes de avançar.", Toast.LENGTH_LONG).show()
             return
         }
 
@@ -79,5 +83,9 @@ class FeaturePreferencesActivity : AppCompatActivity() {
 
     private fun saveCurrentUserOnDb() {
         ApplicationProperties.user = User(UUID.randomUUID().toString(), txt_username.text.toString() )
+    }
+
+    override fun onRatingsCompleted() {
+        allFeaturesRated = true
     }
 }

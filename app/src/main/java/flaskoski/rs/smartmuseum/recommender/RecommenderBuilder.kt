@@ -1,20 +1,14 @@
 package flaskoski.rs.rs_cf_test.recommender
 
 import android.content.Context
-import android.util.Log
-import android.widget.Toast
-import com.google.firebase.firestore.FirebaseFirestore
-import flaskoski.rs.smartmuseum.DAO.ItemDAO
-import flaskoski.rs.smartmuseum.DAO.RatingDAO
-import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
 import net.librec.conf.Configuration
 import flaskoski.rs.smartmuseum.recommender.RSCustomConvertor.NioFreeTextDataModel
-import net.librec.common.LibrecException
 import net.librec.recommender.Recommender
 import net.librec.recommender.RecommenderContext
 import net.librec.recommender.cf.UserKNNRecommender
 import net.librec.similarity.CosineSimilarity
+import java.util.HashSet
 
 class RecommenderBuilder{
 
@@ -23,15 +17,15 @@ class RecommenderBuilder{
     private var useRanking: Boolean = false
     private val TAG = "RecommenderBuilder"
 
-    fun buildKNNRecommender(ratings : List<Rating>,
+    fun buildKNNRecommender(ratings: Set<Rating>,
                             context: Context,
-                            knn : Int =  4,
-                            useRanking : Boolean = false) : Recommender{
+                            knn: Int =  4,
+                            useRanking: Boolean = false) : Recommender{
         this.knn = knn.toString()
         this.useRanking = useRanking
 
         var conf = setConfiguration();
-        var dataModel = NioFreeTextDataModel(conf, ratings, context)
+        var dataModel = NioFreeTextDataModel(conf, ratings.toMutableList(), context)
         dataModel.buildDataModel()
 
 
