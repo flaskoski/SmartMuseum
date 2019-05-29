@@ -18,6 +18,7 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
+import flaskoski.rs.smartmuseum.model.User
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main.*
@@ -60,11 +61,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         //supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF677589")))
 
-        val fab = findViewById(R.id.fab) as FloatingActionButton
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
+//        val fab = findViewById(R.id.fab) as FloatingActionButton
+//        fab.setOnClickListener { view ->
+//            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                    .setAction("Action", null).show()
+//        }
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         //---------------------------------------------------------------------
 
@@ -160,8 +161,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     override fun shareOnItemClicked(p1: Int) {
         if(ApplicationProperties.user == null)
         {
+            //DEBUG
             Toast.makeText(applicationContext, "Usário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG).show()
             return
+       //     ApplicationProperties.user = User("Felipe", "Felipe")
+            //DEBUG
         }
         val viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
         val itemId = itemsList[p1].id

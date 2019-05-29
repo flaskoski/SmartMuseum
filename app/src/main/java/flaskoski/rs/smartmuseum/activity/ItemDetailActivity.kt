@@ -50,7 +50,7 @@ class ItemDetailActivity  : AppCompatActivity() {
     }
 
     fun rate(v : View){
-        txt_rating.visibility = View.VISIBLE
+        //txt_rating.visibility = View.VISIBLE
         val index = starViews.indexOf(v)
         itemRating.rating = (index+1).toFloat()
         setStars(itemRating.rating)
