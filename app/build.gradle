@@ -9,6 +9,7 @@ android {
         applicationId "flaskoski.rs.smartmuseum"
         minSdkVersion 17
         targetSdkVersion 28
+        multiDexEnabled true
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -39,6 +40,12 @@ dependencies {
 
     implementation 'com.google.firebase:firebase-core:16.0.7'
     implementation 'com.google.firebase:firebase-firestore:18.1.0'
+
+    //Maps activity
+    implementation 'com.google.android.gms:play-services-maps:16.1.0'
+    implementation 'com.google.android.gms:play-services-location:16.0.0'
+
+    implementation 'com.android.support:multidex:1.0.3'
 }
 repositories {
     mavenCentral()

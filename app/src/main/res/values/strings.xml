@@ -17,4 +17,5 @@
     <string name="rating3">Regular </string>
     <string name="rating4">Gostei!</string>
     <string name="rating5">Adorei!</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBH2PIjB-Bkfch6NcvFSxbJ4RNIhYJeUYg</string>
 </resources>
