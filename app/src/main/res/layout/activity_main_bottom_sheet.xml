@@ -2,18 +2,38 @@
 <android.widget.LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/sheet_next_items"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/common_google_signin_btn_text_dark_default"
-    app:behavior_hideable="true"
-    app:behavior_peekHeight="100dp"
+    android:layout_height="match_parent"
+    android:background="#f2f2f2"
+    android:onClick="toggleSheet"
+    android:orientation="vertical"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="40dp"
     app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+
+        <TextView
+            android:id="@+id/lb_next_items"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_gravity="top"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="4dp"
+            android:layout_weight="1"
+            android:background="#eeeeee"
+            android:ems="10"
+            android:onClick="toggleSheet"
+            android:text="@string/next_Attractions"
+            android:textAlignment="center" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/itemsGridList"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_weight="1"
             tools:layout_editor_absoluteX="16dp"
             tools:listitem="@layout/grid_item" />
         <!--app:layout_constraintBottom_toTopOf="@+id/navigation"-->

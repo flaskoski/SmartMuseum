@@ -1,31 +1,23 @@
 package flaskoski.rs.smartmuseum.activity
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.IntentSender
-import android.content.pm.PackageManager
-import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import android.support.design.widget.BottomSheetBehavior
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.LinearLayout
 import android.widget.Toast
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.*
+import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
+import com.google.common.collect.Maps
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
@@ -36,7 +28,6 @@ import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import java.util.*
 
@@ -83,6 +74,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
         super.onSaveInstanceState(outState)
     }
 
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         //------------Standard Side Menu Screen---------------------------
         super.onCreate(savedInstanceState)
@@ -92,7 +85,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
+        bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
         //supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF677589")))
 
 //        val fab = findViewById(R.id.fab) as FloatingActionButton
@@ -128,10 +121,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
             if(parallelRequestsManager.isComplete!!)
                 buildRecommender()
         }
-//        if(ApplicationProperties.userNotDefinedYet()){
-//            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-//            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
-//        }
+        if(ApplicationProperties.userNotDefinedYet()){
+            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
+        }
     }
 
     private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
@@ -236,8 +229,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
         // Add a marker in Sydney and move the camera
         //LatLng sydney = new LatLng(-34, 151);
         //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.setMinZoomPreference(6f)
+        mMap.setMinZoomPreference(17f)
         mMap.setMaxZoomPreference(20f)
+        //mMap.set
+      //  mMap.setLatLngBoundsForCameraTarget(LatLngBounds(LatLng(-23.7, -46.57), LatLng(-23.6, -46.67)))
+        mMap.moveCamera(CameraUpdateFactory.zoomBy(19f))
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)));
         //Initialize Location
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         createLocationRequest()
@@ -257,7 +254,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
 ////            setDestination()
 //
 //        }
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 
     override fun onResume() {
@@ -329,6 +325,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(12f))
             }
         }
+    }
+
+    fun toggleSheet(v: View){
+        if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED)
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+         else
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
     private fun setUserLocation() {
