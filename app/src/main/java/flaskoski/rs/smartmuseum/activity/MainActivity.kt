@@ -1,10 +1,17 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
+import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import android.view.Menu
@@ -17,7 +24,6 @@ import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
-import com.google.common.collect.Maps
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
@@ -60,10 +66,29 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
 
     private lateinit var parallelRequestsManager: ParallelRequestsManager
 
-    private lateinit var mMap: GoogleMap
+    private var mMap: GoogleMap? = null
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
-    private lateinit var mCurrLocationMarker: Marker
+    private var mCurrLocationMarker : Marker? = null
+    private var locationCallback :LocationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult?) {
+            locationResult ?: return
+            for (location in locationResult.locations){
+                val userLocationLatLng = LatLng(location.latitude, location.longitude)
+                if(mCurrLocationMarker == null) {
+                    val markerOptions = MarkerOptions().position(userLocationLatLng).title("Sua posição")
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.blue_circle))
+                    mCurrLocationMarker = mMap?.addMarker(markerOptions)
+                }
+                else mCurrLocationMarker?.position = userLocationLatLng
+                //mMap.clear();
 
+                //Marker currentLocationMarker = mMap.addMarker(new MarkerOptions().position(userLocation));
+//                    mMap?.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
+//                    mMap?.animateCamera(CameraUpdateFactory.zoomTo(12f))
+            }
+        }
+    }
+    private lateinit var locationManager : LocationManager
     private var requestingLocationUpdates: Boolean = false
 
     private val REQUESTING_LOCATION_UPDATES_KEY: String = "request_updates_key"
@@ -85,6 +110,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
         //supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF677589")))
 
@@ -121,10 +147,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
             if(parallelRequestsManager.isComplete!!)
                 buildRecommender()
         }
-        if(ApplicationProperties.userNotDefinedYet()){
-            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
-        }
+//        if(ApplicationProperties.userNotDefinedYet()){
+//            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+//            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
+//        }
     }
 
     private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
@@ -155,6 +181,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
             itemsList.sortByDescending{it.recommedationRating}
         }
         adapter.notifyDataSetChanged()
+        addItemsToMap()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -224,36 +251,31 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
 
     override fun onMapReady(p0: GoogleMap) {
         val locationListener : Int
-
+        if(p0 == null){
+            Toast.makeText(applicationContext, "Erro ao carregar o mapa.", Toast.LENGTH_SHORT).show()
+            throw Exception("null maps variable")
+        }
         mMap = p0
+        mMap?.mapType = GoogleMap.MAP_TYPE_SATELLITE
         // Add a marker in Sydney and move the camera
         //LatLng sydney = new LatLng(-34, 151);
         //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.setMinZoomPreference(17f)
-        mMap.setMaxZoomPreference(20f)
+        mMap?.setMinZoomPreference(16f)
         //mMap.set
       //  mMap.setLatLngBoundsForCameraTarget(LatLngBounds(LatLng(-23.7, -46.57), LatLng(-23.6, -46.67)))
-        mMap.moveCamera(CameraUpdateFactory.zoomBy(19f))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)));
+        mMap?.moveCamera(CameraUpdateFactory.zoomTo(19.5f))
+        mMap?.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)));
         //Initialize Location
+        addItemsToMap()
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         createLocationRequest()
+    }
 
-//        if (Build.VERSION.SDK_INT >= 23) {
-//            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
-//            } else {
-//                mFusedLocationClient.requestLocationUpdates()
-////                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
-//                setUserLocation()
-////                setDestination()
-//            }//else there is already permission
-//        } else {
-////            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
-//            setUserLocation()
-////            setDestination()
-//
-//        }
+    private fun addItemsToMap() {
+        mMap?.clear()
+        if(mCurrLocationMarker != null) mCurrLocationMarker = null
+        for(item in itemsList)
+            item.coordinates?.let {  mMap?.addMarker(MarkerOptions().position(it).title(item.title)) }
     }
 
     override fun onResume() {
@@ -263,9 +285,32 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
+
+
+
+//        locationCallback = object :  LocationCallback() {
+//            override fun onLocationResult(locationResult: LocationResult?) {
+//                locationResult ?: return
+//                for (location in locationResult.locations){
+//                    val userLocation = LatLng(location.latitude, location.longitude)
+//                    val markerOptions = MarkerOptions()
+//                    markerOptions.position(userLocation)
+//                    markerOptions.title("Sua posição")
+//                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+//                    mCurrLocationMarker = mMap?.addMarker(markerOptions)
+//                    //mMap.clear();
+//
+//                    //Marker currentLocationMarker = mMap.addMarker(new MarkerOptions().position(userLocation));
+//                    mMap?.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
+//                    mMap?.animateCamera(CameraUpdateFactory.zoomTo(12f))
+//                }
+//            }
+//        }
+        if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+            Toast.makeText(applicationContext, "need permission", Toast.LENGTH_SHORT).show()
         mFusedLocationClient.requestLocationUpdates(locationRequest,
                 locationCallback,
-                null /* Looper */)
+                null)
     }
 
     override fun onPause() {
@@ -277,10 +322,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
         mFusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
-    fun createLocationRequest() {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                createLocationRequest()
+            }
+
+        }
+    }
+
+    private fun createLocationRequest() {
+        if (Build.VERSION.SDK_INT >= 23)
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
+
         locationRequest = LocationRequest.create()?.apply {
-            interval = 10000
-            fastestInterval = 5000
+            interval = 1000
+            fastestInterval = 1000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
         locationRequest?.let {
@@ -304,25 +364,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
                         // Ignore the error.
                     }
                 }
-            }
-        }
-    }
-
-    private var locationCallback = object :  LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult?) {
-            locationResult ?: return
-            for (location in locationResult.locations){
-                val userLocation = LatLng(location.latitude, location.longitude)
-                val markerOptions = MarkerOptions()
-                markerOptions.position(userLocation)
-                markerOptions.title("Sua posição")
-                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                mCurrLocationMarker = mMap.addMarker(markerOptions)
-                //mMap.clear();
-
-                //Marker currentLocationMarker = mMap.addMarker(new MarkerOptions().position(userLocation));
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
-                mMap.animateCamera(CameraUpdateFactory.zoomTo(12f))
             }
         }
     }

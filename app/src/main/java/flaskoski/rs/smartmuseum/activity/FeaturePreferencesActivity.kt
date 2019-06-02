@@ -9,7 +9,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
-import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.listAdapter.FeaturesListAdapter
 import flaskoski.rs.smartmuseum.model.Feature
 import flaskoski.rs.smartmuseum.model.Rating
@@ -17,6 +16,13 @@ import flaskoski.rs.smartmuseum.model.User
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import java.util.*
+import android.content.Context
+import android.view.inputmethod.InputMethodManager
+import android.support.v4.content.ContextCompat.getSystemService
+import android.R
+
+
+
 
 class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
 
@@ -28,7 +34,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_feature_preferences)
+        setContentView(flaskoski.rs.smartmuseum.R.layout.activity_feature_preferences)
 
         if(!ApplicationProperties.userNotDefinedYet())
             txt_username.setText(ApplicationProperties.user?.name)
@@ -42,6 +48,18 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         val adapter = FeaturesListAdapter(featureList, applicationContext, this)
         list_features.layoutManager = LinearLayoutManager(applicationContext)
         list_features.adapter = adapter
+
+//        this.currentFocus?.let {
+//            val inputManager = applicationContext.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+//            inputManager.hideSoftInputFromWindow(it.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+//        }
+            txt_username.setOnFocusChangeListener { v, focused ->
+                if (!focused) {
+                    val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(v.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+
+                }
+            }
 
     }
 
