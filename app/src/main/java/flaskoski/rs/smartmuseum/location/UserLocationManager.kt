@@ -1,8 +1,12 @@
 package flaskoski.rs.smartmuseum.model
 
+import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.os.Build
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
@@ -24,10 +28,24 @@ import java.lang.Exception
 class UserLocationManager(val activity: Activity, val REQUEST_CHANGE_LOCATION_SETTINGS : Int,  val onUserLocationUpdateCallback : (userLatLng: LatLng)-> Unit) : LocationCallback() {
     private var locationRequest: LocationRequest? = null
     private var mFusedLocationClient: FusedLocationProviderClient? = null
+    private lateinit var locationManager: LocationManager
+
     init {
+        locationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity)
         createLocationRequest()
     }
+
+    val userLastKnownLocation : Location?
+        get() {
+            if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+                return null
+            }
+            return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+        }
+
+
     override fun onLocationResult(locationResult: LocationResult?) {
         locationResult ?: return
         for (location in locationResult.locations) {
