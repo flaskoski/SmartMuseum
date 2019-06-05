@@ -104,11 +104,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         updateValuesFromBundle(savedInstanceState)
 
         //--DEBUG
-//        ApplicationProperties.user = User("Felipe", "Felipe")
-//        if(!isPreferencesSet){
-//            bt_begin_route.visibility = View.VISIBLE
-//            isPreferencesSet = true
-//        }
+        ApplicationProperties.user = User("Felipe", "Felipe")
+        if(!isPreferencesSet){
+            bt_begin_route.visibility = View.VISIBLE
+            isPreferencesSet = true
+        }
         //--
 
 
@@ -127,11 +127,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 buildRecommender()
         }
 
-
-        if(ApplicationProperties.userNotDefinedYet()){
-            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
-        }
+//
+//        if(ApplicationProperties.userNotDefinedYet()){
+//            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+//            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
+//        }
     }
 
     fun onClickBeginRoute(v : View){

@@ -26,7 +26,7 @@ class MapManager(val activity: FragmentActivity) : OnMapReadyCallback {
     private var mCurrLocationMarker: Marker? = null
     private val polyline = PolylineOptions()
     .color(Color.CYAN)
-    .width(15f)
+    .width(10f)
     .visible(true)
     .zIndex(30f);
 

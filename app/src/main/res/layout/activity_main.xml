@@ -37,9 +37,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="55dp"
         android:elevation="4dp"
         android:onClick="goToUserLocation"
         android:scaleType="center"
@@ -48,7 +47,9 @@
         app:backgroundTint="@android:color/holo_orange_light"
         app:fabSize="mini"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_mylocation" />
+        app:srcCompat="@android:drawable/ic_menu_mylocation"
+        app:layout_anchor="@+id/linearLayout2"
+        app:layout_anchorGravity="bottom|right"/>
 
    <!-- <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
