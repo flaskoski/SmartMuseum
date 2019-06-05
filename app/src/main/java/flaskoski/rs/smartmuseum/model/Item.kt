@@ -13,7 +13,8 @@ class Item(var id: String = "",
            var avgRating: Float = 0.0f,
            var numberOfRatings: Int = 0,
            var recommedationRating: Float = 0.0f,
-           var contentUri: String = "") : Serializable {
+           var contentUri: String = "",
+           val isVisited: Boolean = false) : Serializable {
     var coordinates : LatLng? = null
         set(value) {
             value ?: throw NullPointerException()

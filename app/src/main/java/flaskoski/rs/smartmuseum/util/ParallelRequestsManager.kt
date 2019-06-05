@@ -11,7 +11,7 @@ class ParallelRequestsManager(
     val ONE_OF_TWO: Int = 1
     val BOTH = 2
     private var originalNumberOfRequestsToFinish: Int
-    val isComplete: Boolean?
+    val isComplete: Boolean
         get() = numberOfRequestsToFinish == 0
 
     init {

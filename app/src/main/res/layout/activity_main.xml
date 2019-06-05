@@ -8,6 +8,7 @@
     tools:context=".activity.MainActivity">
 
     <LinearLayout
+        android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -28,6 +29,7 @@
             android:layout_height="match_parent"
             tools:context=".activity.MainActivity"
             tools:layout_editor_absoluteX="0dp" />
+
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
@@ -64,6 +66,21 @@
         app:layout_constraintBottom_toTopOf="@id/bottomSheet"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@mipmap/qr_code_icon" />-->
+
+    <Button
+        android:id="@+id/bt_begin_route"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="60dp"
+        android:background="@android:color/holo_blue_dark"
+        android:onClick="onClickBeginRoute"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:text="Começar"
+        android:textColor="@color/common_google_signin_btn_text_dark_default"
+        android:visibility="gone"
+        app:layout_anchor="@+id/linearLayout2"
+        app:layout_anchorGravity="bottom|center" />
 
     <include layout="@layout/activity_main_bottom_sheet"/>
 

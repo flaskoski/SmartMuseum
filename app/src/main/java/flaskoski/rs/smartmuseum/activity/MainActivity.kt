@@ -4,18 +4,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
-import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
-import com.google.android.gms.location.*
-import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.*
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
@@ -25,20 +22,22 @@ import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.model.UserLocationManager
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
-//import flaskoski.rs.smartmuseum.location
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import java.util.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.location.MapManager
+import flaskoski.rs.smartmuseum.model.User
+import kotlinx.android.synthetic.main.activity_main.*
 
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapter.OnShareClickListener {
+class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
 
     private val REQUEST_GET_PREFERENCES: Int = 1
     private val REQUEST_ITEM_RATING_CHANGE: Int = 2
     val REQUEST_CHANGE_LOCATION_SETTINGS: Int = 3
 
+    private var isPreferencesSet : Boolean = false
     private var userLocationManager : UserLocationManager? = null
     private val itemsList = ArrayList<Item>()
     private var ratingsList  = HashSet<Rating>()
@@ -61,13 +60,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
 
     private lateinit var adapter: ItemsGridListAdapter
 
-    private lateinit var parallelRequestsManager: ParallelRequestsManager
+    private lateinit var getItemsAndRatingsBeforeRecommend: ParallelRequestsManager
 
+    //TODO verificar como substituir essa variavel
     private var requestingLocationUpdates: Boolean = false
-    private var mCurrLocationMarker: Marker? = null
 
     private val REQUESTING_LOCATION_UPDATES_KEY: String = "request_updates_key"
-    private var locationRequest: LocationRequest? = null
 
     override fun onSaveInstanceState(outState: Bundle?) {
         outState?.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, requestingLocationUpdates)
@@ -84,16 +82,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
         setContentView(R.layout.activity_main)
         //draw toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
-        mapManager = MapManager(this).build()
+        mapManager = MapManager(this).build(){
+            userLocationManager = UserLocationManager(this, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
+        }
 
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
         //supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF677589")))
 
-        val fab = findViewById(R.id.fab) as FloatingActionButton
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         //---------------------------------------------------------------------
 
-        parallelRequestsManager = ParallelRequestsManager(2)
+        getItemsAndRatingsBeforeRecommend = ParallelRequestsManager(2)
 
         // Access a Cloud Firestore instance from your Activity
 
@@ -104,27 +103,52 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
         //Recover configuration variables
         updateValuesFromBundle(savedInstanceState)
 
+        //--DEBUG
+//        ApplicationProperties.user = User("Felipe", "Felipe")
+//        if(!isPreferencesSet){
+//            bt_begin_route.visibility = View.VISIBLE
+//            isPreferencesSet = true
+//        }
+        //--
+
+
         val itemDAO = ItemDAO()
         itemDAO.getAllItems {
             itemsList.addAll(it)
-            parallelRequestsManager.decreaseRemainingRequests()
-            if(parallelRequestsManager.isComplete!!)
+            getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
+            if(getItemsAndRatingsBeforeRecommend.isComplete)
                 buildRecommender()
         }
         val ratingDAO = RatingDAO()
         ratingDAO.getAllItems {
             ratingsList.addAll(it)
-            parallelRequestsManager.decreaseRemainingRequests()
-            if(parallelRequestsManager.isComplete!!)
+            getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
+            if(getItemsAndRatingsBeforeRecommend.isComplete)
                 buildRecommender()
         }
-//        if(ApplicationProperties.userNotDefinedYet()){
-//            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-//            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
-//        }
+
+
+        if(ApplicationProperties.userNotDefinedYet()){
+            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
+        }
     }
 
-    private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
+    fun onClickBeginRoute(v : View){
+        bt_begin_route.visibility = View.GONE
+        setDestination()
+    }
+
+    private fun setDestination() {
+        val item : Item? = itemsList.filter{ !it.isVisited}[0]
+        if(item != null) mapManager?.setDestination(item)
+        else {
+            Log.w(TAG, "Todos os itens já foram visitados e setDestination foi chamado.")
+            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun updateValuesFromBundle(savedInstanceState: Bundle?) {
         savedInstanceState ?: return
 
         // Update the value of requestingLocationUpdates from the Bundle.
@@ -152,11 +176,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
             itemsList.sortByDescending{it.recommedationRating}
         }
         adapter.notifyDataSetChanged()
-        mapManager?.let {mm ->
-            mm.updateItemsListOnMap(itemsList)
-            userLocationManager = UserLocationManager(this, REQUEST_CHANGE_LOCATION_SETTINGS, mm.updateUserLocationCallback)
-        }
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -166,14 +185,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
+        return when (item.itemId) {
             R.id.option_features -> {
                 val goToFeaturePreferences = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-               // goToPlayerProfileIntent.putExtra("uid", uid)
+                // goToPlayerProfileIntent.putExtra("uid", uid)
                 startActivityForResult(goToFeaturePreferences, REQUEST_GET_PREFERENCES)
-                return true
+                true
             }
-            else -> return super.onOptionsItemSelected(item)
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -186,15 +205,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
                 Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
                 if (requestCode == REQUEST_GET_PREFERENCES) {
                     if (data != null)
-                        (data.getSerializableExtra("featureRatings") as List<Rating>).forEach {
-                            ratingsList.add(it)
+                        (data.getSerializableExtra("featureRatings") as List<*>).forEach {
+                            ratingsList.add(it as Rating)
                         }
+                    updateRecommender()
+                    if(!isPreferencesSet) {
+                        isPreferencesSet = true
+                        bt_begin_route.visibility = View.VISIBLE
+                    }
                 }
                 if (requestCode == REQUEST_ITEM_RATING_CHANGE) {
                     if (data != null)
                         ratingsList.add(data.getSerializableExtra("itemRating") as Rating)
+                    updateRecommender()
                 }
-                updateRecommender()
+
             }
         }
     }
@@ -222,10 +247,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
         startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
     }
 
-    override fun onMapReady(p0: GoogleMap) {
-
-    }
-
     override fun onResume() {
         super.onResume()
         userLocationManager?.startLocationUpdates()
@@ -239,7 +260,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.checkSelfPermission(applicationContext, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 userLocationManager?.createLocationRequest()
             }
@@ -252,10 +273,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, ItemsGridListAdapt
     }
 
     fun toggleSheet(v: View){
-        if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED)
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED)
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
          else
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
 //
