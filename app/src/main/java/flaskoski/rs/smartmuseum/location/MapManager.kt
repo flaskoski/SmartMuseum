@@ -12,11 +12,11 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
 
 
-class MapManager(val activity: FragmentActivity) : OnMapReadyCallback {
+class MapManager(private val mapActivity: FragmentActivity ) : OnMapReadyCallback {
     var activityCallback : (() -> Unit)? = null
     fun build(activityCallback: (() -> Unit)?): MapManager {
         this.activityCallback = activityCallback
-        val mapFragment = activity.supportFragmentManager
+        val mapFragment = mapActivity.supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         return this
@@ -24,11 +24,9 @@ class MapManager(val activity: FragmentActivity) : OnMapReadyCallback {
 
     var mMap : GoogleMap? = null
     private var mCurrLocationMarker: Marker? = null
-    private val polyline = PolylineOptions()
-    .color(Color.CYAN)
-    .width(10f)
-    .visible(true)
-    .zIndex(30f);
+    private var destinationMarker: Marker? = null
+    private var destinationPath : Polyline? = null
+    private val polyline = PolylineOptions().color(Color.CYAN).width(10f).visible(true).zIndex(30f);
 
     override fun onMapReady(p0: GoogleMap?) {
         val locationListener : Int
@@ -47,6 +45,7 @@ class MapManager(val activity: FragmentActivity) : OnMapReadyCallback {
         activityCallback?.invoke()
     }
 
+    private var alreadyInformed: Boolean = false
     /**
      * function to be called after getting last user position
      */
@@ -56,44 +55,72 @@ class MapManager(val activity: FragmentActivity) : OnMapReadyCallback {
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.blue_circle))
             mCurrLocationMarker = mMap?.addMarker(markerOptions)
         } else mCurrLocationMarker?.position = userLatLng
+
+        if(isDestinationSet())
+            if(!alreadyInformed && isVeryCloseToDestination(userLatLng)) { // < 10 meters
+                alreadyInformed = true
+                if(mapActivity is onUserArrivedToDestinationCallback)
+                    (mapActivity as onUserArrivedToDestinationCallback).onUserArrivedToDestination()
+            }
+    }
+
+    private fun isVeryCloseToDestination(userLatLng: LatLng): Boolean {
+        val distance = FloatArray(3)
+        Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, destinationMarker?.position?.latitude!!, destinationMarker?.position?.longitude!!, distance)
+        return distance[0] < 11
+    }
+
+    interface onUserArrivedToDestinationCallback{
+        fun onUserArrivedToDestination()
     }
 
     fun addItemList(itemList: List<Item>): MapManager {
         for(item in itemList)
-            item.coordinates?.let {  mMap?.addMarker(MarkerOptions().position(it).title(item.title)) }
+            item.getCoordinates()?.let {mMap?.addMarker( MarkerOptions().position(it).title(item.title)) }
         return this
     }
 
-    fun setItemList(itemList : List<Item> ) : MapManager {
-        clearMap()
-        addItemList(itemList)
-        return this
-    }
-
-    fun addItem(item : Item) : MapManager{
-        item.coordinates?.let {  mMap?.addMarker(MarkerOptions().position(it).title(item.title)) }
-        return this
+    fun addItem(item : Item) : Marker? {
+        item.getCoordinates()?.let { return mMap?.addMarker(MarkerOptions().position(it).title(item.title)) }
+        return null
     }
 
     fun setDestination(item : Item) : MapManager{
-
-        item.coordinates?.let{
-            addItem(item)
+        val itemCoordinates = item.getCoordinates()
+        itemCoordinates?.let{
             if(mCurrLocationMarker != null) {
-                polyline.points.clear()
-                polyline.addAll(listOf(mCurrLocationMarker?.position, item.coordinates))
-                mMap?.addPolyline(polyline)
+                if(destinationPath == null) {//create line
+                    polyline.points.clear()
+                    polyline.addAll(listOf(mCurrLocationMarker?.position, itemCoordinates))
+                    destinationPath = mMap?.addPolyline(polyline)
+                }
+                else {//update line
+                    val points : List<LatLng>? = destinationPath?.points
+                    (points as ArrayList).clear()
+                    points.add(mCurrLocationMarker!!.position)
+                    points.add(itemCoordinates)
+                    destinationPath?.points = points
+                }
                 // .width(1.5f))
                 mMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder()
-                        .include(mCurrLocationMarker?.position).include(item.coordinates).build(), 40))
+                        .include(mCurrLocationMarker?.position).include(itemCoordinates).build(), 40))
+
+                destinationMarker = addItem(item)
+                alreadyInformed = false
             }
         }
         return this
     }
 
+    fun isDestinationSet(): Boolean {
+        return destinationMarker != null
+    }
+
     fun clearMap() : MapManager{
         mMap?.clear()
+        if(destinationMarker != null) destinationMarker = null
         if(mCurrLocationMarker != null) mCurrLocationMarker = null
+        if(destinationPath != null) destinationPath = null
         return this
     }
 

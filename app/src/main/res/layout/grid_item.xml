@@ -16,6 +16,16 @@
     android:orientation="vertical"
     android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/lb_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="7"
+        android:text="Você chegou ao próximo item. Clique aqui!"
+        android:textSize="12sp"
+        android:layout_marginBottom="10dp"
+        android:visibility="gone" />
+
     <ImageView
         android:id="@+id/img_itemThumb"
         android:layout_width="match_parent"
@@ -25,7 +35,7 @@
         card_view:srcCompat="@mipmap/image_not_found" />
 
     <TextView
-        android:id="@+id/itemName"
+        android:id="@+id/lb_item_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"

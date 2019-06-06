@@ -8,34 +8,15 @@ class Item(var id: String = "",
            var title: String = "",
            var description: String = "",
            var photoId: String = "",
-           lat: Double? = null,
-           lng: Double? = null,
+           var lat: Double? = null,
+           var lng: Double? = null,
            var avgRating: Float = 0.0f,
            var numberOfRatings: Int = 0,
            var recommedationRating: Float = 0.0f,
            var contentUri: String = "",
-           val isVisited: Boolean = false) : Serializable {
-    var coordinates : LatLng? = null
-        set(value) {
-            value ?: throw NullPointerException()
-            field = value
-        }
+           var isVisited: Boolean = false) : Serializable {
 
-    var lat : Double? = lat
-    set(value){
-        value ?: throw NullPointerException()
-        field = value
-        lng?.let {
-            coordinates = LatLng(value, it)
-        }
+    fun getCoordinates(): LatLng? {
+        return lat?.let { lng?.let { it1 -> LatLng(it, it1) } }
     }
-    var lng : Double? = lng
-        set(value){
-            value ?: throw NullPointerException()
-            field = value
-            lat?.let {
-                coordinates = LatLng(it, value)
-            }
-        }
-
 }

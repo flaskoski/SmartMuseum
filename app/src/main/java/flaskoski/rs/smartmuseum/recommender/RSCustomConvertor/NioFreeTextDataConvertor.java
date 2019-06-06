@@ -242,7 +242,7 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
         int counter = 1;
         Table<Integer, Integer, Long> timeTable = null;
         for (Rating rating : ratings) {
-            LOG.info(rating.getUser() + " => " + rating.getItem());
+            //LOG.info(rating.getUser() + " => " + rating.getItem());
             String[] data = rating.toString().trim().split("[ \t,]+");
             String user = data[0];
             String item = data[1];

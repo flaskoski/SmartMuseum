@@ -22,7 +22,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
 
     }
     override fun onBindViewHolder(p0: ItemViewHolder, p1: Int) {
-        p0.itemView.itemName.text = itemsList.get(p1).title
+        p0.itemView.lb_item_name.text = itemsList.get(p1).title
         p0.itemView.img_itemThumb.setImageResource(context.resources.getIdentifier(itemsList[p1].photoId, "drawable", context.packageName))
         //p0.itemView.ratingBar.rating = itemsList.get(p1).avgRating
 

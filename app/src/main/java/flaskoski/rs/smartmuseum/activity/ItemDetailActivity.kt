@@ -5,6 +5,7 @@ import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
@@ -27,6 +28,7 @@ class ItemDetailActivity  : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_item_detail)
+        actionBar?.setDisplayHomeAsUpEnabled(true)
         starViews = listOf<ImageView>(img_star1, img_star2, img_star3, img_star4, img_star5)
 
         val extras = intent
@@ -39,6 +41,7 @@ class ItemDetailActivity  : AppCompatActivity() {
             item_description.text = it.description
         }
     }
+
     private fun setStars(rating: Float) {
         var count = 0
         starViews.forEach{
@@ -64,6 +67,16 @@ class ItemDetailActivity  : AppCompatActivity() {
         isRatingChanged = true
     }
 
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when (item?.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     override fun onBackPressed() {
         if(!isRatingChanged){
             super.onBackPressed()
@@ -72,6 +85,15 @@ class ItemDetailActivity  : AppCompatActivity() {
 
         val returnRatingIntent = Intent()
         returnRatingIntent.putExtra("itemRating", itemRating)
+        setResult(Activity.RESULT_OK, returnRatingIntent)
+        finish()
+    }
+
+    fun goToNextItem(v: View){
+        val returnRatingIntent = Intent()
+        if(isRatingChanged)
+            returnRatingIntent.putExtra("itemRating", itemRating)
+        returnRatingIntent.putExtra("nextItem", true)
         setResult(Activity.RESULT_OK, returnRatingIntent)
         finish()
     }

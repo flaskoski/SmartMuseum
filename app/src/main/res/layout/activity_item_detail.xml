@@ -21,6 +21,31 @@
             android:orientation="vertical"
             android:visibility="visible">
 
+            <LinearLayout
+                android:id="@+id/bt_next_item"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="right"
+                android:onClick="goToNextItem"
+                android:orientation="horizontal">
+
+                <CheckedTextView
+                    android:id="@+id/checkedTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginRight="4dp"
+                    android:gravity="center_vertical"
+                    android:text="Continuar visita"
+                    android:textAlignment="gravity" />
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:srcCompat="?attr/actionModeCloseDrawable" />
+            </LinearLayout>
+
             <ImageView
                 android:id="@+id/imageView"
                 android:layout_width="match_parent"

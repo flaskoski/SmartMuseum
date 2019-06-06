@@ -29,9 +29,12 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.User
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.grid_item.*
+import kotlinx.android.synthetic.main.grid_item.view.*
+import kotlin.collections.ArrayList
 
 
-class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
+class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener, MapManager.onUserArrivedToDestinationCallback {
 
     private val REQUEST_GET_PREFERENCES: Int = 1
     private val REQUEST_ITEM_RATING_CHANGE: Int = 2
@@ -39,8 +42,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private var isPreferencesSet : Boolean = false
     private var userLocationManager : UserLocationManager? = null
-    private val itemsList = ArrayList<Item>()
+    private var itemsList : List<Item> = ArrayList<Item>()
     private var ratingsList  = HashSet<Rating>()
+    private var currentItem : Item? = null
     private val TAG = "MainActivity"
 //    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
 //        when (item.itemId) {
@@ -82,10 +86,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         setContentView(R.layout.activity_main)
         //draw toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
+
         mapManager = MapManager(this).build(){
             userLocationManager = UserLocationManager(this, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
         }
-
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
         //supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF677589")))
 
@@ -114,7 +118,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         val itemDAO = ItemDAO()
         itemDAO.getAllItems {
-            itemsList.addAll(it)
+            (itemsList as ArrayList).addAll(it)
             getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
             if(getItemsAndRatingsBeforeRecommend.isComplete)
                 buildRecommender()
@@ -135,15 +139,15 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     fun onClickBeginRoute(v : View){
+        setNextRecommendedDestination()
         bt_begin_route.visibility = View.GONE
-        setDestination()
     }
 
-    private fun setDestination() {
-        val item : Item? = itemsList.filter{ !it.isVisited}[0]
+    private fun setNextRecommendedDestination() {
+        val item : Item? = itemsList[0]//.filter{ !it.isVisited}[0]
         if(item != null) mapManager?.setDestination(item)
         else {
-            Log.w(TAG, "Todos os itens já foram visitados e setDestination foi chamado.")
+            Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
             Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_SHORT).show()
         }
     }
@@ -173,7 +177,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     item.recommedationRating = rating
                 else item.recommedationRating = 0F
             }
-            itemsList.sortByDescending{it.recommedationRating}
+            sortItemList()
         }
         adapter.notifyDataSetChanged()
     }
@@ -215,24 +219,36 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     }
                 }
                 if (requestCode == REQUEST_ITEM_RATING_CHANGE) {
-                    if (data != null)
-                        ratingsList.add(data.getSerializableExtra("itemRating") as Rating)
-                    updateRecommender()
+                    if (data != null) {
+                        val rating : Rating? = data.getSerializableExtra("itemRating")?.let { it as Rating }
+                        val nextItem : Boolean = data.getBooleanExtra("nextItem", false)
+                        if(nextItem) {
+                            currentItem?.isVisited = true
+                            card_view.visibility = View.GONE
+                        }
+                        if(rating != null) {
+                            ratingsList.add(rating)
+                            updateRecommender()
+                        }else //remove from first position the visited item
+                            sortItemList()
+                        if(nextItem)
+                            setNextRecommendedDestination()
+                    }
                 }
 
             }
         }
     }
 
+    private fun sortItemList() {
+        itemsList = itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenByDescending{it.recommedationRating})
+    }
+
 
     override fun shareOnItemClicked(p1: Int) {
-        if(ApplicationProperties.user == null)
-        {
-            //DEBUG
+        if(ApplicationProperties.user == null) {
             Toast.makeText(applicationContext, "Usário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG).show()
             return
-       //     ApplicationProperties.user = User("Felipe", "Felipe")
-            //DEBUG
         }
         val viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
         val itemId = itemsList[p1].id
@@ -242,9 +258,19 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             itemRating = it.rating
             viewItemDetails.putExtra("itemRating", itemRating)
         }
-
-        viewItemDetails.putExtra("itemClicked", itemsList[p1])
+        currentItem = itemsList[p1]
+        viewItemDetails.putExtra("itemClicked", currentItem)
         startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
+    }
+
+    override fun onUserArrivedToDestination() {
+        card_view.lb_info.visibility = View.VISIBLE
+        card_view.lb_item_name.text = itemsList[0].title
+        card_view.ratingBar.rating = itemsList[0].recommedationRating
+        card_view.img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(itemsList[0].photoId, "drawable", applicationContext.packageName))
+        card_view.visibility = View.VISIBLE
+        card_view.bringToFront()
+        card_view.setOnClickListener{this.shareOnItemClicked(0)}
     }
 
     override fun onResume() {
