@@ -112,7 +112,7 @@ class MapManager(private val mapActivity: FragmentActivity ) : OnMapReadyCallbac
         return this
     }
 
-    fun isDestinationSet(): Boolean {
+    private fun isDestinationSet(): Boolean {
         return destinationMarker != null
     }
 

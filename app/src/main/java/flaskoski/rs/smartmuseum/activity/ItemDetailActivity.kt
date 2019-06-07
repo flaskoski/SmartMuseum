@@ -33,7 +33,10 @@ class ItemDetailActivity  : AppCompatActivity() {
 
         val extras = intent
         currentItem = extras.getSerializableExtra("itemClicked") as Item?
+        val arrived = extras.getBooleanExtra("arrived", false)
         val rating = extras.getFloatExtra("itemRating", 0F)
+
+        if(!arrived) bt_next_item.visibility = View.GONE
         setStars(rating)
         currentItem?.let {
             itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating)

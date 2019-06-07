@@ -54,7 +54,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
     }
 
     interface OnShareClickListener{
-        fun shareOnItemClicked(p1 : Int)
+        fun shareOnItemClicked(p1 : Int, arrived : Boolean = false)
     }
 }
 

@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.util.SortedList
 import android.support.v7.widget.GridLayoutManager
 import android.util.Log
 import android.view.Menu
@@ -83,6 +82,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private var mapManager: MapManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val isDebugging = false//true
         //------------Standard Side Menu Screen---------------------------
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -93,8 +93,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             userLocationManager = UserLocationManager(this, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
         }
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
-        bringToFront(sheet_next_items)
-        bringToFront(card_view)
+        bringToFront(sheet_next_items, 40f)
+        bringToFront(card_view, 30f)
         //supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF677589")))
 
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
@@ -112,10 +112,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         updateValuesFromBundle(savedInstanceState)
 
         //--DEBUG
-        ApplicationProperties.user = User("Felipe", "Felipe")
-        if(!isPreferencesSet){
-            bt_begin_route.visibility = View.VISIBLE
-            isPreferencesSet = true
+        if(isDebugging) {
+            ApplicationProperties.user = User("Felipe", "Felipe")
+            if (!isPreferencesSet) {
+                bt_begin_route.visibility = View.VISIBLE
+                isPreferencesSet = true
+            }
         }
         //--
 
@@ -135,16 +137,17 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 buildRecommender()
         }
 
-//
-//        if(ApplicationProperties.userNotDefinedYet()){
-//            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-//            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
-//        }
+        if(!isDebugging) {
+            if (ApplicationProperties.userNotDefinedYet()) {
+                val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+                startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
+            }
+        }
     }
 
-    fun bringToFront(view: View){
+    fun bringToFront(view: View, zval: Float = 20f){
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            view.translationZ = 40f;
+            view.translationZ = zval;
             view.invalidate();
         }
         else {
@@ -264,7 +267,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
 
-    override fun shareOnItemClicked(p1: Int) {
+    override fun shareOnItemClicked(p1: Int, arrived : Boolean) {
         if(ApplicationProperties.user == null) {
             Toast.makeText(applicationContext, "Usário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG).show()
             return
@@ -279,6 +282,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
         currentItem = itemsList[p1]
         viewItemDetails.putExtra("itemClicked", currentItem)
+        viewItemDetails.putExtra("arrived", arrived)
         startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
     }
 
@@ -288,7 +292,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         card_view.ratingBar.rating = itemsList[0].recommedationRating
         card_view.img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(itemsList[0].photoId, "drawable", applicationContext.packageName))
         card_view.visibility = View.VISIBLE
-        card_view.setOnClickListener{this.shareOnItemClicked(0)}
+        card_view.setOnClickListener{this.shareOnItemClicked(0, true)}
     }
 
     override fun onResume() {
