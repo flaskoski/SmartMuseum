@@ -245,7 +245,7 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
             //LOG.info(rating.getUser() + " => " + rating.getItem());
             String[] data = rating.toString().trim().split("[ \t,]+");
             String user = data[0];
-            String item = data[1];
+            String  item = data[1];
             Double rate = ((dataColumnFormat.equals("UIR") || dataColumnFormat.equals("UIRT")) && data.length >= 3) ? Double.valueOf(data[2]) : 1.0;
             if (binThold >= 0) {
                 rate = rate > binThold ? 1.0 : 0.0;

@@ -2,10 +2,12 @@ package flaskoski.rs.smartmuseum.activity
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.util.SortedList
 import android.support.v7.widget.GridLayoutManager
 import android.util.Log
 import android.view.Menu
@@ -91,6 +93,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             userLocationManager = UserLocationManager(this, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
         }
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
+        bringToFront(sheet_next_items)
+        bringToFront(card_view)
         //supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF677589")))
 
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
@@ -136,6 +140,18 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 //            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
 //            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
 //        }
+    }
+
+    fun bringToFront(view: View){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            view.translationZ = 40f;
+            view.invalidate();
+        }
+        else {
+            view.bringToFront()
+            view.parent.requestLayout()
+            //sheet_next_items.parent.invalidate()
+        }
     }
 
     fun onClickBeginRoute(v : View){
@@ -241,7 +257,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     private fun sortItemList() {
-        itemsList = itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenByDescending{it.recommedationRating})
+        var i : Int = 0
+        itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenByDescending{it.recommedationRating}).forEach{
+            (itemsList as java.util.ArrayList<Item>)[i++] = it
+        }
     }
 
 
@@ -269,7 +288,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         card_view.ratingBar.rating = itemsList[0].recommedationRating
         card_view.img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(itemsList[0].photoId, "drawable", applicationContext.packageName))
         card_view.visibility = View.VISIBLE
-        card_view.bringToFront()
         card_view.setOnClickListener{this.shareOnItemClicked(0)}
     }
 

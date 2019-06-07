@@ -10,6 +10,7 @@ import android.location.LocationManager
 import android.os.Build
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -58,14 +59,20 @@ class UserLocationManager(val activity: Activity, val REQUEST_CHANGE_LOCATION_SE
         mFusedLocationClient?.removeLocationUpdates(this)
     }
 
+    private val TAG: String = "UserLocationManager"
+
     fun startLocationUpdates() {
         if(ActivityCompat.checkSelfPermission(activity.applicationContext, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(activity.applicationContext, "Erro: O aplicativo precisa de permissão para acessar sua localização para funcionar.", Toast.LENGTH_SHORT).show()
-            throw Exception("location permission not granted.")
+            //Toast.makeText(activity.applicationContext, "Erro: O aplicativo precisa de permissão para acessar sua localização para funcionar.", Toast.LENGTH_SHORT).show()
+            Log.w(TAG,"No location permission.")
+            createLocationRequest()
+            return
         }
         if(!locationSettingsCorrect){
-            Toast.makeText(activity.applicationContext, "Erro: Configuração de localização incorreta", Toast.LENGTH_SHORT).show()
-            throw Exception("Wrong phone location settings.")
+            //Toast.makeText(activity.applicationContext, "GPS desligado", Toast.LENGTH_SHORT).show()
+            Log.w(TAG,"Wrong phone location settings.")
+            createLocationRequest()
+            return
         }
         mFusedLocationClient!!.requestLocationUpdates(locationRequest,
                 this,
