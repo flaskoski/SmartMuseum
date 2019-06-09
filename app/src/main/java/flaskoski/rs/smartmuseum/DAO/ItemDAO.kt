@@ -11,6 +11,7 @@ class ItemDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()){
     fun getAllItems(callback : (itemsList : List<Item>)-> Unit) {
         //add items to grid from DB
         db.collection("items")
+                .whereEqualTo("type", "item")
                 .get()
                 .addOnSuccessListener { result ->
                     val itemsList : ArrayList<Item> = ArrayList()

@@ -1,6 +1,7 @@
 package flaskoski.rs.smartmuseum.listAdapter
 
 import android.content.Context
+import android.graphics.Color
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +27,14 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
         p0.itemView.img_itemThumb.setImageResource(context.resources.getIdentifier(itemsList[p1].photoId, "drawable", context.packageName))
         //p0.itemView.ratingBar.rating = itemsList.get(p1).avgRating
 
+        if(itemsList[p1].isVisited) {
+            p0.itemView.setBackgroundResource(R.color.colorVisitedItem)
+            p0.itemView.icon_visited.visibility = View.VISIBLE
+        }
+        else{
+            p0.itemView.setBackgroundResource(android.R.color.white)
+            p0.itemView.icon_visited.visibility = View.GONE
+        }
         if(!ApplicationProperties.userNotDefinedYet()) {
             val rating = recommenderManager.getPrediction(ApplicationProperties.user!!.id, itemsList.get(p1).id)
             if(rating != null)

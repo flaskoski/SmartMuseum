@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.renderscript.RSInvalidStateException
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
@@ -29,13 +30,19 @@ import java.util.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.User
+import flaskoski.rs.smartmuseum.routeBuilder.JourneyManager
+import flaskoski.rs.smartmuseum.routeBuilder.JourneyStates
+import flaskoski.rs.smartmuseum.routeBuilder.MuseumGraph
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.grid_item.*
 import kotlinx.android.synthetic.main.grid_item.view.*
+import java.lang.IllegalStateException
 import kotlin.collections.ArrayList
 
 
-class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener, MapManager.onUserArrivedToDestinationCallback {
+class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener,
+        MapManager.onUserArrivedToDestinationCallback {
+
 
     private val REQUEST_GET_PREFERENCES: Int = 1
     private val REQUEST_ITEM_RATING_CHANGE: Int = 2
@@ -43,7 +50,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private var isPreferencesSet : Boolean = false
     private var userLocationManager : UserLocationManager? = null
-    private var itemsList : List<Item> = ArrayList<Item>()
+    private var itemsList : List<Item> = ArrayList()
     private var ratingsList  = HashSet<Rating>()
     private var currentItem : Item? = null
     private val TAG = "MainActivity"
@@ -67,22 +74,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private lateinit var getItemsAndRatingsBeforeRecommend: ParallelRequestsManager
 
-    //TODO verificar como substituir essa variavel
-    private var requestingLocationUpdates: Boolean = false
-
-    private val REQUESTING_LOCATION_UPDATES_KEY: String = "request_updates_key"
-
-    override fun onSaveInstanceState(outState: Bundle?) {
-        outState?.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, requestingLocationUpdates)
-        super.onSaveInstanceState(outState)
-    }
-
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
 
     private var mapManager: MapManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val isDebugging = false//true
+        val isDebugging = true
         //------------Standard Side Menu Screen---------------------------
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -107,9 +104,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         itemsGridList.layoutManager = GridLayoutManager(this, 2)
         adapter = ItemsGridListAdapter(itemsList, applicationContext, this, RecommenderManager())
         itemsGridList.adapter = adapter
-
-        //Recover configuration variables
-        updateValuesFromBundle(savedInstanceState)
 
         //--DEBUG
         if(isDebugging) {
@@ -145,7 +139,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
-    fun bringToFront(view: View, zval: Float = 20f){
+    private fun bringToFront(view: View, zval: Float = 20f){
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             view.translationZ = zval;
             view.invalidate();
@@ -158,8 +152,14 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     fun onClickBeginRoute(v : View){
-        setNextRecommendedDestination()
-        bt_begin_route.visibility = View.GONE
+        try {
+            setNextRecommendedDestination()
+            bt_begin_route.visibility = View.GONE
+        }
+        catch (e: IllegalStateException){
+            Log.e(TAG, e.message)
+            e.printStackTrace()
+        }
     }
 
     private fun setNextRecommendedDestination() {
@@ -168,16 +168,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         else {
             Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
             Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun updateValuesFromBundle(savedInstanceState: Bundle?) {
-        savedInstanceState ?: return
-
-        // Update the value of requestingLocationUpdates from the Bundle.
-        if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
-            requestingLocationUpdates = savedInstanceState.getBoolean(
-                    REQUESTING_LOCATION_UPDATES_KEY)
         }
     }
 
@@ -260,10 +250,13 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     private fun sortItemList() {
-        var i : Int = 0
+//        museumGraph = MuseumGraph()
+
+        var i = 0
         itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenByDescending{it.recommedationRating}).forEach{
             (itemsList as java.util.ArrayList<Item>)[i++] = it
         }
+        adapter.notifyDataSetChanged()
     }
 
 
@@ -292,6 +285,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         card_view.ratingBar.rating = itemsList[0].recommedationRating
         card_view.img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(itemsList[0].photoId, "drawable", applicationContext.packageName))
         card_view.visibility = View.VISIBLE
+        card_view.icon_visited.visibility = View.GONE
         card_view.setOnClickListener{this.shareOnItemClicked(0, true)}
     }
 

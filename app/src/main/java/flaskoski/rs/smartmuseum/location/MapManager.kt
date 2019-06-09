@@ -2,7 +2,9 @@ package flaskoski.rs.smartmuseum.location
 
 import android.graphics.Color
 import android.location.Location
+import android.renderscript.RSInvalidStateException
 import android.support.v4.app.FragmentActivity
+import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -10,6 +12,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
+import java.lang.IllegalStateException
 
 
 class MapManager(private val mapActivity: FragmentActivity ) : OnMapReadyCallback {
@@ -67,7 +70,7 @@ class MapManager(private val mapActivity: FragmentActivity ) : OnMapReadyCallbac
     private fun isVeryCloseToDestination(userLatLng: LatLng): Boolean {
         val distance = FloatArray(3)
         Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, destinationMarker?.position?.latitude!!, destinationMarker?.position?.longitude!!, distance)
-        return distance[0] < 11
+        return distance[0] < 1100
     }
 
     interface onUserArrivedToDestinationCallback{
@@ -107,6 +110,9 @@ class MapManager(private val mapActivity: FragmentActivity ) : OnMapReadyCallbac
 
                 destinationMarker = addItem(item)
                 alreadyInformed = false
+            }else{
+                Toast.makeText(mapActivity.applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
+                throw IllegalStateException("User map marker is null! Probable cause: User location wasn't found.")
             }
         }
         return this
