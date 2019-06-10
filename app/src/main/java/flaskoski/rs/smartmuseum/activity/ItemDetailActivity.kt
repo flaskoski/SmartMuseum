@@ -40,7 +40,9 @@ class ItemDetailActivity  : AppCompatActivity() {
         setStars(rating)
         currentItem?.let {
             itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating)
-            imageView.setImageResource(this.resources.getIdentifier(it.photoId, "drawable", applicationContext.packageName))
+            if(it.photoId.isNotBlank())
+                imageView.setImageResource(this.resources.getIdentifier(it.photoId, "drawable", applicationContext.packageName))
+            else imageView.visibility = View.GONE
             item_description.text = it.description
         }
     }
