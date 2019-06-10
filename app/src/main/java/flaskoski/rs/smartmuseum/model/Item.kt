@@ -1,6 +1,5 @@
 package flaskoski.rs.smartmuseum.model
 
-import com.google.android.gms.maps.model.LatLng
 import java.io.Serializable
 
 /**
@@ -20,4 +19,9 @@ class Item(     id: String = "",
            var timeNeeded : Double = 0.0,
                 isExit : Boolean = true,
            //var contentUri: String = "",
-           var isVisited: Boolean = false) : Point(id, lat, lng, isEntrance, isExit), Serializable
+           var isVisited: Boolean = false) : Point(id, lat, lng, isEntrance, isExit), Serializable{
+
+    override fun toString(): String {
+        return super.toString() + " ${this.title}"
+    }
+}

@@ -2,8 +2,6 @@ package flaskoski.rs.smartmuseum.model
 
 import java.io.Serializable
 import java.util.*
-import android.R.attr.name
-
 
 
 class Rating(val user : String ="", val item : String = "", var rating : Float = 0F, val type : String = TYPE_ITEM) : Serializable{
@@ -27,12 +25,12 @@ class Rating(val user : String ="", val item : String = "", var rating : Float =
         return "$user $item ${rating.toString()}"
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (o === this) return true
-        if (!(o is Rating)) {
+    override fun equals(other: Any?): Boolean {
+        if (other === this) return true
+        if (!(other is Rating)) {
             return false
         }
-        val rating : Rating = o as Rating
+        val rating : Rating = other
 
         return rating.user.equals(user) &&
                 rating.item.equals(item) &&

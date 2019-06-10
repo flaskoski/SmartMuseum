@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.renderscript.RSInvalidStateException
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
@@ -31,11 +30,10 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.User
 import flaskoski.rs.smartmuseum.routeBuilder.JourneyManager
-import flaskoski.rs.smartmuseum.routeBuilder.JourneyStates
-import flaskoski.rs.smartmuseum.routeBuilder.MuseumGraph
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.grid_item.*
 import kotlinx.android.synthetic.main.grid_item.view.*
+import java.lang.Exception
 import java.lang.IllegalStateException
 import kotlin.collections.ArrayList
 
@@ -77,6 +75,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
 
     private var mapManager: MapManager? = null
+    private var journeyManager = JourneyManager()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val isDebugging = true
@@ -117,11 +116,14 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
 
         val itemDAO = ItemDAO()
-        itemDAO.getAllItems {
-            (itemsList as ArrayList).addAll(it)
+        itemDAO.getAllPoints {points ->
+            journeyManager.build(points)
+            (itemsList as ArrayList).addAll(points.filter { it is Item } as List<Item>)
             getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
-            if(getItemsAndRatingsBeforeRecommend.isComplete)
+            if(getItemsAndRatingsBeforeRecommend.isComplete) {
                 buildRecommender()
+
+            }
         }
         val ratingDAO = RatingDAO()
         ratingDAO.getAllItems {
@@ -164,7 +166,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private fun setNextRecommendedDestination() {
         val item : Item? = itemsList[0]//.filter{ !it.isVisited}[0]
-        if(item != null) mapManager?.setDestination(item)
+        if(item != null) mapManager?.setDestination(item, journeyManager.previousItem)
         else {
             Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
             Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_SHORT).show()
@@ -250,13 +252,16 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     private fun sortItemList() {
-//        museumGraph = MuseumGraph()
-
-        var i = 0
-        itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenByDescending{it.recommedationRating}).forEach{
-            (itemsList as java.util.ArrayList<Item>)[i++] = it
+        try {
+            journeyManager.getNextClosestItem()
+            var i = 0
+            itemsList.sortedWith(compareByDescending<Item>{it.isClosest}.thenBy{it.isVisited}.thenByDescending{it.recommedationRating}).forEach{
+                (itemsList as java.util.ArrayList<Item>)[i++] = it
+            }
+            adapter.notifyDataSetChanged()
+        }catch (e : Exception){
+            e.printStackTrace()
         }
-        adapter.notifyDataSetChanged()
     }
 
 

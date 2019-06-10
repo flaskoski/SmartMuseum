@@ -2,7 +2,6 @@ package flaskoski.rs.smartmuseum.location
 
 import android.graphics.Color
 import android.location.Location
-import android.renderscript.RSInvalidStateException
 import android.support.v4.app.FragmentActivity
 import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -12,6 +11,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
+import flaskoski.rs.smartmuseum.model.Point
 import java.lang.IllegalStateException
 
 
@@ -88,25 +88,27 @@ class MapManager(private val mapActivity: FragmentActivity ) : OnMapReadyCallbac
         return null
     }
 
-    fun setDestination(item : Item) : MapManager{
-        val itemCoordinates = item.getCoordinates()
-        itemCoordinates?.let{
+    fun setDestination(item: Item, previousItem: Point?) : MapManager{
+        val itemPathCoordinates = item.getPathCoordinates()
+        itemPathCoordinates?.let{
             if(mCurrLocationMarker != null) {
                 if(destinationPath == null) {//create line
                     polyline.points.clear()
-                    polyline.addAll(listOf(mCurrLocationMarker?.position, itemCoordinates))
+                    //polyline.add(mCurrLocationMarker?.position)
+                    polyline.addAll(itemPathCoordinates)
                     destinationPath = mMap?.addPolyline(polyline)
                 }
                 else {//update line
                     val points : List<LatLng>? = destinationPath?.points
                     (points as ArrayList).clear()
-                    points.add(mCurrLocationMarker!!.position)
-                    points.add(itemCoordinates)
+                    //points.add(mCurrLocationMarker!!.position)
+                    points.addAll(itemPathCoordinates)
                     destinationPath?.points = points
                 }
                 // .width(1.5f))
                 mMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder()
-                        .include(mCurrLocationMarker?.position).include(itemCoordinates).build(), 40))
+                        .include(previousItem?.getCoordinates()).include(item.getCoordinates()).build(), 130))
+                        //.include(mCurrLocationMarker?.position).include(item.getCoordinates()).build(), 130))
 
                 destinationMarker = addItem(item)
                 alreadyInformed = false
