@@ -18,10 +18,6 @@ import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import java.util.*
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
-import android.support.v4.content.ContextCompat.getSystemService
-import android.R
-
-
 
 
 class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
@@ -39,11 +35,11 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         if(!ApplicationProperties.userNotDefinedYet())
             txt_username.setText(ApplicationProperties.user?.name)
 
-        featureList.add(Feature("Física"))
-        featureList.add(Feature("Química"))
-        featureList.add(Feature("Astronomia"))
-        featureList.add(Feature("Geologia"))
-        featureList.add(Feature("Biologia"))
+        featureList.add(Feature("Física", "O que é eletricidade e como ela funciona"))
+        featureList.add(Feature("Química", "A água é composta de dois átomos de hidrogênio e um de oxigênio"))
+        featureList.add(Feature("Astronomia", "O diâmetro do Sol é mais de 100 vezes maior que o da terra"))
+        featureList.add(Feature("Geologia", "O granito é um tipo de rocha que se origina de magma como o expelido por vulcões"))
+        featureList.add(Feature("Biologia", "A bactéria é um tipo de célula e está presente em quase todos os lugares da terra"))
 
         val adapter = FeaturesListAdapter(featureList, applicationContext, this)
         list_features.layoutManager = LinearLayoutManager(applicationContext)
@@ -71,7 +67,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             return
         }
         if(!allFeaturesRated){
-            Toast.makeText(applicationContext, "Por favor, informe seu nível de interesse em cada categoria antes de avançar.", Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext, "Por favor, informe seu nível de interesse para cada frase antes de avançar.", Toast.LENGTH_LONG).show()
             return
         }
 
@@ -85,7 +81,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         //save ratings
         ApplicationProperties.user?.id?.let {
             for(feature in featureList) {
-                var rating = Rating(it, feature.name, feature.rating, Rating.TYPE_FEATURE)
+                var rating = Rating(it, feature.id, feature.rating, Rating.TYPE_FEATURE)
                 db.add(rating)
                 ratings.add(rating)
                 Log.i(TAG, rating.toString())

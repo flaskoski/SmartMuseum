@@ -9,7 +9,6 @@ import android.widget.ImageView
 import android.widget.Toast
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
-import flaskoski.rs.smartmuseum.activity.FeaturePreferencesActivity
 import flaskoski.rs.smartmuseum.model.Feature
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
@@ -23,14 +22,14 @@ class FeaturesListAdapter(private val featuresList: List<Feature>, private val c
         //get feature names
         val featureNames = ArrayList<String>()
         for(feature in featuresList){
-            featureNames.add(feature.name)
+            featureNames.add(feature.id)
         }
         //look for feature ratings on db and update
         ApplicationProperties.user?.id?.let {userId ->
             RatingDAO().getAllFromUserByType(userId, Rating.TYPE_FEATURE) {featureRatings ->
                 Toast.makeText(context, "Carregando valores...", Toast.LENGTH_SHORT)
                 for(rating in featureRatings){
-                    featuresList.find{ i -> i.name == rating.item }.let { feature ->
+                    featuresList.find{ i -> i.id == rating.item }.let { feature ->
                         feature?.rating = rating.rating
                         featuresRated++
                     }
@@ -77,7 +76,7 @@ class FeaturesListAdapter(private val featuresList: List<Feature>, private val c
             checkIfRatingsCompletedAndSetFlag()
         }
 
-        p0.itemView.txt_featureName.text = featuresList.get(p1).name
+        p0.itemView.txt_featureName.text = featuresList.get(p1).description
         starViews.forEach{ star ->
             star.setImageResource(android.R.drawable.btn_star_big_off)
             star.setOnClickListener(rate)

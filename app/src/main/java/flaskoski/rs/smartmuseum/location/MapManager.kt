@@ -70,7 +70,7 @@ class MapManager(private val mapActivity: FragmentActivity ) : OnMapReadyCallbac
     private fun isVeryCloseToDestination(userLatLng: LatLng): Boolean {
         val distance = FloatArray(3)
         Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, destinationMarker?.position?.latitude!!, destinationMarker?.position?.longitude!!, distance)
-        return distance[0] < 1100
+        return distance[0] < 11000
     }
 
     interface onUserArrivedToDestinationCallback{
@@ -110,6 +110,8 @@ class MapManager(private val mapActivity: FragmentActivity ) : OnMapReadyCallbac
                         .include(previousItem?.getCoordinates()).include(item.getCoordinates()).build(), 130))
                         //.include(mCurrLocationMarker?.position).include(item.getCoordinates()).build(), 130))
 
+                if(destinationMarker != null) //last marker changed to green
+                    destinationMarker?.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 destinationMarker = addItem(item)
                 alreadyInformed = false
             }else{

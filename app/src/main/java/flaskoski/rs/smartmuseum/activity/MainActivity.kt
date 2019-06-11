@@ -229,7 +229,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         bt_begin_route.visibility = View.VISIBLE
                     }
                 }
-                if (requestCode == REQUEST_ITEM_RATING_CHANGE) {
+                else if (requestCode == REQUEST_ITEM_RATING_CHANGE) {
                     if (data != null) {
                         val rating : Rating? = data.getSerializableExtra("itemRating")?.let { it as Rating }
                         val nextItem : Boolean = data.getBooleanExtra("nextItem", false)

@@ -2,6 +2,7 @@ package flaskoski.rs.smartmuseum.model
 
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
+import java.io.Serializable
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -12,7 +13,7 @@ open class Point(
         var isEntrance: Boolean = false,
         var isExit : Boolean = false,
         var isClosest : Boolean = false,
-        var adjacentPoints : Map<String, Double> = HashMap()){
+        var adjacentPoints : Map<String, Double> = HashMap()): Serializable {
 
 
     var cost : Double = Double.MAX_VALUE

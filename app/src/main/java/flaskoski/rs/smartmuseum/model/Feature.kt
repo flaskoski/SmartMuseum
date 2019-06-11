@@ -1,5 +1,5 @@
 package flaskoski.rs.smartmuseum.model
 
-class Feature(val name : String, var rating : Float = 0F){
+class Feature(val id : String, var description : String, var rating : Float = 0F){
 
 }

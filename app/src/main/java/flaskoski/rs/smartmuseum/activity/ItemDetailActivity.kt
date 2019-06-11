@@ -28,7 +28,7 @@ class ItemDetailActivity  : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_item_detail)
-        actionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         starViews = listOf<ImageView>(img_star1, img_star2, img_star3, img_star4, img_star5)
 
         val extras = intent
@@ -39,6 +39,7 @@ class ItemDetailActivity  : AppCompatActivity() {
         if(!arrived) bt_next_item.visibility = View.GONE
         setStars(rating)
         currentItem?.let {
+            supportActionBar?.title = it.title
             itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating)
             if(it.photoId.isNotBlank())
                 imageView.setImageResource(this.resources.getIdentifier(it.photoId, "drawable", applicationContext.packageName))
@@ -55,6 +56,7 @@ class ItemDetailActivity  : AppCompatActivity() {
             else
                 it.setImageResource(android.R.drawable.btn_star_big_off)
         }
+        if(rating > 0f) lb_avalie.setText(ratingTexts[rating.toInt()])
     }
 
     fun rate(v : View){
@@ -62,8 +64,8 @@ class ItemDetailActivity  : AppCompatActivity() {
         val index = starViews.indexOf(v)
         itemRating.rating = (index+1).toFloat()
         setStars(itemRating.rating)
-        Toast.makeText(applicationContext, ratingTexts[index], Toast.LENGTH_SHORT).show()
-//        txt_rating.setText(ratingTexts[index])
+        //Toast.makeText(applicationContext, ratingTexts[index], Toast.LENGTH_SHORT).show()
+
 
         ApplicationProperties.user?.id?.let {
             RatingDAO().add(itemRating)
