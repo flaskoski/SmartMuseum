@@ -46,7 +46,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private val REQUEST_ITEM_RATING_CHANGE: Int = 2
     val REQUEST_CHANGE_LOCATION_SETTINGS: Int = 3
 
-    private var isPreferencesSet : Boolean = false
     private var userLocationManager : UserLocationManager? = null
     private var itemsList : List<Item> = ArrayList()
     private var ratingsList  = HashSet<Rating>()
@@ -92,13 +91,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         bringToFront(sheet_next_items, 40f)
         bringToFront(card_view, 30f)
         //supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF677589")))
-
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
-        //---------------------------------------------------------------------
-
-        getItemsAndRatingsBeforeRecommend = ParallelRequestsManager(2)
-
-        // Access a Cloud Firestore instance from your Activity
 
         itemsGridList.layoutManager = GridLayoutManager(this, 2)
         adapter = ItemsGridListAdapter(itemsList, applicationContext, this, RecommenderManager())
@@ -107,20 +100,19 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         //--DEBUG
         if(isDebugging) {
             ApplicationProperties.user = User("Felipe", "Felipe")
-            if (!isPreferencesSet) {
-                bt_begin_route.visibility = View.VISIBLE
-                isPreferencesSet = true
-            }
+            bt_begin_route.visibility = View.VISIBLE
+            journeyManager.isPreferencesSet = true
         }
         //--
 
-
+        getItemsAndRatingsBeforeRecommend = ParallelRequestsManager(2)
         val itemDAO = ItemDAO()
         itemDAO.getAllPoints {points ->
             journeyManager.build(points)
             (itemsList as ArrayList).addAll(points.filter { it is Item } as List<Item>)
             getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
             if(getItemsAndRatingsBeforeRecommend.isComplete) {
+                journeyManager.isItemsAndRatingsLoaded = true
                 buildRecommender()
 
             }
@@ -129,8 +121,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         ratingDAO.getAllItems {
             ratingsList.addAll(it)
             getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
-            if(getItemsAndRatingsBeforeRecommend.isComplete)
+            if(getItemsAndRatingsBeforeRecommend.isComplete) {
+                journeyManager.isItemsAndRatingsLoaded = true
                 buildRecommender()
+            }
         }
 
         if(!isDebugging) {
@@ -138,38 +132,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
                 startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
             }
-        }
-    }
-
-    private fun bringToFront(view: View, zval: Float = 20f){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            view.translationZ = zval;
-            view.invalidate();
-        }
-        else {
-            view.bringToFront()
-            view.parent.requestLayout()
-            //sheet_next_items.parent.invalidate()
-        }
-    }
-
-    fun onClickBeginRoute(v : View){
-        try {
-            setNextRecommendedDestination()
-            bt_begin_route.visibility = View.GONE
-        }
-        catch (e: IllegalStateException){
-            Log.e(TAG, e.message)
-            e.printStackTrace()
-        }
-    }
-
-    private fun setNextRecommendedDestination() {
-        val item : Item? = itemsList[0]//.filter{ !it.isVisited}[0]
-        if(item != null) mapManager?.setDestination(item, journeyManager.previousItem)
-        else {
-            Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
-            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -188,26 +150,36 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     item.recommedationRating = rating
                 else item.recommedationRating = 0F
             }
-            sortItemList()
+            getNextClosestItemAndSort()
         }
         adapter.notifyDataSetChanged()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.menu_main_activity, menu)
-        return true
+    private fun getNextClosestItemAndSort() {
+        if (journeyManager.isJourneyBegan)
+            try {journeyManager.getNextClosestItem()} catch (e: Exception) { e.printStackTrace() }
+        sortItemList()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.option_features -> {
-                val goToFeaturePreferences = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-                // goToPlayerProfileIntent.putExtra("uid", uid)
-                startActivityForResult(goToFeaturePreferences, REQUEST_GET_PREFERENCES)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+    private fun sortItemList() {
+        var i = 0
+        itemsList.sortedWith(compareByDescending<Item>{it.isClosest}.thenBy{it.isVisited}.thenByDescending{it.recommedationRating}).forEach{
+            (itemsList as java.util.ArrayList<Item>)[i++] = it
+        }
+        adapter.notifyDataSetChanged()
+
+    }
+
+    fun onClickBeginRoute(v : View){
+        try {
+            journeyManager.isJourneyBegan = true
+            getNextClosestItemAndSort()
+            setNextRecommendedDestination()
+            bt_begin_route.visibility = View.GONE
+        }
+        catch (e: IllegalStateException){
+            Log.e(TAG, e.message)
+            e.printStackTrace()
         }
     }
 
@@ -224,8 +196,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                             ratingsList.add(it as Rating)
                         }
                     updateRecommender()
-                    if(!isPreferencesSet) {
-                        isPreferencesSet = true
+                    if(!journeyManager.isPreferencesSet) {
+                        journeyManager.isPreferencesSet = true
                         bt_begin_route.visibility = View.VISIBLE
                     }
                 }
@@ -236,14 +208,19 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         if(nextItem) {
                             currentItem?.isVisited = true
                             card_view.visibility = View.GONE
-                        }
-                        if(rating != null) {
-                            ratingsList.add(rating)
-                            updateRecommender()
-                        }else //remove from first position the visited item
-                            sortItemList()
-                        if(nextItem)
+                            if(rating != null) {//rating changed
+                                ratingsList.add(rating)
+                                updateRecommender()
+                            }else { //remove from first position the visited item
+                                getNextClosestItemAndSort()
+                            }
                             setNextRecommendedDestination()
+                        }
+                        else
+                            if(rating != null) {//rating changed
+                                ratingsList.add(rating)
+                                updateRecommender()
+                            }
                     }
                 }
 
@@ -251,19 +228,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
-    private fun sortItemList() {
-        try {
-            journeyManager.getNextClosestItem()
-            var i = 0
-            itemsList.sortedWith(compareByDescending<Item>{it.isClosest}.thenBy{it.isVisited}.thenByDescending{it.recommedationRating}).forEach{
-                (itemsList as java.util.ArrayList<Item>)[i++] = it
-            }
-            adapter.notifyDataSetChanged()
-        }catch (e : Exception){
-            e.printStackTrace()
-        }
-    }
-
+    //-----------onClick adapter --------------
 
     override fun shareOnItemClicked(p1: Int, arrived : Boolean) {
         if(ApplicationProperties.user == null) {
@@ -282,6 +247,17 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         viewItemDetails.putExtra("itemClicked", currentItem)
         viewItemDetails.putExtra("arrived", arrived)
         startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
+    }
+
+    //-------------MAPS AND LOCATION----------------------------------------
+
+    private fun setNextRecommendedDestination() {
+        val item = journeyManager.closestItem as Item//.filter{ !it.isVisited}[0]
+        if(item != null) mapManager?.setDestination(item, journeyManager.previousItem)
+        else {
+            Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
+            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onUserArrivedToDestination() {
@@ -317,6 +293,39 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     fun goToUserLocation(v: View) {
         userLocationManager?.userLastKnownLocation?.let { mapManager?.goToLocation(it) }
+    }
+
+
+    //------------LAYOUT FEATURES-------------------------------
+
+    private fun bringToFront(view: View, zval: Float = 20f){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            view.translationZ = zval;
+            view.invalidate();
+        }
+        else {
+            view.bringToFront()
+            view.parent.requestLayout()
+            //sheet_next_items.parent.invalidate()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.menu_main_activity, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.option_features -> {
+                val goToFeaturePreferences = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+                // goToPlayerProfileIntent.putExtra("uid", uid)
+                startActivityForResult(goToFeaturePreferences, REQUEST_GET_PREFERENCES)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     fun toggleSheet(v: View){

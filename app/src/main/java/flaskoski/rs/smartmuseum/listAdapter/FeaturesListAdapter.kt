@@ -15,7 +15,7 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.feature_item.view.*
 
 class FeaturesListAdapter(private val featuresList: List<Feature>, private val context: Context, val onRatingsCompletedCallback: OnShareClickListener) : RecyclerView.Adapter<FeaturesListAdapter.ItemViewHolder>() {
-
+    var ratingsChanged : Boolean = false
     private var featuresRated = 0
     init{
         featuresRated = 0
@@ -67,6 +67,8 @@ class FeaturesListAdapter(private val featuresList: List<Feature>, private val c
         val starViews = listOf<ImageView>(p0.itemView.img_star1, p0.itemView.img_star2, p0.itemView.img_star3, p0.itemView.img_star4, p0.itemView.img_star5)
 
         val rate = fun(v : View) {
+            ratingsChanged = true
+
             if(!isRatingAlreadySet(p1)) featuresRated++
             val index = starViews.indexOf(v)
             val rating = (index+1).toFloat()

@@ -17,6 +17,7 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import java.util.*
 import android.content.Context
+import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
 
 
@@ -31,7 +32,8 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(flaskoski.rs.smartmuseum.R.layout.activity_feature_preferences)
-
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Preferências"
         if(!ApplicationProperties.userNotDefinedYet())
             txt_username.setText(ApplicationProperties.user?.name)
 
@@ -59,17 +61,36 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 
     }
 
-    fun saveFeaturePreferences(v : View) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                saveFeaturePreferences(txt_username)
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onBackPressed() {
+       saveFeaturePreferences(txt_username)
+    }
+
+    private fun areFieldsCorrect(): Boolean {
         //No username
         if(txt_username.text.isBlank()){
             Toast.makeText(applicationContext, "Nome em branco! Por favor, informe um nome de usuário.", Toast.LENGTH_SHORT).show()
             txt_username.setError("Nome em branco!")
-            return
+            return false
         }
         if(!allFeaturesRated){
             Toast.makeText(applicationContext, "Por favor, informe seu nível de interesse para cada frase antes de avançar.", Toast.LENGTH_LONG).show()
-            return
+            return false
         }
+        return true
+    }
+
+    fun saveFeaturePreferences(v : View) {
+
+        if(!areFieldsCorrect()) return
 
         //username informed
         if(ApplicationProperties.userNotDefinedYet())
@@ -82,7 +103,10 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         ApplicationProperties.user?.id?.let {
             for(feature in featureList) {
                 var rating = Rating(it, feature.id, feature.rating, Rating.TYPE_FEATURE)
-                db.add(rating)
+
+                if((list_features.adapter as FeaturesListAdapter).ratingsChanged)
+                    db.add(rating) //TODO needs an addAll function
+
                 ratings.add(rating)
                 Log.i(TAG, rating.toString())
             }

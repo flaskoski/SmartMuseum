@@ -11,16 +11,21 @@ class JourneyManager(){
     var previousItem : Point? = null
     val TAG = "JourneyManager"
 
+
+    var isPreferencesSet = false
+    var isItemsAndRatingsLoaded: Boolean = false
+    var isJourneyBegan: Boolean = false
+
     fun build(points: List<Point>){
         museumGraph = MuseumGraph(points.toHashSet())
-
+        previousItem = museumGraph?.entrances?.first()
     }
 
     private fun isBuilt() : Boolean{
         return museumGraph != null
     }
 
-    fun getNextClosestItem() {
+    fun getNextClosestItem(): Point? {
         //TODO: Has to catch the closest entrance to the user
         if(this.museumGraph?.entrances == null) {
             Log.e(TAG, "no entrances found!")
@@ -31,6 +36,7 @@ class JourneyManager(){
         previousItem?.isClosest = false
         closestItem = museumGraph?.getClosestItemTo(previousItem!!)
         closestItem?.isClosest = true
+        return closestItem
     }
 
 

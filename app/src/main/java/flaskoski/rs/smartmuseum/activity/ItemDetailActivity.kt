@@ -56,7 +56,7 @@ class ItemDetailActivity  : AppCompatActivity() {
             else
                 it.setImageResource(android.R.drawable.btn_star_big_off)
         }
-        if(rating > 0f) lb_avalie.setText(ratingTexts[rating.toInt()])
+        if(rating > 0f) lb_avalie.setText(ratingTexts[rating.toInt()-1])
     }
 
     fun rate(v : View){
