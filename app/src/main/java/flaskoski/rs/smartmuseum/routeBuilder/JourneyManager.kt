@@ -15,6 +15,7 @@ class JourneyManager(){
     var isPreferencesSet = false
     var isItemsAndRatingsLoaded: Boolean = false
     var isJourneyBegan: Boolean = false
+    var timeAvailable: Double = 120.0
 
     fun build(points: List<Point>){
         museumGraph = MuseumGraph(points.toHashSet())
@@ -37,6 +38,10 @@ class JourneyManager(){
         closestItem = museumGraph?.getClosestItemTo(previousItem!!)
         closestItem?.isClosest = true
         return closestItem
+    }
+
+    fun getRecommendedRoute() {
+
     }
 
 

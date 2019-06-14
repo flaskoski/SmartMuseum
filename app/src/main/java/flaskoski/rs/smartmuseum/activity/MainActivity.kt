@@ -2,6 +2,8 @@ package flaskoski.rs.smartmuseum.activity
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
@@ -83,14 +85,15 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         setContentView(R.layout.activity_main)
         //draw toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
-
+        supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
         mapManager = MapManager(this).build(){
             userLocationManager = UserLocationManager(this, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
         }
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
+        bringToFront(loading_view, 50f)
         bringToFront(sheet_next_items, 40f)
         bringToFront(card_view, 30f)
-        //supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF677589")))
+
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
         itemsGridList.layoutManager = GridLayoutManager(this, 2)
@@ -136,6 +139,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     private fun updateRecommender() {
+            Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
             buildRecommender()
             Toast.makeText(applicationContext, "Atualizado!", Toast.LENGTH_SHORT).show()
     }
@@ -150,12 +154,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     item.recommedationRating = rating
                 else item.recommedationRating = 0F
             }
-            getNextClosestItemAndSort()
         }
         adapter.notifyDataSetChanged()
     }
 
-    private fun getNextClosestItemAndSort() {
+    private fun getRecommendedRouteAndSort() {
         if (journeyManager.isJourneyBegan)
             try {journeyManager.getNextClosestItem()} catch (e: Exception) { e.printStackTrace() }
         sortItemList()
@@ -173,7 +176,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     fun onClickBeginRoute(v : View){
         try {
             journeyManager.isJourneyBegan = true
-            getNextClosestItemAndSort()
+            getRecommendedRouteAndSort()
             setNextRecommendedDestination()
             bt_begin_route.visibility = View.GONE
         }
@@ -189,16 +192,19 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 userLocationManager?.createLocationRequest()
             }
             else {
-                Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
+                loading_view.visibility = View.VISIBLE
                 if (requestCode == REQUEST_GET_PREFERENCES) {
-                    if (data != null)
+                    if (data != null) {
                         (data.getSerializableExtra("featureRatings") as List<*>).forEach {
                             ratingsList.add(it as Rating)
                         }
-                    updateRecommender()
-                    if(!journeyManager.isPreferencesSet) {
-                        journeyManager.isPreferencesSet = true
-                        bt_begin_route.visibility = View.VISIBLE
+                        journeyManager.timeAvailable = data.getDoubleExtra("timeAvailable", 120.0)
+                        updateRecommender()
+                        getRecommendedRouteAndSort()
+                        if (!journeyManager.isPreferencesSet) {
+                            journeyManager.isPreferencesSet = true
+                            bt_begin_route.visibility = View.VISIBLE
+                        }
                     }
                 }
                 else if (requestCode == REQUEST_ITEM_RATING_CHANGE) {
@@ -211,19 +217,19 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                             if(rating != null) {//rating changed
                                 ratingsList.add(rating)
                                 updateRecommender()
-                            }else { //remove from first position the visited item
-                                getNextClosestItemAndSort()
                             }
+                            getRecommendedRouteAndSort()
                             setNextRecommendedDestination()
                         }
                         else
                             if(rating != null) {//rating changed
                                 ratingsList.add(rating)
                                 updateRecommender()
+                                getRecommendedRouteAndSort()
                             }
                     }
                 }
-
+                loading_view.visibility = View.GONE
             }
         }
     }
