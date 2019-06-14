@@ -228,7 +228,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
-    //-----------onClick adapter --------------
+    //-----------onClick --------------
 
     override fun shareOnItemClicked(p1: Int, arrived : Boolean) {
         if(ApplicationProperties.user == null) {

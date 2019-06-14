@@ -17,6 +17,8 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import java.util.*
 import android.content.Context
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
 
@@ -51,13 +53,21 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 //            val inputManager = applicationContext.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
 //            inputManager.hideSoftInputFromWindow(it.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
 //        }
-            txt_username.setOnFocusChangeListener { v, focused ->
-                if (!focused) {
-                    val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.hideSoftInputFromWindow(v.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+        txt_username.setOnFocusChangeListener { v, focused ->
+            if (!focused) {
+                val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(v.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
 
-                }
             }
+        }
+        txt_hh.addTextChangedListener(object : TextWatcher{
+            override fun afterTextChanged(p0: Editable?) {
+                if(txt_hh.text.toString().length > 0)
+                    txt_mm.requestFocus()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
 
     }
 
@@ -76,9 +86,15 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 
     private fun areFieldsCorrect(): Boolean {
         //No username
-        if(txt_username.text.isBlank()){
-            Toast.makeText(applicationContext, "Nome em branco! Por favor, informe um nome de usuário.", Toast.LENGTH_SHORT).show()
-            txt_username.setError("Nome em branco!")
+        if(txt_username.text.isBlank() || txt_hh.text.isBlank() || txt_mm.text.isBlank()){
+            Toast.makeText(applicationContext, "Campo em branco! Por favor, complete todos os campos.", Toast.LENGTH_SHORT).show()
+
+            if(txt_username.text.isBlank())
+                txt_username.setError("Nome em branco!")
+            if(txt_hh.text.isBlank())
+                txt_hh.setError("Horas em branco!")
+            if(txt_mm.text.isBlank())
+                txt_mm.setError("Minutos em branco!")
             return false
         }
         if(!allFeaturesRated){
@@ -115,6 +131,8 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         //TODO check if correctly saved on db
         val returningRatingsIntent = Intent()
         returningRatingsIntent.putExtra("featureRatings", ratings)
+        var timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
+        returningRatingsIntent.putExtra("timeAvailable", timeAvailable)
         setResult(Activity.RESULT_OK, returningRatingsIntent)
         finish()
     }

@@ -11,7 +11,6 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:scrollbars="vertical"
@@ -39,10 +38,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
         android:text="Nome do Usuário"
+        app:layout_constraintBottom_toBottomOf="@+id/txt_username"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/txt_username" />
+
+    <TextView
+        android:id="@+id/lb_username2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:text="Tempo Disponível para a Visita"
+        app:layout_constraintBottom_toBottomOf="@+id/txt_hh"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/txt_hh" />
 
     <EditText
         android:id="@+id/txt_username"
@@ -50,23 +59,48 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:ems="10"
         android:hint="Digite seu nome aqui..."
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/lb_username"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" >
+        <requestFocus />
+    </EditText>
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:text="Informe seu interesse pelos assuntos abordados nas frases abaixo:"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txt_hh" />
+
+    <EditText
+        android:id="@+id/txt_hh"
+        android:layout_width="35dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:ems="10"
+        android:hint="H"
+        android:inputType="number"
+        android:maxLength="1"
+        app:layout_constraintStart_toEndOf="@+id/lb_username2"
+        app:layout_constraintTop_toBottomOf="@+id/txt_username" />
+
+    <EditText
+        android:id="@+id/txt_mm"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:ems="10"
+        android:hint="MM"
+        android:inputType="number"
+        android:maxLength="2"
+        app:layout_constraintStart_toEndOf="@+id/txt_hh"
         app:layout_constraintTop_toBottomOf="@+id/txt_username" />
 </android.support.constraint.ConstraintLayout>
