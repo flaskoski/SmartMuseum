@@ -43,12 +43,12 @@
         android:scaleType="center"
         android:scaleX="1.3"
         android:scaleY="1.3"
-        app:backgroundTint="@android:color/holo_orange_light"
+        app:backgroundTint="@color/colorBackgroundSheet"
         app:fabSize="mini"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_mylocation"
         app:layout_anchor="@+id/linearLayout2"
-        app:layout_anchorGravity="bottom|right"/>
+        app:layout_anchorGravity="bottom|right"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_mylocation" />
 
     <RelativeLayout
         android:id="@+id/loading_view"

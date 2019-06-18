@@ -2,7 +2,8 @@
 <resources>
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorAccent">#ED4A62</color>
     <color name="colorVisitedItem">#D4FAA8</color>
-    <color name="colorBackgroundSheet">#EEEEEE</color>
+    <color name="colorRecommendedItem">#FFD1DADE</color>
+    <color name="colorBackgroundSheet">#EBEBEB</color>
 </resources>

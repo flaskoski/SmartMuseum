@@ -36,8 +36,6 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         setContentView(flaskoski.rs.smartmuseum.R.layout.activity_feature_preferences)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Preferências"
-        if(!ApplicationProperties.userNotDefinedYet())
-            txt_username.setText(ApplicationProperties.user?.name)
 
         featureList.add(Feature("Física", "O que é eletricidade e como ela funciona"))
         featureList.add(Feature("Química", "A água é composta de dois átomos de hidrogênio e um de oxigênio"))
@@ -67,6 +65,12 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             }
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
+
+        if(!ApplicationProperties.userNotDefinedYet()){
+            txt_username.setText(ApplicationProperties.user?.name)
+            txt_hh.setText((ApplicationProperties.user!!.timeAvailable/60.0).toInt().toString())
+            txt_mm.setText((ApplicationProperties.user!!.timeAvailable%60).toString())
+        }
 
     }
 
@@ -111,7 +115,10 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         if(ApplicationProperties.userNotDefinedYet())
             saveCurrentUserOnDb()
         //username already exists -> update name and keep id
-        else ApplicationProperties.user!!.name = txt_username.text.toString()
+        else {
+            ApplicationProperties.user!!.name = txt_username.text.toString()
+            ApplicationProperties.user!!.timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
+        }
 
         var ratings = ArrayList<Rating>()
         //save ratings
@@ -130,14 +137,14 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         //TODO check if correctly saved on db
         val returningRatingsIntent = Intent()
         returningRatingsIntent.putExtra("featureRatings", ratings)
-        var timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
-        returningRatingsIntent.putExtra("timeAvailable", timeAvailable)
+        returningRatingsIntent.putExtra("timeAvailable", ApplicationProperties.user?.timeAvailable)
         setResult(Activity.RESULT_OK, returningRatingsIntent)
         finish()
     }
 
     private fun saveCurrentUserOnDb() {
-        ApplicationProperties.user = User(UUID.randomUUID().toString(), txt_username.text.toString() )
+        val timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
+        ApplicationProperties.user = User(UUID.randomUUID().toString(), txt_username.text.toString(), timeAvailable )
     }
 
     override fun onRatingsCompleted() {

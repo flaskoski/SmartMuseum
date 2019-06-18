@@ -22,40 +22,7 @@ class MuseumGraph(val vertices: Set<Point>) {
     }
 
     fun getClosestItemTo(p: Point): Point? {
-        val notVisitedPoints = HashSet<Point>()
-        val visitedPoints = HashSet<Point>()
-        vertices.forEach {
-            it.cost = Double.MAX_VALUE
-            it.shortestPath.clear()
-        }
-        p.cost = 0.0
-        notVisitedPoints.add(p)
-
-        while(notVisitedPoints.isNotEmpty()){
-            val currentPoint : Point = getLowestCostAmong(notVisitedPoints)
-
-            //return as result the closest Item that hasn't been seen by the user
-            if(currentPoint is Item && !currentPoint.isVisited) {
-                currentPoint.shortestPath.addFirst(p) //origin put as the first point of the path
-                return currentPoint
-            }
-
-            notVisitedPoints.remove(currentPoint)
-            currentPoint.adjacentPoints.forEach{adjacentPoint->
-                val nextPoint = vertices.find{adjacentPoint.key == it.id}
-                if(nextPoint != null) {
-                    if (!visitedPoints.contains(nextPoint)) {
-                        calculateMinCost(currentPoint, nextPoint, adjacentPoint.value)
-                        notVisitedPoints.add(nextPoint)
-                    }
-                }else
-                    Log.w(TAG, "${adjacentPoint.key} from ${currentPoint.id} not found in vertices!")
-            }
-            visitedPoints.add(currentPoint)
-        }
-        //no items found (all visited or no items available)
-        return null
-
+        return getNextClosestItemFromList(p, vertices)
     }
 
     private fun calculateMinCost(currentPoint: Point, destinationPoint: Point, edgeCost: Double) {
@@ -79,6 +46,42 @@ class MuseumGraph(val vertices: Set<Point>) {
             }
         }
         return lowestCostPoint!!
+    }
+
+    fun getNextClosestItemFromList(p: Point, pointsRemaining: Set<Point>) : Point? {
+        val notVisitedPoints = HashSet<Point>()
+        val visitedPoints = HashSet<Point>()
+        vertices.forEach {
+            it.cost = Double.MAX_VALUE
+            it.shortestPath.clear()
+        }
+        p.cost = 0.0
+        notVisitedPoints.add(p)
+
+        while(notVisitedPoints.isNotEmpty()){
+            val currentPoint : Point = getLowestCostAmong(notVisitedPoints)
+
+            //return as result the closest Item that hasn't been seen by the user
+            if(currentPoint is Item && pointsRemaining.contains(currentPoint) && !currentPoint.isVisited) {
+                currentPoint.shortestPath.addFirst(p) //origin put as the first point of the path
+                return currentPoint
+            }
+
+            notVisitedPoints.remove(currentPoint)
+            currentPoint.adjacentPoints.forEach{adjacentPoint->
+                val nextPoint = vertices.find{adjacentPoint.key == it.id}
+                if(nextPoint != null) {
+                    if (!visitedPoints.contains(nextPoint)) {
+                        calculateMinCost(currentPoint, nextPoint, adjacentPoint.value)
+                        notVisitedPoints.add(nextPoint)
+                    }
+                }else
+                    Log.w(TAG, "${adjacentPoint.key} from ${currentPoint.id} not found in vertices!")
+            }
+            visitedPoints.add(currentPoint)
+        }
+        //no items found (all visited or no items available)
+        return null
     }
 
 

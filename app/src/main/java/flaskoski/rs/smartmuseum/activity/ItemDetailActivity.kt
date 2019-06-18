@@ -1,9 +1,11 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.app.Activity
+import android.content.DialogInterface
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -24,6 +26,7 @@ class ItemDetailActivity  : AppCompatActivity() {
     private lateinit var itemRating : Rating
     lateinit var starViews : List<ImageView>
     private val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
+    private var arrived: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +36,7 @@ class ItemDetailActivity  : AppCompatActivity() {
 
         val extras = intent
         currentItem = extras.getSerializableExtra("itemClicked") as Item?
-        val arrived = extras.getBooleanExtra("arrived", false)
+        arrived = extras.getBooleanExtra("arrived", false)
         val rating = extras.getFloatExtra("itemRating", 0F)
 
         if(!arrived) bt_next_item.visibility = View.GONE
@@ -85,23 +88,33 @@ class ItemDetailActivity  : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if(!isRatingChanged){
-            super.onBackPressed()
-            finish()
+        if(arrived){
+            val confirmationDialog = AlertDialog.Builder(this@ItemDetailActivity, R.style.Theme_AppCompat_Dialog_Alert)
+            confirmationDialog.setTitle("Atenção")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setMessage("Deseja ir ao próximo item da visita?")
+                    .setPositiveButton(android.R.string.yes) { _, _ ->
+                        goBack(true)
+                    }.setNegativeButton(android.R.string.no){ _, _ ->
+                        goBack()
+                    }
+            confirmationDialog.show()
         }
+        else{
+           goBack()
+        }
+    }
 
+    private fun goBack(goToNextItem : Boolean = false){
         val returnRatingIntent = Intent()
-        returnRatingIntent.putExtra("itemRating", itemRating)
+        if(isRatingChanged)
+            returnRatingIntent.putExtra("itemRating", itemRating)
+        if(arrived) returnRatingIntent.putExtra("nextItem", goToNextItem)
         setResult(Activity.RESULT_OK, returnRatingIntent)
         finish()
     }
 
     fun goToNextItem(v: View){
-        val returnRatingIntent = Intent()
-        if(isRatingChanged)
-            returnRatingIntent.putExtra("itemRating", itemRating)
-        returnRatingIntent.putExtra("nextItem", true)
-        setResult(Activity.RESULT_OK, returnRatingIntent)
-        finish()
+        goBack(true)
     }
 }

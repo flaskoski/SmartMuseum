@@ -26,7 +26,7 @@ class ItemDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()){
                     }
                     callback(itemsList)
                 }
-                .addOnFailureListener { exception ->
+                .addOnFailureListener { _ ->
                    // Log.w(TAG, "Error getting documents.", exception)
                     throw Exception("Error getting items")
                 }

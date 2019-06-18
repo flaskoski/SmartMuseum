@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         //--DEBUG
         if(isDebugging) {
-            ApplicationProperties.user = User("Felipe", "Felipe")
+            ApplicationProperties.user = User("Felipe", "Felipe", 155.0)
             bt_begin_route.visibility = View.VISIBLE
             journeyManager.isPreferencesSet = true
         }
@@ -111,8 +111,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         getItemsAndRatingsBeforeRecommend = ParallelRequestsManager(2)
         val itemDAO = ItemDAO()
         itemDAO.getAllPoints {points ->
-            journeyManager.build(points)
             (itemsList as ArrayList).addAll(points.filter { it is Item } as List<Item>)
+            journeyManager.build(points, itemsList)
             getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
             if(getItemsAndRatingsBeforeRecommend.isComplete) {
                 journeyManager.isItemsAndRatingsLoaded = true
@@ -160,19 +160,20 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private fun getRecommendedRouteAndSort() {
         if (journeyManager.isJourneyBegan)
-            try {journeyManager.getNextClosestItem()} catch (e: Exception) { e.printStackTrace() }
+            try {journeyManager.getRecommendedRoute()} catch (e: Exception) { e.printStackTrace() }
         sortItemList()
     }
 
     private fun sortItemList() {
         var i = 0
-        itemsList.sortedWith(compareByDescending<Item>{it.isClosest}.thenBy{it.isVisited}.thenByDescending{it.recommedationRating}).forEach{
+        itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenBy{ it.recommendedOrder}).forEach{
             (itemsList as java.util.ArrayList<Item>)[i++] = it
         }
         adapter.notifyDataSetChanged()
 
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun onClickBeginRoute(v : View){
         try {
             journeyManager.isJourneyBegan = true
@@ -215,6 +216,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                             currentItem?.isVisited = true
                             card_view.visibility = View.GONE
                             if(rating != null) {//rating changed
+                                ratingsList.remove(rating)
                                 ratingsList.add(rating)
                                 updateRecommender()
                             }
@@ -223,6 +225,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         }
                         else
                             if(rating != null) {//rating changed
+                                ratingsList.remove(rating)
                                 ratingsList.add(rating)
                                 updateRecommender()
                                 getRecommendedRouteAndSort()
@@ -258,8 +261,15 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     //-------------MAPS AND LOCATION----------------------------------------
 
     private fun setNextRecommendedDestination() {
-        val item = journeyManager.closestItem as Item//.filter{ !it.isVisited}[0]
-        if(item != null) mapManager?.setDestination(item, journeyManager.previousItem)
+        var item : Item? = null
+        if(!itemsList[0].isVisited && itemsList[0].recommendedOrder != Int.MAX_VALUE)
+            item = itemsList[0]
+
+        if(item != null){
+            journeyManager.previousItem?.let { journeyManager.findAndSetShortestPath(item, it) }
+            mapManager?.setDestination(item, journeyManager.previousItem)
+            journeyManager.previousItem = item
+        }
         else {
             Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
             Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_SHORT).show()
@@ -297,6 +307,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun goToUserLocation(v: View) {
         userLocationManager?.userLastKnownLocation?.let { mapManager?.goToLocation(it) }
     }
