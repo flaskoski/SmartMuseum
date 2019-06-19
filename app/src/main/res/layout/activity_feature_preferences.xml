@@ -53,6 +53,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/txt_hh" />
 
+    <TextView
+        android:id="@+id/lb_username3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:text=":"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/txt_hh"
+        app:layout_constraintEnd_toStartOf="@+id/txt_mm"
+        app:layout_constraintStart_toEndOf="@+id/txt_hh"
+        app:layout_constraintTop_toTopOf="@+id/txt_hh" />
+
     <EditText
         android:id="@+id/txt_username"
         android:layout_width="0dp"
@@ -82,7 +95,7 @@
 
     <EditText
         android:id="@+id/txt_hh"
-        android:layout_width="35dp"
+        android:layout_width="25dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:ems="10"

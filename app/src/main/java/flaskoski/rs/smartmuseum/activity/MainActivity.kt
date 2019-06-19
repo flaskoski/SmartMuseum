@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import android.util.Log
@@ -158,10 +159,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         adapter.notifyDataSetChanged()
     }
 
-    private fun getRecommendedRouteAndSort() {
+    private fun getRecommendedRoute() {
         if (journeyManager.isJourneyBegan)
             try {journeyManager.getRecommendedRoute()} catch (e: Exception) { e.printStackTrace() }
-        sortItemList()
     }
 
     private fun sortItemList() {
@@ -177,7 +177,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     fun onClickBeginRoute(v : View){
         try {
             journeyManager.isJourneyBegan = true
-            getRecommendedRouteAndSort()
+            getRecommendedRoute()
+            sortItemList()
             setNextRecommendedDestination()
             bt_begin_route.visibility = View.GONE
         }
@@ -201,7 +202,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         }
                         journeyManager.timeAvailable = data.getDoubleExtra("timeAvailable", 120.0)
                         updateRecommender()
-                        getRecommendedRouteAndSort()
+                        getRecommendedRoute()
+                        sortItemList()
                         if (!journeyManager.isPreferencesSet) {
                             journeyManager.isPreferencesSet = true
                             bt_begin_route.visibility = View.VISIBLE
@@ -220,21 +222,39 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                                 ratingsList.add(rating)
                                 updateRecommender()
                             }
-                            getRecommendedRouteAndSort()
-                            setNextRecommendedDestination()
+
+                            if(journeyManager.isJourneyFinished()) {
+                                showFinishedMessage()
+                            }
+                            else {
+                                if (rating != null)
+                                    getRecommendedRoute()
+                                sortItemList()
+                                setNextRecommendedDestination()
+                            }
                         }
                         else
                             if(rating != null) {//rating changed
                                 ratingsList.remove(rating)
                                 ratingsList.add(rating)
                                 updateRecommender()
-                                getRecommendedRouteAndSort()
+                                getRecommendedRoute()
+                                sortItemList()
                             }
                     }
                 }
                 loading_view.visibility = View.GONE
             }
         }
+    }
+
+    private fun showFinishedMessage() {
+        val confirmationDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
+        confirmationDialog.setTitle("Atenção")
+                .setIcon(R.drawable.baseline_done_black_24)
+                .setMessage("Você já visitou todos os itens recomendados para você. Obrigado pela visita!")
+                .setNeutralButton(android.R.string.ok, null)
+        confirmationDialog.show()
     }
 
     //-----------onClick --------------
@@ -272,7 +292,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
         else {
             Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
-            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_LONG).show()
         }
     }
 

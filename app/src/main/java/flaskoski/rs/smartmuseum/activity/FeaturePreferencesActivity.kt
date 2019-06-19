@@ -51,11 +51,10 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 //            val inputManager = applicationContext.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
 //            inputManager.hideSoftInputFromWindow(it.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
 //        }
-        txt_username.setOnFocusChangeListener { v, focused ->
+        txt_mm.setOnFocusChangeListener { v, focused ->
             if (!focused) {
                 val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(v.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
-
             }
         }
         txt_hh.addTextChangedListener(object : TextWatcher{

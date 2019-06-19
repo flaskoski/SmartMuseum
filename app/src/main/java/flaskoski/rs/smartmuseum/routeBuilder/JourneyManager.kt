@@ -101,4 +101,9 @@ class JourneyManager(){
     fun findAndSetShortestPath(to: Point, from: Point): Point? {
         return museumGraph?.getNextClosestItemFromList(from, setOf(to))
     }
+
+    fun isJourneyFinished(): Boolean {
+        if(itemList == null) throw Exception("Manager was not built yet!")
+        return itemList?.none { (it as Item).isRecommended() && !it.isVisited }!!
+    }
 }

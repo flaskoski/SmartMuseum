@@ -27,4 +27,8 @@ class Item(id: String = "",
     override fun toString(): String {
         return super.toString() + " ${this.title}"
     }
+
+    fun isRecommended() : Boolean{
+        return recommendedOrder != Int.MAX_VALUE
+    }
 }
