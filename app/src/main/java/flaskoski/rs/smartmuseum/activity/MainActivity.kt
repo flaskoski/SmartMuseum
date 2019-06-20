@@ -1,22 +1,26 @@
 package flaskoski.rs.smartmuseum.activity
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.BottomSheetBehavior
-import android.support.v4.app.ActivityCompat
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.GridLayoutManager
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import androidx.core.app.ActivityCompat
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.databinding.DataBindingUtil
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
@@ -30,6 +34,7 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import java.util.*
 import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.databinding.ActivityMainBinding
 import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.User
 import flaskoski.rs.smartmuseum.routeBuilder.JourneyManager
@@ -77,16 +82,21 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
 
     private var mapManager: MapManager? = null
-    private var journeyManager = JourneyManager()
+    private lateinit var journeyManager : JourneyManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val isDebugging = true
         //------------Standard Side Menu Screen---------------------------
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        val binding: ActivityMainBinding  = DataBindingUtil.setContentView(
+                this, R.layout.activity_main)
+//        setContentView(R.layout.activity_main)
+
         //draw toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
+
+        journeyManager = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(JourneyManager::class.java)
         mapManager = MapManager(this).build(){
             userLocationManager = UserLocationManager(this, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
         }
@@ -189,6 +199,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
             if(requestCode == REQUEST_CHANGE_LOCATION_SETTINGS){
                 userLocationManager?.createLocationRequest()

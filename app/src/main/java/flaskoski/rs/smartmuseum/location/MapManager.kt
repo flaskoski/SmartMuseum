@@ -2,7 +2,7 @@ package flaskoski.rs.smartmuseum.location
 
 import android.graphics.Color
 import android.location.Location
-import android.support.v4.app.FragmentActivity
+import androidx.fragment.app.FragmentActivity
 import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -15,7 +15,7 @@ import flaskoski.rs.smartmuseum.model.Point
 import java.lang.IllegalStateException
 
 
-class MapManager(private val mapActivity: FragmentActivity ) : OnMapReadyCallback {
+class MapManager(private val mapActivity: FragmentActivity) : OnMapReadyCallback {
     var activityCallback : (() -> Unit)? = null
     fun build(activityCallback: (() -> Unit)?): MapManager {
         this.activityCallback = activityCallback

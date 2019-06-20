@@ -1,10 +1,11 @@
 package flaskoski.rs.smartmuseum.routeBuilder
+import androidx.lifecycle.ViewModel
 import android.util.Log
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Point
 import java.util.*
 
-class JourneyManager(){
+class JourneyManager : ViewModel() {
 
     var museumGraph: MuseumGraph?  = null
     var closestItem: Point? = null
