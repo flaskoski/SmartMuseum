@@ -8,8 +8,9 @@ import flaskoski.rs.smartmuseum.model.Point
 import flaskoski.rs.smartmuseum.model.UserLocationManager
 import java.util.*
 
-class JourneyManager : ViewModel() {
+class JourneyManager() : ViewModel() {
 
+    lateinit var mainActivity: MainActivity
     var museumGraph: MuseumGraph?  = null
     var closestItem: Point? = null
     var previousItem : Point? = null
@@ -31,14 +32,16 @@ class JourneyManager : ViewModel() {
 
     val REQUEST_CHANGE_LOCATION_SETTINGS: Int = 3
 
-    fun build(points: List<Point>, itemList: List<Item>, mainActivity: MainActivity){
+    init {
+        mapManager = MapManager{
+            userLocationManager = UserLocationManager(mainActivity, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
+        }
+    }
+
+    fun build(points: List<Point>, itemList: List<Item>){
         museumGraph = MuseumGraph(points.toHashSet())
         previousItem = museumGraph?.entrances?.first()
         this.itemList = itemList
-
-        mapManager = MapManager(mainActivity).build(){
-            userLocationManager = UserLocationManager(mainActivity, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
-        }
     }
 
     private fun isBuilt() : Boolean{

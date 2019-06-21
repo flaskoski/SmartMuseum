@@ -19,6 +19,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import com.google.android.gms.maps.SupportMapFragment
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
@@ -86,9 +87,16 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 this, R.layout.activity_main)
 //        setContentView(R.layout.activity_main)
         journeyManager = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(JourneyManager::class.java)
+
+        //TODO remove relationshhip
+        journeyManager.mainActivity = this
         //draw toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
+
+        val mapFragment = supportFragmentManager
+                .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(journeyManager.mapManager)
 
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
         bringToFront(loading_view, 50f)
@@ -113,7 +121,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         val itemDAO = ItemDAO()
         itemDAO.getAllPoints {points ->
             (itemsList as ArrayList).addAll(points.filter { it is Item } as List<Item>)
-            journeyManager.build(points, itemsList, this)
+
+            journeyManager.build(points, itemsList)
             getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
             if(getItemsAndRatingsBeforeRecommend.isComplete) {
                 journeyManager.isItemsAndRatingsLoaded = true
@@ -288,7 +297,13 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         if(item != null){
             journeyManager.previousItem?.let { journeyManager.findAndSetShortestPath(item, it) }
-            journeyManager.mapManager?.setDestination(item, journeyManager.previousItem)
+            try{
+                journeyManager.mapManager?.setDestination(item, journeyManager.previousItem)
+            }
+            catch(e: Exception){
+                e.printStackTrace()
+                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
+            }
             journeyManager.previousItem = item
         }
         else {

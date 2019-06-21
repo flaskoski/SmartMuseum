@@ -2,12 +2,10 @@ package flaskoski.rs.smartmuseum.location
 
 import android.graphics.Color
 import android.location.Location
-import androidx.fragment.app.FragmentActivity
-import android.widget.Toast
+import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
@@ -15,17 +13,11 @@ import flaskoski.rs.smartmuseum.model.Point
 import java.lang.IllegalStateException
 
 
-class MapManager(private val mapActivity: FragmentActivity) : OnMapReadyCallback {
-    var activityCallback : (() -> Unit)? = null
-    fun build(activityCallback: (() -> Unit)?): MapManager {
-        this.activityCallback = activityCallback
-        val mapFragment = mapActivity.supportFragmentManager
-                .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-        return this
-    }
+class MapManager(val onMapConfiguredCallback: (() -> Unit)? = null): OnMapReadyCallback {
 
     var mMap : GoogleMap? = null
+    private val TAG = "MapManager"
+    var onUserArrivedToDestination: (() -> Unit)? = null
     private var mCurrLocationMarker: Marker? = null
     private var destinationMarker: Marker? = null
     private var destinationPath : Polyline? = null
@@ -45,7 +37,7 @@ class MapManager(private val mapActivity: FragmentActivity) : OnMapReadyCallback
         mMap?.moveCamera(CameraUpdateFactory.zoomTo(19.5f))
         mMap?.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)));
         //Initialize Location
-        activityCallback?.invoke()
+        onMapConfiguredCallback?.invoke()
     }
 
     private var alreadyInformed: Boolean = false
@@ -62,8 +54,9 @@ class MapManager(private val mapActivity: FragmentActivity) : OnMapReadyCallback
         if(isDestinationSet())
             if(!alreadyInformed && isVeryCloseToDestination(userLatLng)) { // < 10 meters
                 alreadyInformed = true
-                if(mapActivity is onUserArrivedToDestinationCallback)
-                    (mapActivity as onUserArrivedToDestinationCallback).onUserArrivedToDestination()
+                if(onUserArrivedToDestination != null)
+                    onUserArrivedToDestination!!.invoke()
+                else Log.w(TAG, "onUserArrived state reached but it's callback is null")
             }
     }
 
@@ -114,10 +107,8 @@ class MapManager(private val mapActivity: FragmentActivity) : OnMapReadyCallback
                     destinationMarker?.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 destinationMarker = addItem(item)
                 alreadyInformed = false
-            }else{
-                Toast.makeText(mapActivity.applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
+            }else
                 throw IllegalStateException("User map marker is null! Probable cause: User location wasn't found.")
-            }
         }
         return this
     }
