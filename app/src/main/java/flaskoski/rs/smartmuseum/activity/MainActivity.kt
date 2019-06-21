@@ -1,8 +1,6 @@
 package flaskoski.rs.smartmuseum.activity
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStore
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -28,7 +26,6 @@ import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
-import flaskoski.rs.smartmuseum.model.UserLocationManager
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
@@ -52,9 +49,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private val REQUEST_GET_PREFERENCES: Int = 1
     private val REQUEST_ITEM_RATING_CHANGE: Int = 2
-    val REQUEST_CHANGE_LOCATION_SETTINGS: Int = 3
 
-    private var userLocationManager : UserLocationManager? = null
     private var itemsList : List<Item> = ArrayList()
     private var ratingsList  = HashSet<Rating>()
     private var currentItem : Item? = null
@@ -81,25 +76,20 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
 
-    private var mapManager: MapManager? = null
     private lateinit var journeyManager : JourneyManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val isDebugging = true
         //------------Standard Side Menu Screen---------------------------
         super.onCreate(savedInstanceState)
-        val binding: ActivityMainBinding  = DataBindingUtil.setContentView(
+        DataBindingUtil.setContentView<ActivityMainBinding>(
                 this, R.layout.activity_main)
 //        setContentView(R.layout.activity_main)
-
+        journeyManager = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(JourneyManager::class.java)
         //draw toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
 
-        journeyManager = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(JourneyManager::class.java)
-        mapManager = MapManager(this).build(){
-            userLocationManager = UserLocationManager(this, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
-        }
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
         bringToFront(loading_view, 50f)
         bringToFront(sheet_next_items, 40f)
@@ -123,7 +113,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         val itemDAO = ItemDAO()
         itemDAO.getAllPoints {points ->
             (itemsList as ArrayList).addAll(points.filter { it is Item } as List<Item>)
-            journeyManager.build(points, itemsList)
+            journeyManager.build(points, itemsList, this)
             getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
             if(getItemsAndRatingsBeforeRecommend.isComplete) {
                 journeyManager.isItemsAndRatingsLoaded = true
@@ -201,8 +191,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
-            if(requestCode == REQUEST_CHANGE_LOCATION_SETTINGS){
-                userLocationManager?.createLocationRequest()
+            if(requestCode == journeyManager.REQUEST_CHANGE_LOCATION_SETTINGS){
+                journeyManager.userLocationManager?.createLocationRequest()
             }
             else {
                 loading_view.visibility = View.VISIBLE
@@ -298,7 +288,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         if(item != null){
             journeyManager.previousItem?.let { journeyManager.findAndSetShortestPath(item, it) }
-            mapManager?.setDestination(item, journeyManager.previousItem)
+            journeyManager.mapManager?.setDestination(item, journeyManager.previousItem)
             journeyManager.previousItem = item
         }
         else {
@@ -319,12 +309,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     override fun onResume() {
         super.onResume()
-        userLocationManager?.startLocationUpdates()
+        journeyManager.userLocationManager?.startLocationUpdates()
     }
 
     override fun onPause() {
         super.onPause()
-        userLocationManager?.stopLocationUpdates()
+        journeyManager.userLocationManager?.stopLocationUpdates()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -332,7 +322,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.checkSelfPermission(applicationContext, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                userLocationManager?.createLocationRequest()
+                journeyManager.userLocationManager?.createLocationRequest()
             }
 
         }
@@ -340,7 +330,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     @Suppress("UNUSED_PARAMETER")
     fun goToUserLocation(v: View) {
-        userLocationManager?.userLastKnownLocation?.let { mapManager?.goToLocation(it) }
+        journeyManager.userLocationManager?.userLastKnownLocation?.let { journeyManager.mapManager?.goToLocation(it) }
     }
 
 

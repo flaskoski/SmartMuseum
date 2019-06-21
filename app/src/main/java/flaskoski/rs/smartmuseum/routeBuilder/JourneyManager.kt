@@ -1,8 +1,11 @@
 package flaskoski.rs.smartmuseum.routeBuilder
 import androidx.lifecycle.ViewModel
 import android.util.Log
+import flaskoski.rs.smartmuseum.activity.MainActivity
+import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Point
+import flaskoski.rs.smartmuseum.model.UserLocationManager
 import java.util.*
 
 class JourneyManager : ViewModel() {
@@ -23,10 +26,19 @@ class JourneyManager : ViewModel() {
 
     private val MIN_TIME_BETWEEN_ITEMS: Double = 0.5
 
-    fun build(points: List<Point>, itemList : List<Item>){
+    var mapManager: MapManager? = null
+    var userLocationManager : UserLocationManager? = null
+
+    val REQUEST_CHANGE_LOCATION_SETTINGS: Int = 3
+
+    fun build(points: List<Point>, itemList: List<Item>, mainActivity: MainActivity){
         museumGraph = MuseumGraph(points.toHashSet())
         previousItem = museumGraph?.entrances?.first()
         this.itemList = itemList
+
+        mapManager = MapManager(mainActivity).build(){
+            userLocationManager = UserLocationManager(mainActivity, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
+        }
     }
 
     private fun isBuilt() : Boolean{
