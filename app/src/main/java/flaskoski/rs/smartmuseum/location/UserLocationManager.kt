@@ -11,12 +11,10 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.util.Log
-import android.widget.Toast
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
-import java.lang.Exception
 
 /***
  * UserLocationManager
@@ -26,24 +24,40 @@ import java.lang.Exception
  * @param onUserLocationUpdateCallback: function that handles the user location returned
  *
  */
-class UserLocationManager(val activity: Activity, val REQUEST_CHANGE_LOCATION_SETTINGS : Int,  val onUserLocationUpdateCallback : (userLatLng: LatLng)-> Unit) : LocationCallback() {
-    private var locationRequest: LocationRequest? = null
-    private var mFusedLocationClient: FusedLocationProviderClient? = null
-    private lateinit var locationManager: LocationManager
+class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : LocationCallback() {
 
-    init {
-        locationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity)
+
+    private var locationManager: LocationManager? = null
+    private var mFusedLocationClient: FusedLocationProviderClient? = null
+    private var locationSettingsCorrect: Boolean = false
+    private var locationRequest: LocationRequest? = null
+
+    private val TAG: String = "UserLocationManager"
+    var onUserLocationUpdateCallback: ((LatLng) -> Unit)? = null
+
+    var activity: Activity? = null
+
+    fun updateActivity(activity: Activity) {
+        this.activity = activity
+        updateVariablesActivity()
+    }
+
+    private fun updateVariablesActivity(){
+        locationManager = activity?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         createLocationRequest()
     }
 
     val userLastKnownLocation : Location?
         get() {
-            if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
-                return null
+            activity?.let {activity->
+                if (ActivityCompat.checkSelfPermission(activity.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+                    return null
+                }
+                return locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             }
-            return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            return null
         }
 
 
@@ -51,7 +65,7 @@ class UserLocationManager(val activity: Activity, val REQUEST_CHANGE_LOCATION_SE
         locationResult ?: return
         for (location in locationResult.locations) {
             val userLatLng = LatLng(location.latitude, location.longitude)
-            onUserLocationUpdateCallback(userLatLng)
+            onUserLocationUpdateCallback?.invoke(userLatLng)
         }
     }
 
@@ -59,57 +73,57 @@ class UserLocationManager(val activity: Activity, val REQUEST_CHANGE_LOCATION_SE
         mFusedLocationClient?.removeLocationUpdates(this)
     }
 
-    private val TAG: String = "UserLocationManager"
-
     fun startLocationUpdates() {
-        if(ActivityCompat.checkSelfPermission(activity.applicationContext, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            //Toast.makeText(activity.applicationContext, "Erro: O aplicativo precisa de permissão para acessar sua localização para funcionar.", Toast.LENGTH_SHORT).show()
-            Log.w(TAG,"No location permission.")
-            createLocationRequest()
-            return
+        activity?.applicationContext?.let {
+            if( ActivityCompat.checkSelfPermission(it, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                //Toast.makeText(activity.applicationContext, "Erro: O aplicativo precisa de permissão para acessar sua localização para funcionar.", Toast.LENGTH_SHORT).show()
+                Log.w(TAG,"No location permission.")
+                createLocationRequest()
+                return
+            }
+            if(!locationSettingsCorrect){
+                //Toast.makeText(activity.applicationContext, "GPS desligado", Toast.LENGTH_SHORT).show()
+                Log.w(TAG,"Wrong phone location settings.")
+                createLocationRequest()
+                return
+            }
+            mFusedLocationClient!!.requestLocationUpdates(locationRequest,
+                    this,
+                    null)
         }
-        if(!locationSettingsCorrect){
-            //Toast.makeText(activity.applicationContext, "GPS desligado", Toast.LENGTH_SHORT).show()
-            Log.w(TAG,"Wrong phone location settings.")
-            createLocationRequest()
-            return
-        }
-        mFusedLocationClient!!.requestLocationUpdates(locationRequest,
-                this,
-                null)
     }
 
-    private var locationSettingsCorrect: Boolean = false
-
     fun createLocationRequest() {
-        if (Build.VERSION.SDK_INT >= 23)
-            if (ContextCompat.checkSelfPermission(activity.applicationContext, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-                ActivityCompat.requestPermissions(activity, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
+        activity?.let {activity->
+            if (Build.VERSION.SDK_INT >= 23)
+                if (ContextCompat.checkSelfPermission(activity.applicationContext, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                    ActivityCompat.requestPermissions(activity, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
 
-        locationRequest = LocationRequest.create()?.apply {
-            interval = 1000
-            fastestInterval = 1000
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-        locationRequest?.let {
-            val builder = LocationSettingsRequest.Builder()
-                    .addLocationRequest(it)
-            val client: SettingsClient = LocationServices.getSettingsClient(activity.applicationContext)
-            val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-            task.addOnSuccessListener { locationSettingsResponse ->
-                locationSettingsCorrect =  true
-                startLocationUpdates()
+            locationRequest = LocationRequest.create()?.apply {
+                interval = 1000
+                fastestInterval = 1000
+                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             }
+            locationRequest?.let {
+                val builder = LocationSettingsRequest.Builder()
+                        .addLocationRequest(it)
+                val client: SettingsClient = LocationServices.getSettingsClient(activity.applicationContext)
+                val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+                task.addOnSuccessListener { locationSettingsResponse ->
+                    locationSettingsCorrect = true
+                    startLocationUpdates()
+                }
 
-            task.addOnFailureListener { exception ->
-                if (exception is ResolvableApiException){
-                    // Location settings are not satisfied. Show to the user a dialog.
-                    try {
-                        // then check the result in onActivityResult().
-                        exception.startResolutionForResult(activity,
-                                REQUEST_CHANGE_LOCATION_SETTINGS)
-                    } catch (sendEx: IntentSender.SendIntentException) {
-                        // Ignore the error.
+                task.addOnFailureListener { exception ->
+                    if (exception is ResolvableApiException) {
+                        // Location settings are not satisfied. Show to the user a dialog.
+                        try {
+                            // then check the result in onActivityResult().
+                            exception.startResolutionForResult(activity,
+                                    REQUEST_CHANGE_LOCATION_SETTINGS)
+                        } catch (sendEx: IntentSender.SendIntentException) {
+                            // Ignore the error.
+                        }
                     }
                 }
             }

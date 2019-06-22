@@ -18,8 +18,6 @@ package flaskoski.rs.smartmuseum.recommender.RSCustomConvertor;
  * along with LibRec. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import android.content.Context;
-
 import com.google.common.collect.BiMap;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -48,11 +46,9 @@ public class NioFreeTextDataModel extends NioFreeAbstractDataModel implements Da
     /**
      * Empty constructor.
      * @param conf
-     * @param applicationContext
      */
-    public NioFreeTextDataModel(Configuration conf, List<Rating> ratings, Context applicationContext) {
+    public NioFreeTextDataModel(Configuration conf, List<Rating> ratings) {
         this.conf = conf;
-        this.applicationContex = applicationContext;
         this.ratings = ratings;
     }
 
@@ -77,7 +73,7 @@ public class NioFreeTextDataModel extends NioFreeAbstractDataModel implements Da
     public void buildConvert() throws LibrecException {
         String inputDataPath = conf.get(Configured.CONF_DFS_DATA_DIR) /*+ File.separator */+ conf.get(Configured.CONF_DATA_INPUT_PATH);
         String dataColumnFormat = conf.get(Configured.CONF_DATA_COLUMN_FORMAT, "UIR");
-        dataConvertor = new NioFreeTextDataConvertor(dataColumnFormat, inputDataPath, conf.getDouble("data.convert.binarize.threshold", -1.0), ratings, applicationContex);
+        dataConvertor = new NioFreeTextDataConvertor(dataColumnFormat, inputDataPath, conf.getDouble("data.convert.binarize.threshold", -1.0), ratings);
         try {
             dataConvertor.processData();
         } catch (IOException e) {

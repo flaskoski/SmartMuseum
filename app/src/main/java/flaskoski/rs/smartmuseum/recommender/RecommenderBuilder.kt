@@ -18,14 +18,13 @@ class RecommenderBuilder{
     private val TAG = "RecommenderBuilder"
 
     fun buildKNNRecommender(ratings: Set<Rating>,
-                            context: Context,
                             knn: Int =  4,
                             useRanking: Boolean = false) : Recommender{
         this.knn = knn.toString()
         this.useRanking = useRanking
 
         var conf = setConfiguration();
-        var dataModel = NioFreeTextDataModel(conf, ratings.toMutableList(), context)
+        var dataModel = NioFreeTextDataModel(conf, ratings.toMutableList())
         dataModel.buildDataModel()
 
 

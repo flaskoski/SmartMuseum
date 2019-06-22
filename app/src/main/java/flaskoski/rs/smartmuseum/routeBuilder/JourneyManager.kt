@@ -1,52 +1,139 @@
 package flaskoski.rs.smartmuseum.routeBuilder
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
+import com.google.android.gms.maps.SupportMapFragment
+import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
+import flaskoski.rs.smartmuseum.DAO.ItemDAO
+import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.activity.MainActivity
 import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Point
+import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.model.UserLocationManager
+import flaskoski.rs.smartmuseum.recommender.RecommenderManager
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
+import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
 import java.util.*
 
-class JourneyManager() : ViewModel() {
+class JourneyManager() : ViewModel() ,
+        MapManager.OnUserArrivedToDestinationListener {
 
-    lateinit var mainActivity: MainActivity
     var museumGraph: MuseumGraph?  = null
     var closestItem: Point? = null
     var previousItem : Point? = null
     private val TAG = "JourneyManager"
-    private var itemList : List<Point>? = null
+    var itemsList : List<Item> = ArrayList()
+    var ratingsList  = HashSet<Rating>()
+    var currentItem : Item? = null
+
     private var pointsRemaining = LinkedList<Point>()
 
-
+    var isCloseToItem = MutableLiveData<Boolean>()
+    var itemListChangedListener : (()->Unit)? = null
     var isPreferencesSet = false
     var isItemsAndRatingsLoaded: Boolean = false
     var isJourneyBegan: Boolean = false
     var timeAvailable: Double = 120.0
     private val timeAlreadySpent: Double? = null
 
-    private val MIN_TIME_BETWEEN_ITEMS: Double = 0.5
+    private val MIN_TIME_BETWEEN_ITEMS = 0.5
 
     var mapManager: MapManager? = null
     var userLocationManager : UserLocationManager? = null
 
-    val REQUEST_CHANGE_LOCATION_SETTINGS: Int = 3
+    val REQUEST_CHANGE_LOCATION_SETTINGS = 3
 
     init {
-        mapManager = MapManager{
-            userLocationManager = UserLocationManager(mainActivity, REQUEST_CHANGE_LOCATION_SETTINGS, mapManager?.updateUserLocationCallback!!)
+        //live data vars initialization
+        isCloseToItem.value = false
+
+        //maps setup
+        userLocationManager = UserLocationManager(REQUEST_CHANGE_LOCATION_SETTINGS)
+        mapManager = MapManager(this)
+        userLocationManager?.onUserLocationUpdateCallback = mapManager?.updateUserLocationCallback
+    }
+
+    private var activity: Activity? = null
+    fun updateActivity(activity : Activity) {
+        this.activity = activity
+        userLocationManager?.updateActivity(activity)
+    }
+
+    fun buildGraph(points: List<Point>, itemList: List<Item>){
+        museumGraph = MuseumGraph(points.toHashSet())
+        previousItem = museumGraph?.entrances?.first()
+    }
+
+    private fun isGraphBuilt() : Boolean{
+        return museumGraph != null
+    }
+
+    fun updateRecommender() {
+//        Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
+        buildRecommender()
+//        Toast.makeText(applicationContext, "Atualizado!", Toast.LENGTH_SHORT).show()
+    }
+
+    val recommenderManager = RecommenderManager()
+
+    private fun buildRecommender() {
+        recommenderManager.recommender = RecommenderBuilder().buildKNNRecommender(ratingsList)
+
+        if(!ApplicationProperties.userNotDefinedYet()) {
+            for(item in itemsList){
+                val rating = recommenderManager.getPrediction(ApplicationProperties.user!!.id, item.id)
+                if (rating != null)
+                    item.recommedationRating = rating
+                else item.recommedationRating = 0F
+            }
+        }
+        itemListChangedListener?.invoke()
+    }
+
+    fun sortItemList() {
+        var i = 0
+        itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenBy{ it.recommendedOrder}).forEach{
+            (itemsList as java.util.ArrayList<Item>)[i++] = it
+        }
+
+        itemListChangedListener?.invoke()
+    }
+
+    private fun mainGetRecommendedRoute() {
+        if (isJourneyBegan)
+            try {getRecommendedRoute()} catch (e: java.lang.Exception) { e.printStackTrace() }
+    }
+
+
+    private lateinit var getItemsAndRatingsBeforeRecommend: ParallelRequestsManager
+    fun getItemsData() {
+        getItemsAndRatingsBeforeRecommend = ParallelRequestsManager(2)
+        val itemDAO = ItemDAO()
+        itemDAO.getAllPoints { points ->
+            (itemsList as ArrayList).addAll(points.filter { it is Item } as List<Item>)
+
+            buildGraph(points, itemsList)
+            getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
+            if (getItemsAndRatingsBeforeRecommend.isComplete) {
+                isItemsAndRatingsLoaded = true
+                buildRecommender()
+
+            }
+        }
+        val ratingDAO = RatingDAO()
+        ratingDAO.getAllItems {
+            ratingsList.addAll(it)
+            getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
+            if (getItemsAndRatingsBeforeRecommend.isComplete) {
+                isItemsAndRatingsLoaded = true
+                buildRecommender()
+            }
         }
     }
 
-    fun build(points: List<Point>, itemList: List<Item>){
-        museumGraph = MuseumGraph(points.toHashSet())
-        previousItem = museumGraph?.entrances?.first()
-        this.itemList = itemList
-    }
-
-    private fun isBuilt() : Boolean{
-        return museumGraph != null
-    }
 
     fun getNextClosestItem(): Point? {
         //TODO: Has to catch the closest entrance to the user
@@ -62,15 +149,17 @@ class JourneyManager() : ViewModel() {
         return closestItem
     }
 
-
+    override fun onUserArrivedToDestination() {
+        isCloseToItem.value = true
+    }
 
     fun getRecommendedRoute(): LinkedList<Point> {
-        if(!isBuilt()) throw Exception("previous point is null. Did you build JourneyManager?")
+        if(!isGraphBuilt()) throw Exception("previous point is null. Did you buildGraph JourneyManager?")
         pointsRemaining.clear()
         var totalCost = timeAlreadySpent?.let { it } ?: 0.0
 
         //add most recommended points that have not been visited yet until it reaches total available time
-        itemList?.filter { it is Item && !it.isVisited}?.sortedByDescending { (it as Item).recommedationRating }?.forEach{
+        itemsList?.filter { it is Item && !it.isVisited}?.sortedByDescending { (it as Item).recommedationRating }?.forEach{
             if(totalCost + (it as Item).timeNeeded + MIN_TIME_BETWEEN_ITEMS < timeAvailable){
                 totalCost += (it as Item).timeNeeded + MIN_TIME_BETWEEN_ITEMS
                 pointsRemaining.add(it)
@@ -119,7 +208,39 @@ class JourneyManager() : ViewModel() {
     }
 
     fun isJourneyFinished(): Boolean {
-        if(itemList == null) throw Exception("Manager was not built yet!")
-        return itemList?.none { (it as Item).isRecommended() && !it.isVisited }!!
+        if(itemsList == null) throw Exception("Manager was not built yet!")
+        return itemsList?.none { it.isRecommended() && !it.isVisited }!!
+    }
+
+    fun buildMap(mapFragment: SupportMapFragment) {
+        mapFragment.getMapAsync(mapManager)
+    }
+
+    fun beginJourney() {
+        isJourneyBegan = true
+        getRecommendedRoute()
+        sortItemList()
+        setNextRecommendedDestination()
+    }
+    fun setNextRecommendedDestination() {
+        var item : Item? = null
+        if(!itemsList[0].isVisited && itemsList[0].recommendedOrder != Int.MAX_VALUE)
+            item = itemsList[0]
+
+        if(item != null){
+            previousItem?.let { findAndSetShortestPath(item, it) }
+            try{
+                mapManager?.setDestination(item, previousItem)
+            }
+            catch(e: java.lang.Exception){
+                e.printStackTrace()
+//                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
+            }
+            previousItem = item
+        }
+        else {
+            Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
+//            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_LONG).show()
+        }
     }
 }

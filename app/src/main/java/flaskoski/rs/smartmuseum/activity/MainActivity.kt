@@ -19,41 +19,27 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import com.google.android.gms.maps.SupportMapFragment
-import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
-import flaskoski.rs.smartmuseum.DAO.ItemDAO
-import flaskoski.rs.smartmuseum.DAO.RatingDAO
-import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
-import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Rating
-import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
-import java.util.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.databinding.ActivityMainBinding
-import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.User
 import flaskoski.rs.smartmuseum.routeBuilder.JourneyManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.grid_item.*
 import kotlinx.android.synthetic.main.grid_item.view.*
-import java.lang.Exception
 import java.lang.IllegalStateException
-import kotlin.collections.ArrayList
 
 
-class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener,
-        MapManager.onUserArrivedToDestinationCallback {
-
+class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
 
     private val REQUEST_GET_PREFERENCES: Int = 1
     private val REQUEST_ITEM_RATING_CHANGE: Int = 2
 
-    private var itemsList : List<Item> = ArrayList()
-    private var ratingsList  = HashSet<Rating>()
-    private var currentItem : Item? = null
     private val TAG = "MainActivity"
 //    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
 //        when (item.itemId) {
@@ -73,8 +59,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private lateinit var adapter: ItemsGridListAdapter
 
-    private lateinit var getItemsAndRatingsBeforeRecommend: ParallelRequestsManager
-
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
 
     private lateinit var journeyManager : JourneyManager
@@ -85,19 +69,25 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         super.onCreate(savedInstanceState)
         DataBindingUtil.setContentView<ActivityMainBinding>(
                 this, R.layout.activity_main)
-//        setContentView(R.layout.activity_main)
-        journeyManager = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(JourneyManager::class.java)
 
-        //TODO remove relationshhip
-        journeyManager.mainActivity = this
         //draw toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
 
-        val mapFragment = supportFragmentManager
-                .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(journeyManager.mapManager)
 
+        //attach view model to activity
+        journeyManager = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(JourneyManager::class.java)
+
+        //journeyManager activity, userLocation and maps setup
+        journeyManager.updateActivity(this)
+        journeyManager.buildMap(supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
+
+        journeyManager.isCloseToItem.observe(this, closeToItemIsChangedListener)
+        journeyManager.itemListChangedListener = {
+            adapter.notifyDataSetChanged()
+        }
+
+        //bottomsheet setup
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
         bringToFront(loading_view, 50f)
         bringToFront(sheet_next_items, 40f)
@@ -105,8 +95,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
+        //GridItems setup
         itemsGridList.layoutManager = GridLayoutManager(this, 2)
-        adapter = ItemsGridListAdapter(itemsList, applicationContext, this, RecommenderManager())
+        adapter = ItemsGridListAdapter(journeyManager.itemsList, applicationContext, this, journeyManager.recommenderManager)
         itemsGridList.adapter = adapter
 
         //--DEBUG
@@ -117,28 +108,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
         //--
 
-        getItemsAndRatingsBeforeRecommend = ParallelRequestsManager(2)
-        val itemDAO = ItemDAO()
-        itemDAO.getAllPoints {points ->
-            (itemsList as ArrayList).addAll(points.filter { it is Item } as List<Item>)
-
-            journeyManager.build(points, itemsList)
-            getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
-            if(getItemsAndRatingsBeforeRecommend.isComplete) {
-                journeyManager.isItemsAndRatingsLoaded = true
-                buildRecommender()
-
-            }
-        }
-        val ratingDAO = RatingDAO()
-        ratingDAO.getAllItems {
-            ratingsList.addAll(it)
-            getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
-            if(getItemsAndRatingsBeforeRecommend.isComplete) {
-                journeyManager.isItemsAndRatingsLoaded = true
-                buildRecommender()
-            }
-        }
+        journeyManager.getItemsData()
 
         if(!isDebugging) {
             if (ApplicationProperties.userNotDefinedYet()) {
@@ -148,47 +118,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
-    private fun updateRecommender() {
-            Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
-            buildRecommender()
-            Toast.makeText(applicationContext, "Atualizado!", Toast.LENGTH_SHORT).show()
-    }
 
-    private fun buildRecommender() {
-        adapter.recommenderManager.recommender = RecommenderBuilder().buildKNNRecommender(ratingsList, applicationContext)
-
-        if(!ApplicationProperties.userNotDefinedYet()) {
-            for(item in itemsList){
-                val rating = adapter.recommenderManager.getPrediction(ApplicationProperties.user!!.id, item.id)
-                if (rating != null)
-                    item.recommedationRating = rating
-                else item.recommedationRating = 0F
-            }
-        }
-        adapter.notifyDataSetChanged()
-    }
-
-    private fun getRecommendedRoute() {
-        if (journeyManager.isJourneyBegan)
-            try {journeyManager.getRecommendedRoute()} catch (e: Exception) { e.printStackTrace() }
-    }
-
-    private fun sortItemList() {
-        var i = 0
-        itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenBy{ it.recommendedOrder}).forEach{
-            (itemsList as java.util.ArrayList<Item>)[i++] = it
-        }
-        adapter.notifyDataSetChanged()
-
-    }
 
     @Suppress("UNUSED_PARAMETER")
     fun onClickBeginRoute(v : View){
         try {
-            journeyManager.isJourneyBegan = true
-            getRecommendedRoute()
-            sortItemList()
-            setNextRecommendedDestination()
+            journeyManager.beginJourney()
             bt_begin_route.visibility = View.GONE
         }
         catch (e: IllegalStateException){
@@ -200,20 +135,20 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
+            loading_view.visibility = View.VISIBLE
             if(requestCode == journeyManager.REQUEST_CHANGE_LOCATION_SETTINGS){
                 journeyManager.userLocationManager?.createLocationRequest()
             }
             else {
-                loading_view.visibility = View.VISIBLE
                 if (requestCode == REQUEST_GET_PREFERENCES) {
                     if (data != null) {
                         (data.getSerializableExtra("featureRatings") as List<*>).forEach {
-                            ratingsList.add(it as Rating)
+                            journeyManager.ratingsList.add(it as Rating)
                         }
                         journeyManager.timeAvailable = data.getDoubleExtra("timeAvailable", 120.0)
-                        updateRecommender()
-                        getRecommendedRoute()
-                        sortItemList()
+                        journeyManager.updateRecommender()
+                        journeyManager.getRecommendedRoute()
+                        journeyManager.sortItemList()
                         if (!journeyManager.isPreferencesSet) {
                             journeyManager.isPreferencesSet = true
                             bt_begin_route.visibility = View.VISIBLE
@@ -225,12 +160,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         val rating : Rating? = data.getSerializableExtra("itemRating")?.let { it as Rating }
                         val nextItem : Boolean = data.getBooleanExtra("nextItem", false)
                         if(nextItem) {
-                            currentItem?.isVisited = true
+                            journeyManager.currentItem?.isVisited = true
                             card_view.visibility = View.GONE
                             if(rating != null) {//rating changed
-                                ratingsList.remove(rating)
-                                ratingsList.add(rating)
-                                updateRecommender()
+                                journeyManager.ratingsList.remove(rating)
+                                journeyManager.ratingsList.add(rating)
+                                journeyManager.updateRecommender()
                             }
 
                             if(journeyManager.isJourneyFinished()) {
@@ -238,23 +173,23 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                             }
                             else {
                                 if (rating != null)
-                                    getRecommendedRoute()
-                                sortItemList()
-                                setNextRecommendedDestination()
+                                    journeyManager.getRecommendedRoute()
+                                journeyManager.sortItemList()
+                                journeyManager.setNextRecommendedDestination()
                             }
                         }
                         else
                             if(rating != null) {//rating changed
-                                ratingsList.remove(rating)
-                                ratingsList.add(rating)
-                                updateRecommender()
-                                getRecommendedRoute()
-                                sortItemList()
+                                journeyManager.ratingsList.remove(rating)
+                                journeyManager.ratingsList.add(rating)
+                                journeyManager.updateRecommender()
+                                journeyManager.getRecommendedRoute()
+                                journeyManager.sortItemList()
                             }
                     }
                 }
-                loading_view.visibility = View.GONE
             }
+            loading_view.visibility = View.GONE
         }
     }
 
@@ -275,52 +210,30 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             return
         }
         val viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
-        val itemId = itemsList[p1].id
+        val itemId = journeyManager.itemsList[p1].id
         var itemRating : Float
-        ratingsList.find { it.user == ApplicationProperties.user?.id
+        journeyManager.ratingsList.find { it.user == ApplicationProperties.user?.id
                 && it.item == itemId }?.let {
             itemRating = it.rating
             viewItemDetails.putExtra("itemRating", itemRating)
         }
-        currentItem = itemsList[p1]
-        viewItemDetails.putExtra("itemClicked", currentItem)
+        journeyManager.currentItem = journeyManager.itemsList[p1]
+        viewItemDetails.putExtra("itemClicked", journeyManager.currentItem)
         viewItemDetails.putExtra("arrived", arrived)
         startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
     }
 
     //-------------MAPS AND LOCATION----------------------------------------
 
-    private fun setNextRecommendedDestination() {
-        var item : Item? = null
-        if(!itemsList[0].isVisited && itemsList[0].recommendedOrder != Int.MAX_VALUE)
-            item = itemsList[0]
-
-        if(item != null){
-            journeyManager.previousItem?.let { journeyManager.findAndSetShortestPath(item, it) }
-            try{
-                journeyManager.mapManager?.setDestination(item, journeyManager.previousItem)
-            }
-            catch(e: Exception){
-                e.printStackTrace()
-                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
-            }
-            journeyManager.previousItem = item
-        }
-        else {
-            Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
-            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    override fun onUserArrivedToDestination() {
+    private val closeToItemIsChangedListener = Observer<Boolean> { isClose : Boolean -> if(isClose) {
         card_view.lb_info.visibility = View.VISIBLE
-        card_view.lb_item_name.text = itemsList[0].title
-        card_view.ratingBar.rating = itemsList[0].recommedationRating
-        card_view.img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(itemsList[0].photoId, "drawable", applicationContext.packageName))
+        card_view.lb_item_name.text = journeyManager.itemsList[0].title
+        card_view.ratingBar.rating = journeyManager.itemsList[0].recommedationRating
+        card_view.img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
         card_view.visibility = View.VISIBLE
         card_view.icon_visited.visibility = View.GONE
-        card_view.setOnClickListener{this.shareOnItemClicked(0, true)}
-    }
+        card_view.setOnClickListener { this.shareOnItemClicked(0, true) }
+    }}
 
     override fun onResume() {
         super.onResume()

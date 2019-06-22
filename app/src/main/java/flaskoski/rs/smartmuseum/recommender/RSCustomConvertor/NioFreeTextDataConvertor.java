@@ -52,7 +52,6 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
 
     /** The default format of input data file */
     private static final String DATA_COLUMN_DEFAULT_FORMAT = "UIR";
-    private Context applicationContex;
 
     /** The format of input data file */
     private String dataColumnFormat;
@@ -92,11 +91,9 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
      * @param inputDataPath
      * @param aDouble
      * @param ratings
-     * @param applicationContex
      */
-    public NioFreeTextDataConvertor(String dataColumnFormat, String inputDataPath, Double aDouble, List<Rating> ratings, Context applicationContex) {
+    public NioFreeTextDataConvertor(String dataColumnFormat, String inputDataPath, Double aDouble, List<Rating> ratings) {
         this(DATA_COLUMN_DEFAULT_FORMAT, inputDataPath, -1.0);
-        this.applicationContex = applicationContex;
         this.ratings = ratings;
     }
 

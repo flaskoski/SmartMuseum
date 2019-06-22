@@ -13,11 +13,11 @@ import flaskoski.rs.smartmuseum.model.Point
 import java.lang.IllegalStateException
 
 
-class MapManager(val onMapConfiguredCallback: (() -> Unit)? = null): OnMapReadyCallback {
+class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedToDestinationListener? = null,
+                 private val onMapConfiguredCallback: (() -> Unit)? = null): OnMapReadyCallback {
 
     var mMap : GoogleMap? = null
     private val TAG = "MapManager"
-    var onUserArrivedToDestination: (() -> Unit)? = null
     private var mCurrLocationMarker: Marker? = null
     private var destinationMarker: Marker? = null
     private var destinationPath : Polyline? = null
@@ -54,8 +54,8 @@ class MapManager(val onMapConfiguredCallback: (() -> Unit)? = null): OnMapReadyC
         if(isDestinationSet())
             if(!alreadyInformed && isVeryCloseToDestination(userLatLng)) { // < 10 meters
                 alreadyInformed = true
-                if(onUserArrivedToDestination != null)
-                    onUserArrivedToDestination!!.invoke()
+                if(onUserArrivedToDestinationListener != null)
+                    onUserArrivedToDestinationListener?.onUserArrivedToDestination()
                 else Log.w(TAG, "onUserArrived state reached but it's callback is null")
             }
     }
@@ -66,7 +66,7 @@ class MapManager(val onMapConfiguredCallback: (() -> Unit)? = null): OnMapReadyC
         return distance[0] < 11000
     }
 
-    interface onUserArrivedToDestinationCallback{
+    interface OnUserArrivedToDestinationListener{
         fun onUserArrivedToDestination()
     }
 
