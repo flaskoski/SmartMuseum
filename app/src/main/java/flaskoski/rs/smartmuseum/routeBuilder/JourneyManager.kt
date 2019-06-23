@@ -1,5 +1,6 @@
 package flaskoski.rs.smartmuseum.routeBuilder
 import android.app.Activity
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
@@ -7,7 +8,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
-import flaskoski.rs.smartmuseum.activity.MainActivity
 import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Point
@@ -23,7 +23,7 @@ class JourneyManager() : ViewModel() ,
 
     var museumGraph: MuseumGraph?  = null
     var closestItem: Point? = null
-    var previousItem : Point? = null
+    var lastItem : Point? = null
     private val TAG = "JourneyManager"
     var itemsList : List<Item> = ArrayList()
     var ratingsList  = HashSet<Rating>()
@@ -31,11 +31,16 @@ class JourneyManager() : ViewModel() ,
 
     private var pointsRemaining = LinkedList<Point>()
 
-    var isCloseToItem = MutableLiveData<Boolean>()
+    //--state flags
     var itemListChangedListener : (()->Unit)? = null
-    var isPreferencesSet = false
     var isItemsAndRatingsLoaded: Boolean = false
+    var isPreferencesSet = MutableLiveData<Boolean>()
+    var isCurrentItemVisited = MutableLiveData<Boolean>()
+    var isJourneyFinishedFlag = MutableLiveData<Boolean>()
     var isJourneyBegan: Boolean = false
+    var isCloseToItem = MutableLiveData<Boolean>()
+    //--
+
     var timeAvailable: Double = 120.0
     private val timeAlreadySpent: Double? = null
 
@@ -49,11 +54,17 @@ class JourneyManager() : ViewModel() ,
     init {
         //live data vars initialization
         isCloseToItem.value = false
+        isPreferencesSet.value = false
+        isCurrentItemVisited.value = false
+        isJourneyFinishedFlag.value = false
 
         //maps setup
         userLocationManager = UserLocationManager(REQUEST_CHANGE_LOCATION_SETTINGS)
         mapManager = MapManager(this)
         userLocationManager?.onUserLocationUpdateCallback = mapManager?.updateUserLocationCallback
+
+
+        getItemsData()
     }
 
     private var activity: Activity? = null
@@ -62,16 +73,16 @@ class JourneyManager() : ViewModel() ,
         userLocationManager?.updateActivity(activity)
     }
 
-    fun buildGraph(points: List<Point>, itemList: List<Item>){
+    private fun buildGraph(points: List<Point>, itemList: List<Item>){
         museumGraph = MuseumGraph(points.toHashSet())
-        previousItem = museumGraph?.entrances?.first()
+        lastItem = museumGraph?.entrances?.first()
     }
 
     private fun isGraphBuilt() : Boolean{
         return museumGraph != null
     }
 
-    fun updateRecommender() {
+    private fun updateRecommender() {
 //        Toast.makeText(applicationContext, "Atualizando recomendações...", Toast.LENGTH_SHORT).show()
         buildRecommender()
 //        Toast.makeText(applicationContext, "Atualizado!", Toast.LENGTH_SHORT).show()
@@ -93,7 +104,7 @@ class JourneyManager() : ViewModel() ,
         itemListChangedListener?.invoke()
     }
 
-    fun sortItemList() {
+    private fun sortItemList() {
         var i = 0
         itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenBy{ it.recommendedOrder}).forEach{
             (itemsList as java.util.ArrayList<Item>)[i++] = it
@@ -142,9 +153,9 @@ class JourneyManager() : ViewModel() ,
             throw Exception("No entrances found in the graph!")
         }
 
-        previousItem = this.closestItem ?: museumGraph?.entrances?.first()
-        previousItem?.isClosest = false
-        closestItem = museumGraph?.getClosestItemTo(previousItem!!)
+        lastItem = this.closestItem ?: museumGraph?.entrances?.first()
+        lastItem?.isClosest = false
+        closestItem = museumGraph?.getClosestItemTo(lastItem!!)
         closestItem?.isClosest = true
         return closestItem
     }
@@ -153,7 +164,7 @@ class JourneyManager() : ViewModel() ,
         isCloseToItem.value = true
     }
 
-    fun getRecommendedRoute(): LinkedList<Point> {
+    private fun getRecommendedRoute(): LinkedList<Point> {
         if(!isGraphBuilt()) throw Exception("previous point is null. Did you buildGraph JourneyManager?")
         pointsRemaining.clear()
         var totalCost = timeAlreadySpent?.let { it } ?: 0.0
@@ -173,7 +184,7 @@ class JourneyManager() : ViewModel() ,
         //now will consider the db time to get to each item
         val allPointsRemainingSize = pointsRemaining.size
         for(i in allPointsRemainingSize downTo 1 ){
-            var startPoint = previousItem
+            var startPoint = lastItem
             var enoughTime = true
             for(j in 1 .. i) {
                 //TODO MEMORIZE ITEMS ROUTE COST
@@ -222,25 +233,78 @@ class JourneyManager() : ViewModel() ,
         sortItemList()
         setNextRecommendedDestination()
     }
-    fun setNextRecommendedDestination() {
+    private fun setNextRecommendedDestination() {
         var item : Item? = null
         if(!itemsList[0].isVisited && itemsList[0].recommendedOrder != Int.MAX_VALUE)
             item = itemsList[0]
 
         if(item != null){
-            previousItem?.let { findAndSetShortestPath(item, it) }
+            lastItem?.let { findAndSetShortestPath(item, it) }
             try{
-                mapManager?.setDestination(item, previousItem)
+                mapManager?.setDestination(item, lastItem)
             }
             catch(e: java.lang.Exception){
                 e.printStackTrace()
 //                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
             }
-            previousItem = item
+            lastItem = item
         }
         else {
             Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
 //            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun changeLocationSettingsResult() {
+        userLocationManager?.createLocationRequest()
+    }
+
+    fun getPreferencesResult(data: Intent?) {
+        if (data != null) {
+            (data.getSerializableExtra("featureRatings") as List<*>).forEach {
+                ratingsList.add(it as Rating)
+            }
+            timeAvailable = data.getDoubleExtra("timeAvailable", 120.0)
+            updateRecommender()
+            getRecommendedRoute()
+            sortItemList()
+            if (!isPreferencesSet.value!!) {
+                isPreferencesSet.value = true
+            }
+        }
+    }
+
+    fun itemRatingChangeResult(data: Intent?) {
+        if (data != null) {
+            val rating : Rating? = data.getSerializableExtra("itemRating")?.let { it as Rating }
+            val nextItem : Boolean = data.getBooleanExtra("nextItem", false)
+            if(nextItem) {
+                isCurrentItemVisited.value = true
+                (lastItem as Item).isVisited = true
+                if(rating != null) {//rating changed
+                    ratingsList.remove(rating)
+                    ratingsList.add(rating)
+                    updateRecommender()
+                }
+
+                if(isJourneyFinished()) {
+                    isJourneyFinishedFlag.value = true
+                }
+                else {
+                    if (rating != null)
+                        getRecommendedRoute()
+                    sortItemList()
+                    setNextRecommendedDestination()
+                }
+            }
+            else
+                if(rating != null) {//rating changed
+                    ratingsList.remove(rating)
+                    ratingsList.add(rating)
+                    updateRecommender()
+                    getRecommendedRoute()
+                    sortItemList()
+                }
         }
     }
 }

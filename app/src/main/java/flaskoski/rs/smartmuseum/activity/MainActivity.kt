@@ -22,7 +22,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import com.google.android.gms.maps.SupportMapFragment
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
-import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import flaskoski.rs.smartmuseum.R
@@ -37,8 +36,8 @@ import java.lang.IllegalStateException
 
 class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
 
-    private val REQUEST_GET_PREFERENCES: Int = 1
-    private val REQUEST_ITEM_RATING_CHANGE: Int = 2
+    private val requestGetPreferences: Int = 1
+    private val requestItemRatingChange: Int = 2
 
     private val TAG = "MainActivity"
 //    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
@@ -58,9 +57,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 //    }
 
     private lateinit var adapter: ItemsGridListAdapter
-
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
-
     private lateinit var journeyManager : JourneyManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,8 +80,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         journeyManager.buildMap(supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
 
         journeyManager.isCloseToItem.observe(this, closeToItemIsChangedListener)
+        journeyManager.isPreferencesSet.observe(this, preferencesSetListener)
+        journeyManager.isCurrentItemVisited.observe(this, isCurrentItemVisitedListener)
+        journeyManager.isJourneyFinishedFlag.observe(this, isJourneyFinishedListener)
         journeyManager.itemListChangedListener = {
-            adapter.notifyDataSetChanged()
+            @Suppress("UNNECESSARY_SAFE_CALL")
+            adapter?.notifyDataSetChanged()
         }
 
         //bottomsheet setup
@@ -101,24 +102,55 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         itemsGridList.adapter = adapter
 
         //--DEBUG
+        @Suppress("ConstantConditionIf")
         if(isDebugging) {
             ApplicationProperties.user = User("Felipe", "Felipe", 155.0)
             bt_begin_route.visibility = View.VISIBLE
-            journeyManager.isPreferencesSet = true
+            journeyManager.isPreferencesSet.value = true
         }
-        //--
-
-        journeyManager.getItemsData()
-
-        if(!isDebugging) {
+        else{
             if (ApplicationProperties.userNotDefinedYet()) {
                 val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-                startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
+                startActivityForResult(getPreferencesIntent, requestGetPreferences)
             }
+        }
+        //--
+    }
+
+    //Show next item card on screen
+    private val closeToItemIsChangedListener = Observer<Boolean> { isClose : Boolean -> if(isClose) {
+        card_view.lb_info.visibility = View.VISIBLE
+        card_view.lb_item_name.text = journeyManager.itemsList[0].title
+        card_view.ratingBar.rating = journeyManager.itemsList[0].recommedationRating
+        card_view.img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
+        card_view.visibility = View.VISIBLE
+        card_view.icon_visited.visibility = View.GONE
+        card_view.setOnClickListener { this.shareOnItemClicked(0, true) }
+    }}
+
+    //Show begin button
+    private val preferencesSetListener = Observer<Boolean>{ preferencesSet : Boolean ->
+        if(preferencesSet && !journeyManager.isJourneyBegan){
+            bt_begin_route.visibility = View.VISIBLE
         }
     }
 
+    private val isCurrentItemVisitedListener = Observer<Boolean> { isCurrentItemVisited: Boolean ->
+        if(isCurrentItemVisited && journeyManager.isJourneyBegan){
+            card_view.visibility = View.GONE
+        }
+    }
 
+    private val isJourneyFinishedListener = Observer<Boolean> { isJourneyFinished: Boolean ->
+        if(isJourneyFinished){
+            val confirmationDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
+            confirmationDialog.setTitle("Atenção")
+                    .setIcon(R.drawable.baseline_done_black_24)
+                    .setMessage("Você já visitou todos os itens recomendados para você. Obrigado pela visita!")
+                    .setNeutralButton(android.R.string.ok, null)
+            confirmationDialog.show()
+        }
+    }
 
     @Suppress("UNUSED_PARAMETER")
     fun onClickBeginRoute(v : View){
@@ -136,70 +168,20 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
             loading_view.visibility = View.VISIBLE
-            if(requestCode == journeyManager.REQUEST_CHANGE_LOCATION_SETTINGS){
-                journeyManager.userLocationManager?.createLocationRequest()
-            }
-            else {
-                if (requestCode == REQUEST_GET_PREFERENCES) {
-                    if (data != null) {
-                        (data.getSerializableExtra("featureRatings") as List<*>).forEach {
-                            journeyManager.ratingsList.add(it as Rating)
-                        }
-                        journeyManager.timeAvailable = data.getDoubleExtra("timeAvailable", 120.0)
-                        journeyManager.updateRecommender()
-                        journeyManager.getRecommendedRoute()
-                        journeyManager.sortItemList()
-                        if (!journeyManager.isPreferencesSet) {
-                            journeyManager.isPreferencesSet = true
-                            bt_begin_route.visibility = View.VISIBLE
-                        }
-                    }
-                }
-                else if (requestCode == REQUEST_ITEM_RATING_CHANGE) {
-                    if (data != null) {
-                        val rating : Rating? = data.getSerializableExtra("itemRating")?.let { it as Rating }
-                        val nextItem : Boolean = data.getBooleanExtra("nextItem", false)
-                        if(nextItem) {
-                            journeyManager.currentItem?.isVisited = true
-                            card_view.visibility = View.GONE
-                            if(rating != null) {//rating changed
-                                journeyManager.ratingsList.remove(rating)
-                                journeyManager.ratingsList.add(rating)
-                                journeyManager.updateRecommender()
-                            }
 
-                            if(journeyManager.isJourneyFinished()) {
-                                showFinishedMessage()
-                            }
-                            else {
-                                if (rating != null)
-                                    journeyManager.getRecommendedRoute()
-                                journeyManager.sortItemList()
-                                journeyManager.setNextRecommendedDestination()
-                            }
-                        }
-                        else
-                            if(rating != null) {//rating changed
-                                journeyManager.ratingsList.remove(rating)
-                                journeyManager.ratingsList.add(rating)
-                                journeyManager.updateRecommender()
-                                journeyManager.getRecommendedRoute()
-                                journeyManager.sortItemList()
-                            }
-                    }
+            when (requestCode) {
+                journeyManager.REQUEST_CHANGE_LOCATION_SETTINGS -> {
+                    journeyManager.changeLocationSettingsResult()
+                }
+                requestGetPreferences ->{
+                    journeyManager.getPreferencesResult(data)
+                }
+                requestItemRatingChange-> {
+                    journeyManager.itemRatingChangeResult(data)
                 }
             }
             loading_view.visibility = View.GONE
         }
-    }
-
-    private fun showFinishedMessage() {
-        val confirmationDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
-        confirmationDialog.setTitle("Atenção")
-                .setIcon(R.drawable.baseline_done_black_24)
-                .setMessage("Você já visitou todos os itens recomendados para você. Obrigado pela visita!")
-                .setNeutralButton(android.R.string.ok, null)
-        confirmationDialog.show()
     }
 
     //-----------onClick --------------
@@ -215,25 +197,14 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         journeyManager.ratingsList.find { it.user == ApplicationProperties.user?.id
                 && it.item == itemId }?.let {
             itemRating = it.rating
-            viewItemDetails.putExtra("itemRating", itemRating)
         }
-        journeyManager.currentItem = journeyManager.itemsList[p1]
-        viewItemDetails.putExtra("itemClicked", journeyManager.currentItem)
+
+        viewItemDetails.putExtra("itemClicked",  journeyManager.itemsList[p1])
         viewItemDetails.putExtra("arrived", arrived)
-        startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
+        startActivityForResult(viewItemDetails, requestItemRatingChange)
     }
 
     //-------------MAPS AND LOCATION----------------------------------------
-
-    private val closeToItemIsChangedListener = Observer<Boolean> { isClose : Boolean -> if(isClose) {
-        card_view.lb_info.visibility = View.VISIBLE
-        card_view.lb_item_name.text = journeyManager.itemsList[0].title
-        card_view.ratingBar.rating = journeyManager.itemsList[0].recommedationRating
-        card_view.img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
-        card_view.visibility = View.VISIBLE
-        card_view.icon_visited.visibility = View.GONE
-        card_view.setOnClickListener { this.shareOnItemClicked(0, true) }
-    }}
 
     override fun onResume() {
         super.onResume()
@@ -256,18 +227,17 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun goToUserLocation(v: View) {
+    fun goToUserLocation(@Suppress("UNUSED_PARAMETER") v: View) {
         journeyManager.userLocationManager?.userLastKnownLocation?.let { journeyManager.mapManager?.goToLocation(it) }
     }
 
 
     //------------LAYOUT FEATURES-------------------------------
 
-    private fun bringToFront(view: View, zval: Float = 20f){
+    private fun bringToFront(view: View, z_value: Float = 20f){
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            view.translationZ = zval;
-            view.invalidate();
+            view.translationZ = z_value
+            view.invalidate()
         }
         else {
             view.bringToFront()
@@ -287,47 +257,19 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             R.id.option_features -> {
                 val goToFeaturePreferences = Intent(applicationContext, FeaturePreferencesActivity::class.java)
                 // goToPlayerProfileIntent.putExtra("uid", uid)
-                startActivityForResult(goToFeaturePreferences, REQUEST_GET_PREFERENCES)
+                startActivityForResult(goToFeaturePreferences, requestGetPreferences)
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    fun toggleSheet(v: View){
+    fun toggleSheet(@Suppress("UNUSED_PARAMETER") v: View){
         if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED)
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
          else
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
-
-//
-//            //  mMap.clear();
-//            //            MarkerOptions mp = new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker());
-//            //            mp.position(new LatLng(location.getLatitude(), location.getLongitude()));
-//            //            mMap.addMarker(mp);
-//            if (destinationCircle != null) {
-//                mMap.addCircle(destinationCircle)
-//                val btConfirmar = findViewById(R.id.btConfirm)
-//                if (checkIfUserArrivedAtDestination(location)) {
-//                    btConfirmar.setVisibility(View.VISIBLE)
-//                } else
-//                    btConfirmar.setVisibility(View.GONE)
-//            }
-//
-//            mLastLocation = location
-//            if (mCurrLocationMarker != null) {
-//                mCurrLocationMarker.remove()
-//            }
-//
-//            //Place current location marker
-//            val latLng = LatLng(location.latitude, location.longitude)
-//            val markerOptions = MarkerOptions()
-//            markerOptions.position(latLng)
-//            markerOptions.title("Sua posição")
-//            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-//            mCurrLocationMarker = mMap.addMarker(markerOptions)
-
 }
 
 

@@ -28,15 +28,11 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
 
         mMap = p0
         mMap?.mapType = GoogleMap.MAP_TYPE_SATELLITE
-        // Add a marker in Sydney and move the camera
-        //LatLng sydney = new LatLng(-34, 151);
-        //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap?.setMinZoomPreference(14f)
-        //mMap.set
-        //  mMap.setLatLngBoundsForCameraTarget(LatLngBounds(LatLng(-23.7, -46.57), LatLng(-23.6, -46.67)))
         mMap?.moveCamera(CameraUpdateFactory.zoomTo(19.5f))
         mMap?.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)));
-        //Initialize Location
+
+        //map ready ->  callback
         onMapConfiguredCallback?.invoke()
     }
 
