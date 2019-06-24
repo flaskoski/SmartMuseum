@@ -2,7 +2,7 @@
 <data>
     <variable
         name="journeyManager"
-        type="flaskoski.rs.smartmuseum.routeBuilder.JourneyManager" />
+        type="flaskoski.rs.smartmuseum.viewmodel.JourneyManager" />
 </data>
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:app="http://schemas.android.com/apk/res-auto"

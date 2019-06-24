@@ -1,4 +1,4 @@
-package flaskoski.rs.smartmuseum.routeBuilder
+package flaskoski.rs.smartmuseum.viewmodel
 import android.app.Activity
 import android.content.Intent
 import androidx.lifecycle.ViewModel
@@ -8,14 +8,14 @@ import com.google.android.gms.maps.SupportMapFragment
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
+import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 import flaskoski.rs.smartmuseum.location.MapManager
-import flaskoski.rs.smartmuseum.model.Item
-import flaskoski.rs.smartmuseum.model.Point
-import flaskoski.rs.smartmuseum.model.Rating
-import flaskoski.rs.smartmuseum.model.UserLocationManager
+import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
+import flaskoski.rs.smartmuseum.routeBuilder.MuseumGraph
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
+import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
 
 class JourneyManager() : ViewModel() ,
@@ -42,7 +42,7 @@ class JourneyManager() : ViewModel() ,
     //--
 
     var timeAvailable: Double = 120.0
-    private val timeAlreadySpent: Double? = null
+    private var startTime: Date? = null
 
     private val MIN_TIME_BETWEEN_ITEMS = 0.5
 
@@ -68,9 +68,12 @@ class JourneyManager() : ViewModel() ,
     }
 
     private var activity: Activity? = null
+    private var sharedPreferences: SharedPreferencesDAO? = null
+
     fun updateActivity(activity : Activity) {
         this.activity = activity
         userLocationManager?.updateActivity(activity)
+        sharedPreferences = SharedPreferencesDAO(activity)
     }
 
     private fun buildGraph(points: List<Point>, itemList: List<Item>){
@@ -167,7 +170,7 @@ class JourneyManager() : ViewModel() ,
     private fun getRecommendedRoute(): LinkedList<Point> {
         if(!isGraphBuilt()) throw Exception("previous point is null. Did you buildGraph JourneyManager?")
         pointsRemaining.clear()
-        var totalCost = timeAlreadySpent?.let { it } ?: 0.0
+        var totalCost = startTime?.let { ParseTime.differenceInMinutesUntilNow(it) } ?: 0.0
 
         //add most recommended points that have not been visited yet until it reaches total available time
         itemsList?.filter { it is Item && !it.isVisited}?.sortedByDescending { (it as Item).recommedationRating }?.forEach{
@@ -228,6 +231,8 @@ class JourneyManager() : ViewModel() ,
     }
 
     fun beginJourney() {
+        startTime = ParseTime.getCurrentTime()
+        sharedPreferences?.saveStartTime(startTime!!)
         isJourneyBegan = true
         getRecommendedRoute()
         sortItemList()
@@ -264,7 +269,8 @@ class JourneyManager() : ViewModel() ,
             (data.getSerializableExtra("featureRatings") as List<*>).forEach {
                 ratingsList.add(it as Rating)
             }
-            timeAvailable = data.getDoubleExtra("timeAvailable", 120.0)
+            timeAvailable = ApplicationProperties.user?.timeAvailable!!
+            ApplicationProperties.user?.let { sharedPreferences?.saveUser(it) }
             updateRecommender()
             getRecommendedRoute()
             sortItemList()
@@ -306,5 +312,19 @@ class JourneyManager() : ViewModel() ,
                     sortItemList()
                 }
         }
+    }
+
+    /***
+     * set app state with the information saved from the last time it was used if the user didn't finish the journey.
+     * @return User saved
+     */
+
+    fun recoverSavedState(): User? {
+        //TODO items already visited
+        ApplicationProperties.user = sharedPreferences?.getUser()
+        this.startTime = sharedPreferences?.getStartTime()
+        if(!ApplicationProperties.userNotDefinedYet() && startTime != null)
+            this.isPreferencesSet.value = true
+        return ApplicationProperties.user
     }
 }

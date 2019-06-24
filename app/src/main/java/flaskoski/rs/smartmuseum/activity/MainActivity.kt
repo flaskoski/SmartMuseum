@@ -21,13 +21,15 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import com.google.android.gms.maps.SupportMapFragment
+import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.databinding.ActivityMainBinding
 import flaskoski.rs.smartmuseum.model.User
-import flaskoski.rs.smartmuseum.routeBuilder.JourneyManager
+import flaskoski.rs.smartmuseum.util.ParseTime
+import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.grid_item.*
 import kotlinx.android.synthetic.main.grid_item.view.*
@@ -101,19 +103,41 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         adapter = ItemsGridListAdapter(journeyManager.itemsList, applicationContext, this, journeyManager.recommenderManager)
         itemsGridList.adapter = adapter
 
-        //--DEBUG
-        @Suppress("ConstantConditionIf")
-        if(isDebugging) {
-            ApplicationProperties.user = User("Felipe", "Felipe", 155.0)
-            bt_begin_route.visibility = View.VISIBLE
-            journeyManager.isPreferencesSet.value = true
-        }
-        else{
-            if (ApplicationProperties.userNotDefinedYet()) {
-                val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-                startActivityForResult(getPreferencesIntent, requestGetPreferences)
+        if (ApplicationProperties.userNotDefinedYet())
+            if(journeyManager.recoverSavedState() == null){
+                //--DEBUG
+//                @Suppress("ConstantConditionIf")
+//                if(isDebugging) {
+//                    ApplicationProperties.user = User("Felipe", "Felipe", 155.0)
+//                    bt_begin_route.visibility = View.VISIBLE
+//                    journeyManager.isPreferencesSet.value = true
+//                }
+//                //--DEBUG
+//                else {
+                    val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+                    startActivityForResult(getPreferencesIntent, requestGetPreferences)
+//                }
             }
-        }
+
+//        @Suppress("ConstantConditionIf")
+//        if(isDebugging) {
+//            val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
+//            var name = ""
+//            name = sharedPref.getString("name", "")
+//            ApplicationProperties.user = User(name, "Felipe", 155.0, userTimeSpent)
+//            with (sharedPref.edit()) {
+//                putString("name", "Felipe")
+//                apply()
+//            }
+          //  bt_begin_route.visibility = View.VISIBLE
+//            journeyManager.isPreferencesSet.value = true
+//        }
+//        else{
+//            if (ApplicationProperties.userNotDefinedYet()) {
+//                val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+//                startActivityForResult(getPreferencesIntent, requestGetPreferences)
+//            }
+//        }
         //--
     }
 

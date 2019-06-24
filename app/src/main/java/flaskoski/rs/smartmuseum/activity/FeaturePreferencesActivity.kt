@@ -21,6 +21,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
+import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 
 
 class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
@@ -112,7 +113,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 
         //username informed
         if(ApplicationProperties.userNotDefinedYet())
-            saveCurrentUserOnDb()
+            saveCurrentUser()
         //username already exists -> update name and keep id
         else {
             ApplicationProperties.user!!.name = txt_username.text.toString()
@@ -141,9 +142,9 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         finish()
     }
 
-    private fun saveCurrentUserOnDb() {
+    private fun saveCurrentUser() {
         val timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
-        ApplicationProperties.user = User(UUID.randomUUID().toString(), txt_username.text.toString(), timeAvailable )
+        ApplicationProperties.user = User(UUID.randomUUID().toString(), txt_username.text.toString(), timeAvailable)
     }
 
     override fun onRatingsCompleted() {
