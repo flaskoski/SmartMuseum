@@ -21,14 +21,11 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import com.google.android.gms.maps.SupportMapFragment
-import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.databinding.ActivityMainBinding
-import flaskoski.rs.smartmuseum.model.User
-import flaskoski.rs.smartmuseum.util.ParseTime
 import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.grid_item.*
@@ -73,7 +70,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
 
-
+        loading_view.visibility = View.VISIBLE
         //attach view model to activity
         journeyManager = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(JourneyManager::class.java)
 
@@ -83,11 +80,14 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         journeyManager.isCloseToItem.observe(this, closeToItemIsChangedListener)
         journeyManager.isPreferencesSet.observe(this, preferencesSetListener)
+        journeyManager.isJourneyBegan.observe(this, isJourneyBeganListener)
         journeyManager.isCurrentItemVisited.observe(this, isCurrentItemVisitedListener)
         journeyManager.isJourneyFinishedFlag.observe(this, isJourneyFinishedListener)
+        journeyManager.isItemsAndRatingsLoaded.observe(this, isItemsAndRatingsLoadedListener)
         journeyManager.itemListChangedListener = {
             @Suppress("UNNECESSARY_SAFE_CALL")
             adapter?.notifyDataSetChanged()
+            loading_view.visibility = View.GONE
         }
 
         //bottomsheet setup
@@ -104,7 +104,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         itemsGridList.adapter = adapter
 
         if (ApplicationProperties.userNotDefinedYet())
-            if(journeyManager.recoverSavedState() == null){
+            if(journeyManager.recoverSavedPreferences() == null){
                 //--DEBUG
 //                @Suppress("ConstantConditionIf")
 //                if(isDebugging) {
@@ -152,17 +152,20 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         card_view.setOnClickListener { this.shareOnItemClicked(0, true) }
     }}
 
-    //Show begin button
     private val preferencesSetListener = Observer<Boolean>{ preferencesSet : Boolean ->
-        if(preferencesSet && !journeyManager.isJourneyBegan){
+        if(preferencesSet && !journeyManager.isJourneyBegan.value!!){
             bt_begin_route.visibility = View.VISIBLE
         }
     }
 
-    private val isCurrentItemVisitedListener = Observer<Boolean> { isCurrentItemVisited: Boolean ->
-        if(isCurrentItemVisited && journeyManager.isJourneyBegan){
-            card_view.visibility = View.GONE
-        }
+    private val isItemsAndRatingsLoadedListener = Observer<Boolean>{ loaded : Boolean ->
+        if(loaded)
+            journeyManager.recoverSavedJourney()
+    }
+
+        private val isJourneyBeganListener = Observer<Boolean> { isJourneyBegan: Boolean ->
+        if(isJourneyBegan)
+            bt_begin_route.visibility = View.GONE
     }
 
     private val isJourneyFinishedListener = Observer<Boolean> { isJourneyFinished: Boolean ->
@@ -173,6 +176,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     .setMessage("Você já visitou todos os itens recomendados para você. Obrigado pela visita!")
                     .setNeutralButton(android.R.string.ok, null)
             confirmationDialog.show()
+        }
+    }
+
+    private val isCurrentItemVisitedListener = Observer<Boolean> { isCurrentItemVisited: Boolean ->
+        if(isCurrentItemVisited && journeyManager.isJourneyBegan.value!!){
+            card_view.visibility = View.GONE
         }
     }
 

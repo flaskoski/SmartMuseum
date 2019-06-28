@@ -108,8 +108,8 @@ class ItemDetailActivity  : AppCompatActivity() {
     private fun goBack(goToNextItem : Boolean = false){
         val returnRatingIntent = Intent()
         if(isRatingChanged)
-            returnRatingIntent.putExtra("itemRating", itemRating)
-        if(arrived) returnRatingIntent.putExtra("nextItem", goToNextItem)
+            returnRatingIntent.putExtra(ApplicationProperties.EXTRA_ITEM_RATING, itemRating)
+        if(arrived) returnRatingIntent.putExtra(ApplicationProperties.EXTRA_NEXT_ITEM, goToNextItem)
         setResult(Activity.RESULT_OK, returnRatingIntent)
         finish()
     }

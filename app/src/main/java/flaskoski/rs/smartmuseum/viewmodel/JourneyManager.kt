@@ -9,6 +9,7 @@ import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
+import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
@@ -33,11 +34,11 @@ class JourneyManager() : ViewModel() ,
 
     //--state flags
     var itemListChangedListener : (()->Unit)? = null
-    var isItemsAndRatingsLoaded: Boolean = false
+    var isItemsAndRatingsLoaded = MutableLiveData<Boolean>()
     var isPreferencesSet = MutableLiveData<Boolean>()
     var isCurrentItemVisited = MutableLiveData<Boolean>()
     var isJourneyFinishedFlag = MutableLiveData<Boolean>()
-    var isJourneyBegan: Boolean = false
+    var isJourneyBegan = MutableLiveData<Boolean>()
     var isCloseToItem = MutableLiveData<Boolean>()
     //--
 
@@ -55,7 +56,9 @@ class JourneyManager() : ViewModel() ,
         //live data vars initialization
         isCloseToItem.value = false
         isPreferencesSet.value = false
+        isItemsAndRatingsLoaded.value = false
         isCurrentItemVisited.value = false
+        isJourneyBegan.value = false
         isJourneyFinishedFlag.value = false
 
         //maps setup
@@ -112,15 +115,8 @@ class JourneyManager() : ViewModel() ,
         itemsList.sortedWith(compareBy<Item>{it.isVisited}.thenBy{ it.recommendedOrder}).forEach{
             (itemsList as java.util.ArrayList<Item>)[i++] = it
         }
-
         itemListChangedListener?.invoke()
     }
-
-    private fun mainGetRecommendedRoute() {
-        if (isJourneyBegan)
-            try {getRecommendedRoute()} catch (e: java.lang.Exception) { e.printStackTrace() }
-    }
-
 
     private lateinit var getItemsAndRatingsBeforeRecommend: ParallelRequestsManager
     fun getItemsData() {
@@ -132,7 +128,7 @@ class JourneyManager() : ViewModel() ,
             buildGraph(points, itemsList)
             getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
             if (getItemsAndRatingsBeforeRecommend.isComplete) {
-                isItemsAndRatingsLoaded = true
+                isItemsAndRatingsLoaded.value = true
                 buildRecommender()
 
             }
@@ -142,7 +138,7 @@ class JourneyManager() : ViewModel() ,
             ratingsList.addAll(it)
             getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
             if (getItemsAndRatingsBeforeRecommend.isComplete) {
-                isItemsAndRatingsLoaded = true
+                isItemsAndRatingsLoaded.value = true
                 buildRecommender()
             }
         }
@@ -214,6 +210,7 @@ class JourneyManager() : ViewModel() ,
             totalCost = itemsCost
             pointsRemaining.removeLast()
         }
+        sharedPreferences?.setAllRecommendedItems(pointsRemaining.map{it as Item}.toHashSet())
         return pointsRemaining
     }
 
@@ -233,7 +230,7 @@ class JourneyManager() : ViewModel() ,
     fun beginJourney() {
         startTime = ParseTime.getCurrentTime()
         sharedPreferences?.saveStartTime(startTime!!)
-        isJourneyBegan = true
+        isJourneyBegan.value = true
         getRecommendedRoute()
         sortItemList()
         setNextRecommendedDestination()
@@ -282,11 +279,13 @@ class JourneyManager() : ViewModel() ,
 
     fun itemRatingChangeResult(data: Intent?) {
         if (data != null) {
-            val rating : Rating? = data.getSerializableExtra("itemRating")?.let { it as Rating }
-            val nextItem : Boolean = data.getBooleanExtra("nextItem", false)
+            val rating : Rating? = data.getSerializableExtra(ApplicationProperties.EXTRA_ITEM_RATING)?.let { it as Rating }
+            val nextItem : Boolean = data.getBooleanExtra(ApplicationProperties.EXTRA_NEXT_ITEM, false)
             if(nextItem) {
                 isCurrentItemVisited.value = true
                 (lastItem as Item).isVisited = true
+                sharedPreferences?.setRecommendedItem(lastItem as Item)
+
                 if(rating != null) {//rating changed
                     ratingsList.remove(rating)
                     ratingsList.add(rating)
@@ -295,6 +294,7 @@ class JourneyManager() : ViewModel() ,
 
                 if(isJourneyFinished()) {
                     isJourneyFinishedFlag.value = true
+                    sharedPreferences?.clear()
                 }
                 else {
                     if (rating != null)
@@ -319,12 +319,27 @@ class JourneyManager() : ViewModel() ,
      * @return User saved
      */
 
-    fun recoverSavedState(): User? {
+    fun recoverSavedPreferences(): User? {
         //TODO items already visited
         ApplicationProperties.user = sharedPreferences?.getUser()
         this.startTime = sharedPreferences?.getStartTime()
         if(!ApplicationProperties.userNotDefinedYet() && startTime != null)
             this.isPreferencesSet.value = true
         return ApplicationProperties.user
+    }
+
+    fun recoverSavedJourney() {
+        sharedPreferences?.getAllRecommendedItemStatus()?.let {list->
+            if (list.isNotEmpty()) {
+                this.isJourneyBegan.value = true
+                list.forEach{recommendedItem ->
+                    val item = itemsList.find{it.id == recommendedItem.key}
+                    item?.recommendedOrder = recommendedItem.value.first
+                    item?.isVisited= recommendedItem.value.second
+                }
+                sortItemList()
+                setNextRecommendedDestination()
+            }
+        }
     }
 }
