@@ -11,4 +11,4 @@ class SubItem(
         override var recommedationRating: Float,
         override var timeNeeded: Double,
         override var recommendedOrder: Int,
-        override var isVisited: Boolean) : Itemizable, HasContent
+        override var isVisited: Boolean) : Element, Itemizable

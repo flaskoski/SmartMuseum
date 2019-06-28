@@ -15,5 +15,5 @@ class GroupItem(
         override var timeNeeded: Double,
         override var recommendedOrder: Int,
         override var isVisited: Boolean,
-        var subitems: Set<HasContent>
-) : HasContent, Point(id, lat, lng, isEntrance, isExit)
+        var subItems: Set<Element>
+) : Itemizable, Point(id, lat, lng, isEntrance, isExit)

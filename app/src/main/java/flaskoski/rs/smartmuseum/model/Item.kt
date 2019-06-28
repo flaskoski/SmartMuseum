@@ -18,7 +18,7 @@ class Item(id: String = "",
            override var timeNeeded : Double = 5.0,
            override var recommendedOrder : Int = Int.MAX_VALUE,
            //var contentUri: String = "",
-           override var isVisited: Boolean = false) : HasContent, Point(id, lat, lng, isEntrance, isExit){
+           override var isVisited: Boolean = false) : Itemizable, Point(id, lat, lng, isEntrance, isExit){
 
 
     override fun toString(): String {

@@ -13,7 +13,7 @@ open class Point(
         override var isEntrance: Boolean = false,
         override var isExit : Boolean = false,
         var isClosest : Boolean = false,
-        override var adjacentPoints : Map<String, Double> = HashMap()): Routable, Itemizable, Serializable {
+        override var adjacentPoints : Map<String, Double> = HashMap()): Routable, Element, Serializable {
 
     var cost : Double = Double.MAX_VALUE
     var shortestPath = LinkedList<Point>()
