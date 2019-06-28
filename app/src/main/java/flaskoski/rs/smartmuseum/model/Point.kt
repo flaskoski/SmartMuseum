@@ -7,14 +7,13 @@ import java.util.*
 import kotlin.collections.HashMap
 
 open class Point(
-        var id: String = "",
+        override var id: String = "",
         var lat: Double? = null,
         var lng: Double? = null,
-        var isEntrance: Boolean = false,
-        var isExit : Boolean = false,
+        override var isEntrance: Boolean = false,
+        override var isExit : Boolean = false,
         var isClosest : Boolean = false,
-        var adjacentPoints : Map<String, Double> = HashMap()): Serializable {
-
+        override var adjacentPoints : Map<String, Double> = HashMap()): Routable, Itemizable, Serializable {
 
     var cost : Double = Double.MAX_VALUE
     var shortestPath = LinkedList<Point>()
