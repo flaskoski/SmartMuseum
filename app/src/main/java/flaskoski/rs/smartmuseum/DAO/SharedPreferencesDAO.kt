@@ -3,8 +3,7 @@ package flaskoski.rs.smartmuseum.DAO
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
-import flaskoski.rs.smartmuseum.model.Item
-import flaskoski.rs.smartmuseum.model.User
+import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
 
@@ -57,22 +56,27 @@ class SharedPreferencesDAO(activity : Activity){
 
     }
 
-    fun getAllRecommendedItemStatus() : Map<String, Pair<Int, Boolean>>{
-        val allPairs = HashMap<String, Pair<Int, Boolean>>()
+    fun getAllRecommendedItemStatus() : HashSet<Itemizable>{
+        val allRecommendedItems = HashSet<Itemizable>()
         db.all.filter { it.value is Boolean && it.key.contains(ITEM_PREFIX) }.forEach {
             val values = it.key.split("_")
-            allPairs.put(values[1], Pair(values[2].toInt(), it.value as Boolean))
+            if(values[2].toInt() == 0)
+                allRecommendedItems.add(SubItem(values[1], isVisited = it.value as Boolean))
+            else
+                allRecommendedItems.add(Item(values[1], recommendedOrder = values[2].toInt(), isVisited =  it.value as Boolean))
         }
-        return allPairs
+        return allRecommendedItems
     }
 
-    fun setAllRecommendedItems(recommendedItems : Set<Item>){
+    fun setAllRecommendedItems(recommendedItems : Set<Itemizable>){
         db.all.filter { it.value is Boolean && it.key.contains(ITEM_PREFIX) }.keys.forEach {
             db.all.remove(it)
         }
         with(db.edit()){
             recommendedItems.forEach {
-                putBoolean("${ITEM_PREFIX}${it.id}_${it.recommendedOrder}", it.isVisited)
+                if(it is RoutableItem)
+                    putBoolean("${ITEM_PREFIX}${it.id}_${it.recommendedOrder}", it.isVisited)
+                else putBoolean("${ITEM_PREFIX}${it.id}_0", it.isVisited)
             }
             apply()
         }
@@ -90,6 +94,9 @@ class SharedPreferencesDAO(activity : Activity){
     }
 
     fun clear(){
-        db.all.clear()
+        with(db.edit()){
+            clear()
+            commit()
+        }
     }
 }

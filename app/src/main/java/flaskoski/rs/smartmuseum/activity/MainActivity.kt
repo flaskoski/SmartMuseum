@@ -103,9 +103,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         adapter = ItemsGridListAdapter(journeyManager.itemsList, applicationContext, this, journeyManager.recommenderManager)
         itemsGridList.adapter = adapter
 
-        if (ApplicationProperties.userNotDefinedYet())
-            if(journeyManager.recoverSavedPreferences() == null){
-                //--DEBUG
+        if(journeyManager.recoverSavedPreferences() == null){
+            //--DEBUG
 //                @Suppress("ConstantConditionIf")
 //                if(isDebugging) {
 //                    ApplicationProperties.user = User("Felipe", "Felipe", 155.0)
@@ -114,10 +113,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 //                }
 //                //--DEBUG
 //                else {
-                    val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-                    startActivityForResult(getPreferencesIntent, requestGetPreferences)
+            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+            startActivityForResult(getPreferencesIntent, requestGetPreferences)
 //                }
-            }
+        }
 
 //        @Suppress("ConstantConditionIf")
 //        if(isDebugging) {
@@ -159,11 +158,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     private val isItemsAndRatingsLoadedListener = Observer<Boolean>{ loaded : Boolean ->
-        if(loaded)
+        if(loaded && journeyManager.isJourneyBegan.value!!)
             journeyManager.recoverSavedJourney()
     }
 
-        private val isJourneyBeganListener = Observer<Boolean> { isJourneyBegan: Boolean ->
+    private val isJourneyBeganListener = Observer<Boolean> { isJourneyBegan: Boolean ->
         if(isJourneyBegan)
             bt_begin_route.visibility = View.GONE
     }

@@ -1,28 +1,41 @@
 package flaskoski.rs.smartmuseum.routeBuilder
 
 import android.util.Log
-import flaskoski.rs.smartmuseum.model.Item
-import flaskoski.rs.smartmuseum.model.Point
+import flaskoski.rs.smartmuseum.model.*
+import java.io.InvalidClassException
 import java.util.*
 import kotlin.collections.HashSet
 
-class MuseumGraph(val vertices: Set<Point>) {
-    val entrances: Set<Point> = HashSet()
-    val exits : Set<Point> = HashSet()
+class MuseumGraph(elements: Set<Element>) {
+    val vertices = HashSet<Point>()
+    val entrances = HashSet<Point>()
+    val exits = HashSet<Point>()
     val TAG = "MuseumGraph"
 
 
     init{
-        for(vertex in vertices){
-            if (vertex.isEntrance)
-                (entrances as HashSet).add(vertex)
-            if (vertex.isExit)
-                (exits as HashSet).add(vertex)
+        elements.filter { it is Point }.forEach {
+            vertices.add(it as Point)
+            if (it.isEntrance)
+                entrances.add(it)
+            if (it.isExit)
+                exits.add(it)
         }
     }
 
-    fun getClosestItemTo(p: Point): Point? {
+    fun getClosestItemTo(p: Point): Point?{
         return getNextClosestItemFromList(p, vertices)
+    }
+
+    fun getClosestItemTo(p: SubItem) : Point?{
+//        if(!(p is Point) ){
+//            if(p is SubItem) {
+        vertices.find { it.id == p.groupItem }?.let {
+            return getNextClosestItemFromList(it, vertices) } ?: throw ParentNotFoundException()
+//            }
+//            else InvalidClassException("")
+//        }
+//        return getNextClosestItemFromList(p, vertices)
     }
 
     private fun calculateMinCost(currentPoint: Point, destinationPoint: Point, edgeCost: Double) {

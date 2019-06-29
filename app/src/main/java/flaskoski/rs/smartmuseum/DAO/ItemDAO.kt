@@ -4,23 +4,25 @@ import android.util.Log
 import android.widget.Toast
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
-import flaskoski.rs.smartmuseum.model.Item
-import flaskoski.rs.smartmuseum.model.Point
+import flaskoski.rs.smartmuseum.model.*
 
 class ItemDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()){
     private val TAG = "ItemDAO"
-    fun getAllPoints(callback : (itemsList : List<Point>)-> Unit) {
+    fun getAllPoints(callback : (itemsList : Set<Element>)-> Unit) {
         //add items to grid from DB
         db.collection("items")
                 .get()
                 .addOnSuccessListener { result ->
-                    val itemsList : ArrayList<Point> = ArrayList()
+                    val itemsList = HashSet<Element>()
                     for (document in result) {
                         Log.d(TAG, document.id + " => " + document.data)
-                        var item : Point
-                        if(document["type"] == "item")
-                            item = document.toObject(Item::class.java)
-                        else  item = document.toObject(Point::class.java)
+                        var item: Element
+                        item = when (document["type"]) {
+                            "item" -> document.toObject(Item::class.java)
+                            "subitem" -> document.toObject(SubItem::class.java)
+                            "groupitem" -> document.toObject(GroupItem::class.java)
+                            else -> document.toObject(Point::class.java)
+                        }
                         item.id = document.id
                         itemsList.add(item)
                     }

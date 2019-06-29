@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 
 
 object ParseTime{
-    val format = SimpleDateFormat("HH:mm")
+    val format = SimpleDateFormat("dd.MM.yyyy HH:mm")
     val timeZoneId = "GMT-3:00"
     init{
         format.timeZone = TimeZone.getTimeZone(timeZoneId)
