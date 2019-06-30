@@ -21,7 +21,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
     }
 
     fun getRecommendedRouteFrom(start : Point, timeAvailable : Double, initialCost : Double): LinkedList<Itemizable> {
-        var startPoint = start
+        var startPoint : Point? = start
         itemsRemaining.clear()
         var totalCost = initialCost
         var count = 0
@@ -52,9 +52,16 @@ class RecommendedRouteBuilder(elements: Set<Element>){
                 //TODO MEMORIZE ITEMS ROUTE COST
                 @Suppress("UNCHECKED_CAST")
                 //time between routableItems only
-                startPoint = museumGraph?.getNextClosestItemFromList(startPoint,
-                        (itemsRemaining.subList(0, i).filter { it is RoutableItem }.toSet() as Set<Point>))!!
-                if (startPoint != null) {
+                var nextPoint : Point? = null
+                try {
+                    nextPoint = museumGraph?.getNextClosestItemFromList(startPoint!!,
+                            (itemsRemaining.subList(0, i).filter { it is RoutableItem }.toSet() as Set<Point>))!!
+                }
+                catch(e: Exception){
+                    startPoint = null
+                }
+                if (nextPoint != null) {
+                    startPoint = nextPoint
                     if (totalCost + startPoint.cost <= timeAvailable) {
                         totalCost += startPoint.cost
                         (startPoint as Item).isVisited = true
@@ -70,8 +77,10 @@ class RecommendedRouteBuilder(elements: Set<Element>){
                 it.isVisited = false
                 if(!enoughTime) (it as RoutableItem).recommendedOrder = Int.MAX_VALUE
             }
-            if(enoughTime)
+            if(enoughTime) {
+                itemsRemaining.filter { it is SubItem }.forEach { (it as SubItem).isRecommended = true }
                 break
+            }
             itemsCost -= (itemsRemaining.last as Itemizable).timeNeeded
             totalCost = itemsCost
             itemsRemaining.removeLast()

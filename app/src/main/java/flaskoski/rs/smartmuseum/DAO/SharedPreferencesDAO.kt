@@ -96,6 +96,15 @@ class SharedPreferencesDAO(activity : Activity){
     fun clear(){
         with(db.edit()){
             clear()
+            apply()
+        }
+    }
+    fun resetJourney(){
+        with(db.edit()){
+            db.all.filter { it.value is Boolean && it.key.contains(ITEM_PREFIX) }.keys.forEach {
+                remove(it)
+            }
+            remove(START_TIME)
             commit()
         }
     }

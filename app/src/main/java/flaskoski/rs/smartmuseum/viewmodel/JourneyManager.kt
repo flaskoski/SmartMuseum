@@ -17,6 +17,7 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
 import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
+import kotlin.collections.ArrayList
 
 class JourneyManager() : ViewModel() ,
         MapManager.OnUserArrivedToDestinationListener {
@@ -162,6 +163,7 @@ class JourneyManager() : ViewModel() ,
     fun beginJourney() {
         startTime = ParseTime.getCurrentTime()
         sharedPreferences?.saveStartTime(startTime!!)
+        isJourneyFinishedFlag.value = false
         isJourneyBegan.value = true
         getRecommendedRoute()
         sortItemList()
@@ -232,10 +234,9 @@ class JourneyManager() : ViewModel() ,
                     updateRecommender()
                 }else sharedPreferences?.setRecommendedItem(lastItem as Item)
 
-                if(isJourneyFinished()) {
-                    isJourneyFinishedFlag.value = true
-                    sharedPreferences?.clear()
-                }
+                if(isJourneyFinished())
+                    finishJourney()
+
                 else {
                     if (rating != null)
                         getRecommendedRoute()
@@ -248,11 +249,18 @@ class JourneyManager() : ViewModel() ,
                     ratingsList.remove(rating)
                     ratingsList.add(rating)
                     updateRecommender()
-                    getRecommendedRoute()
-                    sortItemList()
-                    setNextRecommendedDestination()
+                    if(isJourneyBegan.value!!) {
+                        getRecommendedRoute()
+                        sortItemList()
+                        setNextRecommendedDestination()
+                    }
                 }
         }
+    }
+
+    fun finishJourney() {
+        isJourneyFinishedFlag.value = true
+        sharedPreferences?.resetJourney()
     }
 
     /***
@@ -285,5 +293,14 @@ class JourneyManager() : ViewModel() ,
                 setNextRecommendedDestination()
             }
         }
+    }
+
+    fun getSubItemsOf(group: GroupItem): List<Itemizable> {
+        val subItems = ArrayList<Itemizable>()
+        group.subItems.forEach { subItemId ->
+            val item = recommendedRouteBuilder?.allItems?.find { subItemId == it.id }
+            if(item != null) subItems.add(item)
+        }
+        return subItems
     }
 }

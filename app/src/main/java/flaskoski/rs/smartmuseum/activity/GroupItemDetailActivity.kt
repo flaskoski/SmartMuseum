@@ -1,33 +1,36 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.app.Activity
-import android.content.DialogInterface
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
-import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
-import flaskoski.rs.smartmuseum.model.Item
+import flaskoski.rs.smartmuseum.listAdapter.SubItemListAdapter
+import flaskoski.rs.smartmuseum.model.GroupItem
 import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_item_detail.*
 
-class ItemDetailActivity  : AppCompatActivity() {
+class GroupItemDetailActivity  : AppCompatActivity() {
 
     private var isRatingChanged = false
-    private var currentItem : Itemizable? = null
+    private var currentItem : GroupItem? = null
     private val TAG = "ItemDetails"
     private lateinit var itemRating : Rating
     lateinit var starViews : List<ImageView>
     private val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
     private var arrived: Boolean = false
+
+    private lateinit var adapter: SubItemListAdapter
+
+    private var subItems: List<Itemizable>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,14 +39,18 @@ class ItemDetailActivity  : AppCompatActivity() {
         starViews = listOf<ImageView>(img_star1, img_star2, img_star3, img_star4, img_star5)
 
         val extras = intent
-        currentItem = extras.getSerializableExtra("itemClicked") as Itemizable?
+        currentItem = extras.getSerializableExtra("itemClicked") as GroupItem?
+        subItems = extras.getSerializableExtra("subItems")?.let { it as List<Itemizable> }
         arrived = extras.getBooleanExtra("arrived", false)
         val rating = extras.getFloatExtra("itemRating", 0F)
 
-        //<--ItemDetails
-        lb_recommended_items.visibility = View.GONE
-        recommended_items_list.visibility = View.GONE
+        //<--GroupItem
+        currentItem?.subItems?.map { it ->  }
+        recommended_items_list.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        adapter = SubItemListAdapter(subItems, applicationContext, this)
+        recommended_items_list.adapter = adapter
         //-->
+
 
         if(!arrived) bt_next_item.visibility = View.GONE
         setStars(rating)
@@ -95,7 +102,7 @@ class ItemDetailActivity  : AppCompatActivity() {
 
     override fun onBackPressed() {
         if(arrived){
-            val confirmationDialog = AlertDialog.Builder(this@ItemDetailActivity, R.style.Theme_AppCompat_Dialog_Alert)
+            val confirmationDialog = AlertDialog.Builder(this@GroupItemDetailActivity, R.style.Theme_AppCompat_Dialog_Alert)
             confirmationDialog.setTitle("Atenção")
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setMessage("Deseja ir ao próximo item da visita?")

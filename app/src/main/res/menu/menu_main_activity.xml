@@ -5,5 +5,9 @@
         android:id="@+id/option_features"
         android:title="@string/option_feature"
         />
+    <item
+        android:id="@+id/option_cancelar_rota"
+        android:title="@string/cancelarRota"
+        />
 
 </menu>

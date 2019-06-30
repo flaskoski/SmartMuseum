@@ -17,7 +17,7 @@
         <TextView
             android:id="@+id/lb_next_items"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="80dp"
             android:layout_gravity="top"
             android:layout_marginLeft="4dp"
             android:layout_marginTop="8dp"
@@ -25,9 +25,12 @@
             android:layout_weight="1"
             android:background="@color/colorBackgroundSheet"
             android:ems="10"
+            android:gravity="center"
             android:onClick="toggleSheet"
             android:text="@string/next_Attractions"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/itemsGridList"

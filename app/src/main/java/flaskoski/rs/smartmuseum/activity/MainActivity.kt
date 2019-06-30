@@ -26,6 +26,8 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.databinding.ActivityMainBinding
+import flaskoski.rs.smartmuseum.model.GroupItem
+import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.grid_item.*
@@ -69,6 +71,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         //draw toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
+
+        //DEBUG
+        ApplicationProperties.isDebugOn = true
 
         loading_view.visibility = View.VISIBLE
         //attach view model to activity
@@ -158,8 +163,13 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     private val isItemsAndRatingsLoadedListener = Observer<Boolean>{ loaded : Boolean ->
-        if(loaded && journeyManager.isJourneyBegan.value!!)
+        if(loaded && journeyManager.isJourneyBegan.value!!) {
             journeyManager.recoverSavedJourney()
+
+            //DEBUG
+            //shareOnItemClicked(journeyManager.itemsList.indexOf(journeyManager.itemsList.find{ it.id == "7I7lVxSXOjvYWE2e5i72"}),false)
+
+        }
     }
 
     private val isJourneyBeganListener = Observer<Boolean> { isJourneyBegan: Boolean ->
@@ -175,6 +185,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     .setMessage("Você já visitou todos os itens recomendados para você. Obrigado pela visita!")
                     .setNeutralButton(android.R.string.ok, null)
             confirmationDialog.show()
+
+            card_view.visibility = View.GONE
+            bt_begin_route.visibility = View.VISIBLE
         }
     }
 
@@ -218,21 +231,29 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     //-----------onClick --------------
 
-    override fun shareOnItemClicked(p1: Int, arrived : Boolean) {
+    override fun shareOnItemClicked(p1: Int, isArrived : Boolean) {
         if(ApplicationProperties.user == null) {
             Toast.makeText(applicationContext, "Usário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG).show()
             return
         }
-        val viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
+        var viewItemDetails : Intent
+        var subItems : ArrayList<Itemizable>? = null
+        if(journeyManager.itemsList[p1] is GroupItem) {
+            viewItemDetails = Intent(applicationContext, GroupItemDetailActivity::class.java)
+            subItems = journeyManager.getSubItemsOf(journeyManager.itemsList[p1] as GroupItem) as ArrayList<Itemizable>
+        }
+        else viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
         val itemId = journeyManager.itemsList[p1].id
-        var itemRating : Float
+        var itemRating : Float = 0F
         journeyManager.ratingsList.find { it.user == ApplicationProperties.user?.id
                 && it.item == itemId }?.let {
             itemRating = it.rating
         }
 
         viewItemDetails.putExtra("itemClicked",  journeyManager.itemsList[p1])
-        viewItemDetails.putExtra("arrived", arrived)
+        viewItemDetails.putExtra("subItems",  subItems)
+        viewItemDetails.putExtra("itemRating",  itemRating)
+        viewItemDetails.putExtra("arrived", isArrived)
         startActivityForResult(viewItemDetails, requestItemRatingChange)
     }
 
@@ -290,6 +311,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 val goToFeaturePreferences = Intent(applicationContext, FeaturePreferencesActivity::class.java)
                 // goToPlayerProfileIntent.putExtra("uid", uid)
                 startActivityForResult(goToFeaturePreferences, requestGetPreferences)
+                true
+            }
+            R.id.option_cancelar_rota -> {
+                journeyManager.finishJourney()
                 true
             }
             else -> super.onOptionsItemSelected(item)

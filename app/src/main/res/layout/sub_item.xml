@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/common_google_signin_btn_icon_light_normal_background">
+
+    <androidx.appcompat.widget.AppCompatRatingBar
+        android:id="@+id/ratingBar"
+        style="@android:style/Widget.DeviceDefault.Light.RatingBar.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="4dp"
+        android:minWidth="10dp"
+        android:minHeight="10dp"
+        android:rating="0.0"
+        android:stepSize="0.1"
+        card_view:layout_constraintBottom_toBottomOf="@+id/img_itemThumb"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        card_view:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/img_itemThumb"
+        android:layout_width="100dp"
+        android:layout_height="96dp"
+        android:scaleType="fitCenter"
+        android:visibility="visible"
+        card_view:layout_constraintBottom_toBottomOf="parent"
+        card_view:layout_constraintStart_toStartOf="parent"
+        card_view:layout_constraintTop_toTopOf="parent"
+        card_view:srcCompat="@mipmap/image_not_found" />
+
+    <ImageView
+        android:id="@+id/icon_visited"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:elevation="4dp"
+        android:scaleX="1"
+        android:scaleY="1"
+        android:visibility="visible"
+        card_view:layout_constraintBottom_toTopOf="@+id/ratingBar"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        card_view:srcCompat="@drawable/baseline_done_black_18" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

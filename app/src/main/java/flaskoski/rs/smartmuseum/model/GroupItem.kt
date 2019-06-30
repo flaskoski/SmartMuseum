@@ -1,5 +1,5 @@
 package flaskoski.rs.smartmuseum.model
 
 class GroupItem(
-        var subItems: Set<Element> = HashSet()
+        var subItems: List<String> = ArrayList()
 ) : Item()

@@ -10,6 +10,7 @@ import com.google.android.gms.maps.model.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Point
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import java.lang.IllegalStateException
 
 
@@ -59,7 +60,9 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
     private fun isVeryCloseToDestination(userLatLng: LatLng): Boolean {
         val distance = FloatArray(3)
         Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, destinationMarker?.position?.latitude!!, destinationMarker?.position?.longitude!!, distance)
-        return distance[0] < 11000
+        if(ApplicationProperties.isDebugOn)
+            return distance[0] < 11000
+        else return distance[0] < 11
     }
 
     interface OnUserArrivedToDestinationListener{
