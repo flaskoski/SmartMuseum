@@ -97,9 +97,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         //bottomsheet setup
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
-        bringToFront(loading_view, 50f)
-        bringToFront(sheet_next_items, 40f)
-        bringToFront(card_view, 30f)
+        ApplicationProperties.bringToFront(loading_view, 50f)
+        ApplicationProperties.bringToFront(sheet_next_items, 40f)
+        ApplicationProperties.bringToFront(card_view, 30f)
 
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK) {
+        if (resultCode == RESULT_OK && data != null) {
             loading_view.visibility = View.VISIBLE
 
             when (requestCode) {
@@ -237,10 +237,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             return
         }
         var viewItemDetails : Intent
-        var subItems : ArrayList<Itemizable>? = null
+        //var subItems : ArrayList<Itemizable>? = null
         if(journeyManager.itemsList[p1] is GroupItem) {
             viewItemDetails = Intent(applicationContext, GroupItemDetailActivity::class.java)
-            subItems = journeyManager.getSubItemsOf(journeyManager.itemsList[p1] as GroupItem) as ArrayList<Itemizable>
+//            subItems = journeyManager.getSubItemsOf(journeyManager.itemsList[p1] as GroupItem) as ArrayList<Itemizable>
         }
         else viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
         val itemId = journeyManager.itemsList[p1].id
@@ -251,9 +251,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
 
         viewItemDetails.putExtra("itemClicked",  journeyManager.itemsList[p1])
-        viewItemDetails.putExtra("subItems",  subItems)
+        //viewItemDetails.putExtra("subItems",  subItems)
         viewItemDetails.putExtra("itemRating",  itemRating)
-        viewItemDetails.putExtra("arrived", isArrived)
+        if(p1 == 0 && journeyManager.isCloseToItem.value!!)
+            viewItemDetails.putExtra(ApplicationProperties.TAG_ARRIVED, true)
+        else viewItemDetails.putExtra(ApplicationProperties.TAG_ARRIVED, isArrived)
         startActivityForResult(viewItemDetails, requestItemRatingChange)
     }
 
@@ -286,18 +288,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
 
     //------------LAYOUT FEATURES-------------------------------
-
-    private fun bringToFront(view: View, z_value: Float = 20f){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            view.translationZ = z_value
-            view.invalidate()
-        }
-        else {
-            view.bringToFront()
-            view.parent.requestLayout()
-            //sheet_next_items.parent.invalidate()
-        }
-    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater

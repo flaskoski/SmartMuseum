@@ -5,8 +5,9 @@ import android.widget.Toast
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import flaskoski.rs.smartmuseum.model.*
+//import javax.inject.Inject
 
-class ItemDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()){
+class ItemDAO /*@Inject constructor*/(val db: FirebaseFirestore = FirebaseFirestore.getInstance()){
     private val TAG = "ItemDAO"
     fun getAllPoints(callback : (itemsList : Set<Element>)-> Unit) {
         //add items to grid from DB

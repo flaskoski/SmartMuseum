@@ -86,9 +86,12 @@ class SharedPreferencesDAO(activity : Activity){
      * Set item isVisited control variable. Do not use this function in case of change in the recommended route.
      * For that, use @function setAllRecommendedItems.
      */
-    fun setRecommendedItem(item : Item){
+    fun setRecommendedItem(it : Itemizable){
         with(db.edit()){
-            putBoolean("${ITEM_PREFIX}${item.id}_${item.recommendedOrder}", item.isVisited)
+
+            if(it is RoutableItem)
+                putBoolean("${ITEM_PREFIX}${it.id}_${it.recommendedOrder}", it.isVisited)
+            else putBoolean("${ITEM_PREFIX}${it.id}_0", it.isVisited)
             apply()
         }
     }
@@ -106,6 +109,15 @@ class SharedPreferencesDAO(activity : Activity){
             }
             remove(START_TIME)
             commit()
+        }
+    }
+
+    fun setVisitedSubItems(visitedSubItems: List<String>) {
+        with(db.edit()){
+            visitedSubItems.forEach {
+                putBoolean("${ITEM_PREFIX}${it}_0", true)
+            }
+            apply()
         }
     }
 }

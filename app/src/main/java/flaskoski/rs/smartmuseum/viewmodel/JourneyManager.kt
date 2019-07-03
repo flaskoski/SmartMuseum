@@ -3,31 +3,32 @@ import android.app.Activity
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import android.util.Log
+import androidx.databinding.Observable
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.SupportMapFragment
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
-import flaskoski.rs.smartmuseum.DAO.ItemDAO
-import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.routeBuilder.RecommendedRouteBuilder
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
-import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
 import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
+//import javax.inject.Inject
 import kotlin.collections.ArrayList
 
-class JourneyManager() : ViewModel() ,
-        MapManager.OnUserArrivedToDestinationListener {
+class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
+    : ViewModel(), MapManager.OnUserArrivedToDestinationListener {
 
     var recommendedRouteBuilder : RecommendedRouteBuilder? = null
 //    var closestItem: Point? = null
     var lastItem : Point? = null
     private val TAG = "JourneyManager"
-    var itemsList : List<Item> = ArrayList()
+
     var ratingsList  = HashSet<Rating>()
+    var itemsList = ArrayList<Item>()
+    private var subItemList = ArrayList<SubItem>()
 //    var currentItem : Item? = null
 
     //--state flags
@@ -45,8 +46,29 @@ class JourneyManager() : ViewModel() ,
 
     var mapManager: MapManager? = null
     var userLocationManager : UserLocationManager? = null
+    val recommenderManager = RecommenderManager()
+
+    private var activity: Activity? = null
+    private var sharedPreferences: SharedPreferencesDAO? = null
 
     val REQUEST_CHANGE_LOCATION_SETTINGS = 3
+
+    //GET ITEMS INFORMATION
+    private val isItemAndRatingListLoadedListener = object : Observable.OnPropertyChangedCallback(){
+        override fun onPropertyChanged(observable: Observable, i: Int) {
+            if(ItemRepository.isItemListLoaded.get() && ItemRepository.isRatingListLoaded.get()){
+                itemsList.addAll(ItemRepository.itemList)
+                ratingsList = ItemRepository.ratingList
+                subItemList = ItemRepository.subItemList
+
+                recommendedRouteBuilder = RecommendedRouteBuilder(ItemRepository.allElements)
+                lastItem = recommendedRouteBuilder?.getAllEntrances()?.first()
+
+                isItemsAndRatingsLoaded.value = true
+                buildRecommender()
+            }
+        }
+    }
 
     init {
         //live data vars initialization
@@ -57,16 +79,16 @@ class JourneyManager() : ViewModel() ,
         isJourneyBegan.value = false
         isJourneyFinishedFlag.value = false
 
+        //Repository observers init
+        ItemRepository.isRatingListLoaded.addOnPropertyChangedCallback(isItemAndRatingListLoadedListener)
+        ItemRepository.isItemListLoaded.addOnPropertyChangedCallback(isItemAndRatingListLoadedListener)
+
         //maps setup
         userLocationManager = UserLocationManager(REQUEST_CHANGE_LOCATION_SETTINGS)
         mapManager = MapManager(this)
         userLocationManager?.onUserLocationUpdateCallback = mapManager?.updateUserLocationCallback
 
-        getItemsData()
     }
-
-    private var activity: Activity? = null
-    private var sharedPreferences: SharedPreferencesDAO? = null
 
     fun updateActivity(activity : Activity) {
         this.activity = activity
@@ -79,8 +101,6 @@ class JourneyManager() : ViewModel() ,
         buildRecommender()
 //        Toast.makeText(applicationContext, "Atualizado!", Toast.LENGTH_SHORT).show()
     }
-
-    val recommenderManager = RecommenderManager()
 
     private fun buildRecommender() {
         recommenderManager.recommender = RecommenderBuilder().buildKNNRecommender(ratingsList)
@@ -103,35 +123,6 @@ class JourneyManager() : ViewModel() ,
         }
         itemListChangedListener?.invoke()
     }
-
-    private lateinit var getItemsAndRatingsBeforeRecommend: ParallelRequestsManager
-    fun getItemsData() {
-        getItemsAndRatingsBeforeRecommend = ParallelRequestsManager(2)
-        val itemDAO = ItemDAO()
-        itemDAO.getAllPoints { elements ->
-            recommendedRouteBuilder = RecommendedRouteBuilder(elements)
-            lastItem = recommendedRouteBuilder?.getAllEntrances()?.first()
-            @Suppress("UNCHECKED_CAST")
-            (itemsList as ArrayList).addAll(elements.filter { it is Item || it is GroupItem } as List<Item>)
-
-            getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
-            if (getItemsAndRatingsBeforeRecommend.isComplete) {
-                isItemsAndRatingsLoaded.value = true
-                buildRecommender()
-
-            }
-        }
-        val ratingDAO = RatingDAO()
-        ratingDAO.getAllItems {
-            ratingsList.addAll(it)
-            getItemsAndRatingsBeforeRecommend.decreaseRemainingRequests()
-            if (getItemsAndRatingsBeforeRecommend.isComplete) {
-                isItemsAndRatingsLoaded.value = true
-                buildRecommender()
-            }
-        }
-    }
-
 
 //    fun getNextClosestItem(): Point? {
 //        //TODO: Has to catch the closest entrance to the user
@@ -204,58 +195,59 @@ class JourneyManager() : ViewModel() ,
         userLocationManager?.createLocationRequest()
     }
 
-    fun getPreferencesResult(data: Intent?) {
-        if (data != null) {
-            (data.getSerializableExtra("featureRatings") as List<*>).forEach {
-                ratingsList.add(it as Rating)
-            }
-            timeAvailable = ApplicationProperties.user?.timeAvailable!!
-            ApplicationProperties.user?.let { sharedPreferences?.saveUser(it) }
-            updateRecommender()
-           // getRecommendedRoute()
-            sortItemList()
-            if (!isPreferencesSet.value!!) {
-                isPreferencesSet.value = true
-            }
+    fun getPreferencesResult(data: Intent) {
+        (data.getSerializableExtra("featureRatings") as List<*>).forEach {
+            ratingsList.add(it as Rating)
+        }
+        timeAvailable = ApplicationProperties.user?.timeAvailable!!
+        ApplicationProperties.user?.let { sharedPreferences?.saveUser(it) }
+        updateRecommender()
+       // getRecommendedRoute()
+        sortItemList()
+        if (!isPreferencesSet.value!!) {
+            isPreferencesSet.value = true
         }
     }
 
-    fun itemRatingChangeResult(data: Intent?) {
-        if (data != null) {
-            val rating : Rating? = data.getSerializableExtra(ApplicationProperties.EXTRA_ITEM_RATING)?.let { it as Rating }
-            val nextItem : Boolean = data.getBooleanExtra(ApplicationProperties.EXTRA_NEXT_ITEM, false)
-            if(nextItem) {
-                isCurrentItemVisited.value = true
-                (lastItem as Item).isVisited = true
+    fun itemRatingChangeResult(data: Intent) {
+        val rating : Rating? = data.getSerializableExtra(ApplicationProperties.TAG_ITEM_RATING)?.let { it as Rating }
+        val nextItem : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, false)
+        val arrived : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_ARRIVED, false)
+        val visitedSubItems : List<String>? =  data.getSerializableExtra(ApplicationProperties.TAG_VISITED_SUBITEMS)?.let { it as List<String> }
+        if(arrived)
+            visitedSubItems?.let { sharedPreferences?.setVisitedSubItems(it) }
+        if(nextItem) {
+            isCurrentItemVisited.value = true
+            isCloseToItem.value = false
+            (lastItem as Item).isVisited = true
 
-                if(rating != null) {//rating changed
-                    ratingsList.remove(rating)
-                    ratingsList.add(rating)
-                    updateRecommender()
-                }else sharedPreferences?.setRecommendedItem(lastItem as Item)
+            if(rating != null) {//rating changed
+                ratingsList.remove(rating)
+                ratingsList.add(rating)
+                updateRecommender()
+            }else sharedPreferences?.setRecommendedItem(lastItem as Item)
 
-                if(isJourneyFinished())
-                    finishJourney()
+            if(isJourneyFinished())
+                finishJourney()
 
-                else {
-                    if (rating != null)
-                        getRecommendedRoute()
+            else {
+                if (rating != null)
+                    getRecommendedRoute()
+                sortItemList()
+                setNextRecommendedDestination()
+            }
+        }
+        else
+            if(rating != null) {//rating changed
+                ratingsList.remove(rating)
+                ratingsList.add(rating)
+                updateRecommender()
+                if(isJourneyBegan.value!!) {
+                    getRecommendedRoute()
                     sortItemList()
                     setNextRecommendedDestination()
                 }
             }
-            else
-                if(rating != null) {//rating changed
-                    ratingsList.remove(rating)
-                    ratingsList.add(rating)
-                    updateRecommender()
-                    if(isJourneyBegan.value!!) {
-                        getRecommendedRoute()
-                        sortItemList()
-                        setNextRecommendedDestination()
-                    }
-                }
-        }
     }
 
     fun finishJourney() {
@@ -284,10 +276,13 @@ class JourneyManager() : ViewModel() ,
         sharedPreferences?.getAllRecommendedItemStatus()?.let {list->
             if (list.isNotEmpty()) {
                 list.forEach{recommendedItem ->
-                    val item = itemsList.find{it.id == recommendedItem.id}
-                    item?.isVisited= recommendedItem.isVisited
-                    if(recommendedItem is RoutableItem)
+                    val item : Itemizable?
+                    if(recommendedItem is RoutableItem) {
+                        item = itemsList.find{it.id == recommendedItem.id}
                         item?.recommendedOrder = recommendedItem.recommendedOrder
+                    }else item = ItemRepository.subItemList.find{it.id == recommendedItem.id}
+                    item?.isVisited= recommendedItem.isVisited
+
                 }
                 sortItemList()
                 setNextRecommendedDestination()

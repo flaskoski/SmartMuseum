@@ -8,29 +8,32 @@ import androidx.appcompat.app.AlertDialog
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.listAdapter.SubItemListAdapter
 import flaskoski.rs.smartmuseum.model.GroupItem
-import flaskoski.rs.smartmuseum.model.Itemizable
+import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.model.Rating
+import flaskoski.rs.smartmuseum.model.SubItem
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
+import flaskoski.rs.smartmuseum.viewmodel.GroupItemActivityViewModel
 import kotlinx.android.synthetic.main.activity_item_detail.*
 
-class GroupItemDetailActivity  : AppCompatActivity() {
+class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShareSubItemClickListener{
 
-    private var isRatingChanged = false
-    private var currentItem : GroupItem? = null
     private val TAG = "ItemDetails"
-    private lateinit var itemRating : Rating
+    private var itemRating : Rating? = null
     lateinit var starViews : List<ImageView>
     private val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
-    private var arrived: Boolean = false
 
     private lateinit var adapter: SubItemListAdapter
+    private lateinit var vm: GroupItemActivityViewModel
 
-    private var subItems: List<Itemizable>? = null
+    private val REQUEST_SUBITEM_PAGE: Int = 3
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,22 +42,27 @@ class GroupItemDetailActivity  : AppCompatActivity() {
         starViews = listOf<ImageView>(img_star1, img_star2, img_star3, img_star4, img_star5)
 
         val extras = intent
-        currentItem = extras.getSerializableExtra("itemClicked") as GroupItem?
-        subItems = extras.getSerializableExtra("subItems")?.let { it as List<Itemizable> }
-        arrived = extras.getBooleanExtra("arrived", false)
+//        subItems = extras.getSerializableExtra("subItems")?.let { it as List<Itemizable> }
         val rating = extras.getFloatExtra("itemRating", 0F)
 
         //<--GroupItem
-        currentItem?.subItems?.map { it ->  }
+        vm = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(GroupItemActivityViewModel::class.java)
+        vm.arrived = extras.getBooleanExtra(ApplicationProperties.TAG_ARRIVED, false)
+        vm.subItemListChangedListener = {
+            @Suppress("UNNECESSARY_SAFE_CALL")
+            adapter?.notifyDataSetChanged()
+        }
         recommended_items_list.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        adapter = SubItemListAdapter(subItems, applicationContext, this)
+        adapter = SubItemListAdapter(vm.subItemList, this)
         recommended_items_list.adapter = adapter
+        vm.currentItem = extras.getSerializableExtra("itemClicked") as GroupItem?
+        //currentItem?.subItems?.map { it ->  }
         //-->
 
 
-        if(!arrived) bt_next_item.visibility = View.GONE
+        if(!vm.arrived) bt_next_item.visibility = View.GONE
         setStars(rating)
-        currentItem?.let {
+        vm.currentItem?.let {
             supportActionBar?.title = it.title
             itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating)
             if(it.photoId.isNotBlank())
@@ -63,6 +71,7 @@ class GroupItemDetailActivity  : AppCompatActivity() {
             item_description.text = it.description
         }
     }
+
 
     private fun setStars(rating: Float) {
         var count = 0
@@ -78,16 +87,16 @@ class GroupItemDetailActivity  : AppCompatActivity() {
     fun rate(v : View){
         //txt_rating.visibility = View.VISIBLE
         val index = starViews.indexOf(v)
-        itemRating.rating = (index+1).toFloat()
-        setStars(itemRating.rating)
+        itemRating!!.rating = (index+1).toFloat()
+        setStars(itemRating!!.rating)
         //Toast.makeText(applicationContext, ratingTexts[index], Toast.LENGTH_SHORT).show()
 
 
         ApplicationProperties.user?.id?.let {
-            RatingDAO().add(itemRating)
+            RatingDAO().add(this!!.itemRating!!)
 
         }
-        isRatingChanged = true
+        vm.isRatingChanged = true
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -101,7 +110,7 @@ class GroupItemDetailActivity  : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if(arrived){
+        if(vm.arrived){
             val confirmationDialog = AlertDialog.Builder(this@GroupItemDetailActivity, R.style.Theme_AppCompat_Dialog_Alert)
             confirmationDialog.setTitle("Atenção")
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -120,9 +129,14 @@ class GroupItemDetailActivity  : AppCompatActivity() {
 
     private fun goBack(goToNextItem : Boolean = false){
         val returnRatingIntent = Intent()
-        if(isRatingChanged)
-            returnRatingIntent.putExtra(ApplicationProperties.EXTRA_ITEM_RATING, itemRating)
-        if(arrived) returnRatingIntent.putExtra(ApplicationProperties.EXTRA_NEXT_ITEM, goToNextItem)
+        if(vm.visitedSubItems.isNotEmpty())
+            returnRatingIntent.putExtra(ApplicationProperties.TAG_VISITED_SUBITEMS, vm.visitedSubItems)
+        if(vm.isRatingChanged)
+            returnRatingIntent.putExtra(ApplicationProperties.TAG_ITEM_RATING, itemRating)
+        if(vm.arrived){
+            returnRatingIntent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, goToNextItem)
+            returnRatingIntent.putExtra(ApplicationProperties.TAG_ARRIVED, true)
+        }
         setResult(Activity.RESULT_OK, returnRatingIntent)
         finish()
     }
@@ -130,4 +144,37 @@ class GroupItemDetailActivity  : AppCompatActivity() {
     fun goToNextItem(v: View){
         goBack(true)
     }
+
+    //<--GroupItem
+    override fun shareOnItemClicked(itemPosition: Int) {
+        if(ApplicationProperties.user == null) {
+            Toast.makeText(applicationContext,
+                    "Usário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG)
+                    .show()
+        }
+//            var subItems : ArrayList<Itemizable>? = null
+        val viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
+//        val itemId = journeyManager.itemsList[p1].id
+//        var itemRating : Float
+//        journeyManager.ratingsList.find { it.user == ApplicationProperties.user?.id
+//                && it.item == itemId }?.let {
+//            itemRating = it.rating
+//        }
+        vm.setCurrentSubItem(itemPosition)
+        viewItemDetails.putExtra("itemClicked", vm.currentSubItem)
+        viewItemDetails.putExtra(ApplicationProperties.TAG_ITEM_RATING, ItemRepository.ratingList.find {vm.currentSubItem?.id == it.item && ApplicationProperties.user?.id == it.user}?.rating)
+        ActivityCompat.startActivityForResult(this, viewItemDetails, REQUEST_SUBITEM_PAGE, null)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            when (requestCode) {
+                REQUEST_SUBITEM_PAGE-> {
+                    vm.subItemVisitedResult(this, data)
+                }
+            }
+        }
+    }
+    //-->
 }

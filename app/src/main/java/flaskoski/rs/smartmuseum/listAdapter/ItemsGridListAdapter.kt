@@ -29,6 +29,8 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
 
         if(itemsList[p1].isVisited) {
             p0.itemView.setBackgroundResource(R.color.colorVisitedItem)
+            p0.itemView.icon_visited.setBackgroundResource(context.resources.getIdentifier("baseline_done_black_36",
+                    "drawable", context.packageName))
             p0.itemView.icon_visited.visibility = View.VISIBLE
         }
         else if(itemsList[p1].recommendedOrder != Int.MAX_VALUE){
@@ -66,7 +68,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
     }
 
     interface OnShareClickListener{
-        fun shareOnItemClicked(p1 : Int, arrived : Boolean = false)
+        fun shareOnItemClicked(p1 : Int, isArrived : Boolean = false)
     }
 }
 

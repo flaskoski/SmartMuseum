@@ -47,8 +47,8 @@ class JourneyManagerTest{
         Assert.assertTrue(ratingList.filter { it.user == mockUser.id && it.item == "1" }[0].rating == 4f)
 
         val intent = Intent()
-        intent.putExtra(ApplicationProperties.EXTRA_ITEM_RATING, Rating(mockUser.id, "1", 3f))
-        intent.putExtra(ApplicationProperties.EXTRA_NEXT_ITEM, false)
+        intent.putExtra(ApplicationProperties.TAG_ITEM_RATING, Rating(mockUser.id, "1", 3f))
+        intent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, false)
         journeyManager.itemRatingChangeResult(intent)
 
         Assert.assertTrue(ratingList.filter { it.user == mockUser.id && it.item == "1" }[0].rating == 3f)

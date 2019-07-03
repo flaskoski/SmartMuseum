@@ -1,19 +1,15 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.app.Activity
-import android.content.DialogInterface
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
-import android.widget.Toast
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
-import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
@@ -24,7 +20,7 @@ class ItemDetailActivity  : AppCompatActivity() {
     private var isRatingChanged = false
     private var currentItem : Itemizable? = null
     private val TAG = "ItemDetails"
-    private lateinit var itemRating : Rating
+    private var itemRating : Rating? = null
     lateinit var starViews : List<ImageView>
     private val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
     private var arrived: Boolean = false
@@ -38,7 +34,7 @@ class ItemDetailActivity  : AppCompatActivity() {
         val extras = intent
         currentItem = extras.getSerializableExtra("itemClicked") as Itemizable?
         arrived = extras.getBooleanExtra("arrived", false)
-        val rating = extras.getFloatExtra("itemRating", 0F)
+        val rating = extras.getFloatExtra(ApplicationProperties.TAG_ITEM_RATING, 0F)
 
         //<--ItemDetails
         lb_recommended_items.visibility = View.GONE
@@ -71,13 +67,13 @@ class ItemDetailActivity  : AppCompatActivity() {
     fun rate(v : View){
         //txt_rating.visibility = View.VISIBLE
         val index = starViews.indexOf(v)
-        itemRating.rating = (index+1).toFloat()
-        setStars(itemRating.rating)
+        itemRating!!.rating = (index+1).toFloat()
+        setStars(itemRating!!.rating)
         //Toast.makeText(applicationContext, ratingTexts[index], Toast.LENGTH_SHORT).show()
 
 
         ApplicationProperties.user?.id?.let {
-            RatingDAO().add(itemRating)
+            RatingDAO().add(this.itemRating!!)
 
         }
         isRatingChanged = true
@@ -114,8 +110,8 @@ class ItemDetailActivity  : AppCompatActivity() {
     private fun goBack(goToNextItem : Boolean = false){
         val returnRatingIntent = Intent()
         if(isRatingChanged)
-            returnRatingIntent.putExtra(ApplicationProperties.EXTRA_ITEM_RATING, itemRating)
-        if(arrived) returnRatingIntent.putExtra(ApplicationProperties.EXTRA_NEXT_ITEM, goToNextItem)
+            returnRatingIntent.putExtra(ApplicationProperties.TAG_ITEM_RATING, itemRating)
+        if(arrived) returnRatingIntent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, goToNextItem)
         setResult(Activity.RESULT_OK, returnRatingIntent)
         finish()
     }

@@ -61,6 +61,10 @@ dependencies {
 
     // ViewModel and LiveData
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
+
+    //Dagger 2 for dependency injection
+//    implementation 'com.google.dagger:dagger:2.23.2'
+//    annotationProcessor 'com.google.dagger:dagger-compiler:2.23.2'
 }
 repositories {
     mavenCentral()

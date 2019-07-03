@@ -5,19 +5,19 @@
     android:id="@+id/sheet_next_items"
     android:layout_width="match_parent"
     android:layout_height="450dp"
-    android:background="#f2f2f2"
+    android:background="@color/colorBackgroundSheet"
     android:fitsSystemWindows="true"
     android:onClick="toggleSheet"
     android:orientation="vertical"
     app:behavior_hideable="false"
-    app:behavior_peekHeight="35dp"
+    app:behavior_peekHeight="40dp"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
     app:layout_constraintTop_toBottomOf="@id/toolbar">
 
         <TextView
             android:id="@+id/lb_next_items"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="60dp"
             android:layout_gravity="top"
             android:layout_marginLeft="4dp"
             android:layout_marginTop="8dp"
