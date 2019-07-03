@@ -250,11 +250,22 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             }
     }
 
-    fun finishJourney() {
+    private fun finishJourney() {
+        sharedPreferences?.clear()
+        resetConfigurations()
+        isPreferencesSet.value = false
         isJourneyFinishedFlag.value = true
-        sharedPreferences?.resetJourney()
     }
 
+    fun resetConfigurations(){
+        sharedPreferences?.resetJourney()
+        ItemRepository.resetJourney()
+        mapManager?.clearMap()
+
+        isJourneyBegan.value = false
+        isCurrentItemVisited.value = false
+        isCloseToItem.value = false
+    }
     /***
      * set app state with the information saved from the last time it was used if the user didn't finish the journey.
      * @return User saved

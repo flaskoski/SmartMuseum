@@ -29,7 +29,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
 
         if(itemsList[p1].isVisited) {
             p0.itemView.setBackgroundResource(R.color.colorVisitedItem)
-            p0.itemView.icon_visited.setBackgroundResource(context.resources.getIdentifier("baseline_done_black_36",
+            p0.itemView.icon_visited.setBackgroundResource(context.resources.getIdentifier("baseline_done_black_24",
                     "drawable", context.packageName))
             p0.itemView.icon_visited.visibility = View.VISIBLE
         }

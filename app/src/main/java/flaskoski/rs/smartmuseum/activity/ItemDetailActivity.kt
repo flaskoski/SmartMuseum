@@ -97,7 +97,7 @@ class ItemDetailActivity  : AppCompatActivity() {
                     .setMessage("Deseja ir ao próximo item da visita?")
                     .setPositiveButton(android.R.string.yes) { _, _ ->
                         goBack(true)
-                    }.setNegativeButton(android.R.string.no){ _, _ ->
+                    }.setNegativeButton("Não"){ _, _ ->
                         goBack()
                     }
             confirmationDialog.show()

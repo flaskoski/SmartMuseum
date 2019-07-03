@@ -83,12 +83,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         journeyManager.updateActivity(this)
         journeyManager.buildMap(supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
 
-        journeyManager.isCloseToItem.observe(this, closeToItemIsChangedListener)
         journeyManager.isPreferencesSet.observe(this, preferencesSetListener)
+        journeyManager.isItemsAndRatingsLoaded.observe(this, isItemsAndRatingsLoadedListener)
         journeyManager.isJourneyBegan.observe(this, isJourneyBeganListener)
+        journeyManager.isCloseToItem.observe(this, closeToItemIsChangedListener)
         journeyManager.isCurrentItemVisited.observe(this, isCurrentItemVisitedListener)
         journeyManager.isJourneyFinishedFlag.observe(this, isJourneyFinishedListener)
-        journeyManager.isItemsAndRatingsLoaded.observe(this, isItemsAndRatingsLoadedListener)
         journeyManager.itemListChangedListener = {
             @Suppress("UNNECESSARY_SAFE_CALL")
             adapter?.notifyDataSetChanged()
@@ -188,6 +188,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
             card_view.visibility = View.GONE
             bt_begin_route.visibility = View.VISIBLE
+
+            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+            startActivityForResult(getPreferencesIntent, requestGetPreferences)
         }
     }
 
@@ -304,7 +307,16 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 true
             }
             R.id.option_cancelar_rota -> {
-                journeyManager.finishJourney()
+                val confirmationDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
+                confirmationDialog.setTitle("Atenção")
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setMessage("Deseja cancelar a sua visita? Isso irá apagar suas informações de itens que já visitou.")
+                        .setPositiveButton(android.R.string.yes) { _, _ ->
+                            journeyManager.resetConfigurations()
+                            card_view.visibility = View.GONE
+                            bt_begin_route.visibility = View.VISIBLE
+                        }.setNegativeButton(android.R.string.no){ _, _ -> }
+                confirmationDialog.show()
                 true
             }
             else -> super.onOptionsItemSelected(item)
