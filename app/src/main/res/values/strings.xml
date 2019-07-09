@@ -18,6 +18,6 @@
     <string name="rating4">Gostei!</string>
     <string name="rating5">Adorei!</string>
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBH2PIjB-Bkfch6NcvFSxbJ4RNIhYJeUYg</string>
-    <string name="next_Attractions">Clique aqui para ver próximas atrações.</string>
+    <string name="next_Attractions">Clique aqui para ver próximas atrações</string>
     <string name="cancelarRota">Cancelar Rota</string>
 </resources>

@@ -1,8 +1,8 @@
 package flaskoski.rs.smartmuseum.routeBuilder
 
+import android.location.Location
 import android.util.Log
 import flaskoski.rs.smartmuseum.model.*
-import java.io.InvalidClassException
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -95,6 +95,29 @@ class MuseumGraph(elements: Set<Element>) {
         }
         //no items found (all visited or no items available)
         return null
+    }
+
+    fun getNearestPointFrom(userPosition: Point): Point {
+        return getNearestPointOfSet(userPosition, vertices)
+    }
+
+    fun getNearestEntranceFrom(userPosition: Point): Point {
+        return getNearestPointOfSet(userPosition, entrances)
+    }
+
+    private fun getNearestPointOfSet(userPosition: Point, points: HashSet<Point>): Point {
+        var shortestDistance = Float.MAX_VALUE
+        var nearestPoint = points.first()
+        points.forEach {
+            val distance = FloatArray(3)
+            if(userPosition.lat != null && userPosition.lng != null && it.lat != null && it.lng != null)
+            Location.distanceBetween(userPosition.lat!!, userPosition.lng!!, it.lat!!, it.lng!!, distance)
+            if(distance[0] < shortestDistance){
+                shortestDistance = distance[0]
+                nearestPoint = it
+            }
+        }
+        return nearestPoint
     }
 
 

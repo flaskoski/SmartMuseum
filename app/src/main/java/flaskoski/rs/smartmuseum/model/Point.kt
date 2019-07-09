@@ -2,6 +2,7 @@ package flaskoski.rs.smartmuseum.model
 
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import java.io.Serializable
 import java.util.*
 import kotlin.collections.HashMap
@@ -14,6 +15,7 @@ open class Point(
         override var isExit : Boolean = false,
         var isClosest : Boolean = false,
         override var adjacentPoints : Map<String, Double> = HashMap()): Routable, Element, Serializable {
+    constructor(userLatLng: LatLng) : this(ApplicationProperties.USER_LOCATION_ITEM_ID, lat=userLatLng.latitude, lng = userLatLng.longitude)
 
     var cost : Double = Double.MAX_VALUE
     var shortestPath = LinkedList<Point>()
@@ -33,6 +35,10 @@ open class Point(
         }
         if(coordinates.isEmpty()) Log.w("Model.Point", "${this.id} getPathCoordinates called, but path is empty!")
         return coordinates
+    }
+
+    fun isUserPoint(): Boolean {
+        return id == ApplicationProperties.USER_LOCATION_ITEM_ID
     }
 
 }

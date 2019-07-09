@@ -62,7 +62,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                 subItemList = ItemRepository.subItemList
 
                 recommendedRouteBuilder = RecommendedRouteBuilder(ItemRepository.allElements)
-                lastItem = recommendedRouteBuilder?.getAllEntrances()?.first()
+                lastItem = userLocationManager?.userLatLng?.let { recommendedRouteBuilder?.getNearestPointFromUser(Point(it)) }
+                        ?: recommendedRouteBuilder?.getAllEntrances()?.first()
 
                 isItemsAndRatingsLoaded.value = true
                 buildRecommender()
@@ -175,15 +176,21 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             item = itemsList[0]
 
         if(item != null){
-            lastItem?.let { recommendedRouteBuilder?.findAndSetShortestPath(item, it) }
-            try{
-                mapManager?.setDestination(item, lastItem)
+            if(lastItem != null){
+                if(lastItem!!.isUserPoint())
+                    recommendedRouteBuilder?.findAndSetShortestPathFromUserLocation(item, lastItem!!)
+                else recommendedRouteBuilder?.findAndSetShortestPath(item, lastItem!!)
+                try{
+                    mapManager?.setDestination(item, lastItem)
+                }
+                catch(e: java.lang.Exception){
+                    e.printStackTrace()
+    //                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
+                }
+                lastItem = item
             }
-            catch(e: java.lang.Exception){
-                e.printStackTrace()
-//                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
-            }
-            lastItem = item
+            else
+                Log.e(TAG, "Último ponto visitado não foi identificado!")
         }
         else {
             Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
@@ -272,7 +279,6 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
      */
 
     fun recoverSavedPreferences(): User? {
-        //TODO items already visited
         ApplicationProperties.user = sharedPreferences?.getUser()
         this.startTime = sharedPreferences?.getStartTime()
         if(!ApplicationProperties.userNotDefinedYet()) {
@@ -295,12 +301,15 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                     item?.isVisited= recommendedItem.isVisited
 
                 }
+                lastItem = userLocationManager?.userLatLng?.let { Point(it)}
+                        ?: itemsList.filter { it.isVisited }.sortedWith(compareByDescending<Itemizable>{ (it as RoutableItem).recommendedOrder})?.get(0)
                 sortItemList()
                 setNextRecommendedDestination()
             }
         }
     }
 
+    //TODO move to GroupItem class
     fun getSubItemsOf(group: GroupItem): List<Itemizable> {
         val subItems = ArrayList<Itemizable>()
         group.subItems.forEach { subItemId ->

@@ -1,10 +1,16 @@
 package flaskoski.rs.smartmuseum.routeBuilder
 
 import flaskoski.rs.smartmuseum.model.*
+import flaskoski.rs.smartmuseum.util.ApplicationProperties.EASTERN_POINT
+import flaskoski.rs.smartmuseum.util.ApplicationProperties.NORTHERN_POINT
+import flaskoski.rs.smartmuseum.util.ApplicationProperties.SOUTHERN_POINT
+import flaskoski.rs.smartmuseum.util.ApplicationProperties.WESTERN_POINT
+import flaskoski.rs.smartmuseum.util.ApplicationProperties.user
+import java.lang.NullPointerException
 import java.util.*
 
 class RecommendedRouteBuilder(elements: Set<Element>){
-    private var museumGraph: MuseumGraph?  = null
+    private var museumGraph = MuseumGraph(elements)
     private var itemsRemaining = LinkedList<Itemizable>()
 
     private val MIN_TIME_BETWEEN_ITEMS = 0.4
@@ -12,9 +18,6 @@ class RecommendedRouteBuilder(elements: Set<Element>){
     @Suppress("UNCHECKED_CAST")
     var allItems : Set<Itemizable> = elements.filter { it is Itemizable}.toSet() as Set<Itemizable>
 
-    init {
-        museumGraph = MuseumGraph(elements)
-    }
 
     fun getAllEntrances(): Set<Point>? {
         return museumGraph?.entrances
@@ -95,5 +98,23 @@ class RecommendedRouteBuilder(elements: Set<Element>){
 
     private fun isGraphBuilt() : Boolean{
         return museumGraph != null
+    }
+
+    fun findAndSetShortestPathFromUserLocation(item: Item, userPosition: Point): Point? {
+        val closestPoint = getNearestPointFromUser(userPosition)
+        return findAndSetShortestPath(item, closestPoint)
+    }
+
+    fun getNearestPointFromUser(userPosition: Point): Point {
+        if(userPosition.lat == null || userPosition.lng == null) throw NullPointerException("userPosition lat or lng is null!")
+        if(isUserWithinLocationBorders(userPosition.lat!!, userPosition.lng!!))
+            return museumGraph.getNearestPointFrom(userPosition)
+        else return museumGraph.getNearestEntranceFrom(userPosition)
+    }
+
+    private fun isUserWithinLocationBorders(lat : Double, lng : Double): Boolean {
+        if(lat > SOUTHERN_POINT && lat < NORTHERN_POINT && lng > WESTERN_POINT && lng < EASTERN_POINT)
+            return true
+        return false
     }
 }

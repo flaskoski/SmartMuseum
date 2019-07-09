@@ -61,11 +61,13 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
         }
 
 
+    var userLatLng: LatLng? = null
+
     override fun onLocationResult(locationResult: LocationResult?) {
         locationResult ?: return
         for (location in locationResult.locations) {
-            val userLatLng = LatLng(location.latitude, location.longitude)
-            onUserLocationUpdateCallback?.invoke(userLatLng)
+            userLatLng = LatLng(location.latitude, location.longitude)
+            onUserLocationUpdateCallback?.invoke(userLatLng!!)
         }
     }
 
