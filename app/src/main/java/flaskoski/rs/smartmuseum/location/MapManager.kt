@@ -1,6 +1,5 @@
 package flaskoski.rs.smartmuseum.location
 
-import android.graphics.Color
 import android.location.Location
 import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -21,8 +20,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
     private val TAG = "MapManager"
     private var mCurrLocationMarker: Marker? = null
     private var destinationMarker: Marker? = null
-    private var destinationPath : Polyline? = null
-    private val polyline = PolylineOptions().color(Color.CYAN).width(10f).visible(true).zIndex(30f);
+    private var routePolyline = RoutePolyline()
 
     override fun onMapReady(p0: GoogleMap?) {
         val locationListener : Int
@@ -82,32 +80,22 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
 
     fun setDestination(item: Item, previousItem: Point?) : MapManager{
         val itemPathCoordinates = item.getPathCoordinates()
-        itemPathCoordinates?.let{
+        itemPathCoordinates?.let{itemPath ->
             if(mCurrLocationMarker != null) {
-                if(destinationPath == null) {//create line
-                    polyline.points.clear()
-                    //polyline.add(mCurrLocationMarker?.position)
-                    polyline.addAll(itemPathCoordinates)
-                    destinationPath = mMap?.addPolyline(polyline)
-                }
-                else {//update line
-                    val points : List<LatLng>? = destinationPath?.points
-                    (points as ArrayList).clear()
-                    //points.add(mCurrLocationMarker!!.position)
-                    points.addAll(itemPathCoordinates)
-                    destinationPath?.points = points
-                }
-                // .width(1.5f))
-                mMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder()
-                        .include(previousItem?.getCoordinates()).include(item.getCoordinates()).build(), 130))
-                        //.include(mCurrLocationMarker?.position).include(item.getCoordinates()).build(), 130))
-
-                if(destinationMarker != null) //last marker changed to green
-                    destinationMarker?.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                destinationMarker = addItem(item)
-                alreadyInformed = false
+                mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath, mCurrLocationMarker?.position!!) }
             }else
                 throw IllegalStateException("User map marker is null! Probable cause: User location wasn't found.")
+
+            // .width(1.5f))
+            mMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder()
+                    .include(previousItem?.getCoordinates()).include(item.getCoordinates()).build(), 130))
+                    //.include(mCurrLocationMarker?.position).include(item.getCoordinates()).build(), 130))
+
+            if(destinationMarker != null) //last marker changed to green
+                destinationMarker?.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+            destinationMarker = addItem(item)
+            alreadyInformed = false
+
         }
         return this
     }
@@ -120,7 +108,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         mMap?.clear()
         if(destinationMarker != null) destinationMarker = null
         if(mCurrLocationMarker != null) mCurrLocationMarker = null
-        if(destinationPath != null) destinationPath = null
+        routePolyline.clear()
         return this
     }
 
