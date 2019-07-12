@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.os.Bundle
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import androidx.core.app.ActivityCompat
@@ -27,11 +26,10 @@ import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.databinding.ActivityMainBinding
 import flaskoski.rs.smartmuseum.model.GroupItem
-import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.grid_item.*
-import kotlinx.android.synthetic.main.grid_item.view.*
+import kotlinx.android.synthetic.main.next_item.*
+import kotlinx.android.synthetic.main.next_item.view.*
 import java.lang.IllegalStateException
 
 
@@ -62,7 +60,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private lateinit var journeyManager : JourneyManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val isDebugging = true
         //------------Standard Side Menu Screen---------------------------
         super.onCreate(savedInstanceState)
         DataBindingUtil.setContentView<ActivityMainBinding>(
@@ -71,9 +68,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         //draw toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
-
-        //DEBUG
-        ApplicationProperties.isDebugOn = true
 
         loading_view.visibility = View.VISIBLE
         //attach view model to activity
@@ -87,7 +81,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         journeyManager.isItemsAndRatingsLoaded.observe(this, isItemsAndRatingsLoadedListener)
         journeyManager.isJourneyBegan.observe(this, isJourneyBeganListener)
         journeyManager.isCloseToItem.observe(this, closeToItemIsChangedListener)
-        journeyManager.isCurrentItemVisited.observe(this, isCurrentItemVisitedListener)
+        journeyManager.isGoToNextItem.observe(this, isGoToNextItemListener)
         journeyManager.isJourneyFinishedFlag.observe(this, isJourneyFinishedListener)
         journeyManager.itemListChangedListener = {
             @Suppress("UNNECESSARY_SAFE_CALL")
@@ -99,7 +93,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
         ApplicationProperties.bringToFront(loading_view, 50f)
         ApplicationProperties.bringToFront(sheet_next_items, 40f)
-        ApplicationProperties.bringToFront(card_view, 30f)
+        ApplicationProperties.bringToFront(view_next_item, 30f)
 
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
@@ -147,13 +141,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     //Show next item card on screen
     private val closeToItemIsChangedListener = Observer<Boolean> { isClose : Boolean -> if(isClose) {
-        card_view.lb_info.visibility = View.VISIBLE
-        card_view.lb_item_name.text = journeyManager.itemsList[0].title
-        card_view.ratingBar.rating = journeyManager.itemsList[0].recommedationRating
-        card_view.img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
-        card_view.visibility = View.VISIBLE
-        card_view.icon_visited.visibility = View.GONE
-        card_view.setOnClickListener { this.shareOnItemClicked(0, true) }
+        view_next_item.lb_info.text = getString(R.string.lb_you_arrived)
+        view_next_item.visibility = View.VISIBLE
+        bt_ok.visibility = View.GONE
+        view_next_item.setOnClickListener { this.shareOnItemClicked(0, true) }
     }}
 
     private val preferencesSetListener = Observer<Boolean>{ preferencesSet : Boolean ->
@@ -186,7 +177,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     .setNeutralButton(android.R.string.ok, null)
             confirmationDialog.show()
 
-            card_view.visibility = View.GONE
+            view_next_item.visibility = View.GONE
             bt_begin_route.visibility = View.VISIBLE
 
             val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
@@ -194,10 +185,20 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
-    private val isCurrentItemVisitedListener = Observer<Boolean> { isCurrentItemVisited: Boolean ->
+    private val isGoToNextItemListener = Observer<Boolean> { isCurrentItemVisited: Boolean ->
         if(isCurrentItemVisited && journeyManager.isJourneyBegan.value!!){
-            card_view.visibility = View.GONE
+            lb_info.text = getString(R.string.lb_next_item)
+            bt_ok.visibility = View.VISIBLE
+            view_next_item.lb_next_item_name.text = journeyManager.itemsList[0].title
+            view_next_item.next_item_ratingBar.rating = journeyManager.itemsList[0].recommedationRating
+            view_next_item.next_item_img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
+            view_next_item.visibility = View.VISIBLE
+            view_next_item.setOnClickListener{}
         }
+    }
+
+    fun onClickNextItemOk(v : View){
+        view_next_item.visibility = View.GONE
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -313,7 +314,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         .setMessage("Deseja cancelar a sua visita? Isso irá apagar suas informações de itens que já visitou.")
                         .setPositiveButton(android.R.string.yes) { _, _ ->
                             journeyManager.resetConfigurations()
-                            card_view.visibility = View.GONE
+                            view_next_item.visibility = View.GONE
                             bt_begin_route.visibility = View.VISIBLE
                         }.setNegativeButton(android.R.string.no){ _, _ -> }
                 confirmationDialog.show()

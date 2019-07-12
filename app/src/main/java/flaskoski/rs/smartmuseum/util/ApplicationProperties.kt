@@ -9,7 +9,7 @@ object ApplicationProperties {
     var user : User? = null
 
     //Custom application constants
-    var isDebugOn: Boolean = false
+    var isDebugOn: Boolean = true
     const val WESTERN_POINT : Double = -46.623196
     const val EASTERN_POINT : Double = -46.620273
     const val NORTHERN_POINT : Double = -23.649290

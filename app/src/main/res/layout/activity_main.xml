@@ -120,7 +120,7 @@
         app:layout_anchorGravity="bottom|center" />
 
     <include
-        layout="@layout/grid_item"
+        layout="@layout/next_item"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"

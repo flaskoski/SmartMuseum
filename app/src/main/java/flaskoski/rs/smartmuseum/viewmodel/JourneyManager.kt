@@ -35,7 +35,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     var itemListChangedListener : (()->Unit)? = null
     var isItemsAndRatingsLoaded = MutableLiveData<Boolean>()
     var isPreferencesSet = MutableLiveData<Boolean>()
-    var isCurrentItemVisited = MutableLiveData<Boolean>()
+    var isGoToNextItem = MutableLiveData<Boolean>()
     var isJourneyFinishedFlag = MutableLiveData<Boolean>()
     var isJourneyBegan = MutableLiveData<Boolean>()
     var isCloseToItem = MutableLiveData<Boolean>()
@@ -76,7 +76,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         isCloseToItem.value = false
         isPreferencesSet.value = false
         isItemsAndRatingsLoaded.value = false
-        isCurrentItemVisited.value = false
+        isGoToNextItem.value = false
         isJourneyBegan.value = false
         isJourneyFinishedFlag.value = false
 
@@ -160,6 +160,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         getRecommendedRoute()
         sortItemList()
         setNextRecommendedDestination()
+        isGoToNextItem.value = true
     }
 
     private fun getRecommendedRoute() {
@@ -224,7 +225,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         if(arrived)
             visitedSubItems?.let { sharedPreferences?.setVisitedSubItems(it) }
         if(nextItem) {
-            isCurrentItemVisited.value = true
+            isGoToNextItem.value = true
             isCloseToItem.value = false
             (lastItem as Item).isVisited = true
 
@@ -270,7 +271,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         mapManager?.clearMap()
 
         isJourneyBegan.value = false
-        isCurrentItemVisited.value = false
+        isGoToNextItem.value = false
         isCloseToItem.value = false
     }
     /***
@@ -302,9 +303,10 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
                 }
                 lastItem = userLocationManager?.userLatLng?.let { Point(it)}
-                        ?: itemsList.filter { it.isVisited }.sortedWith(compareByDescending<Itemizable>{ (it as RoutableItem).recommendedOrder})?.get(0)
+                        //?: itemsList.filter { it.isVisited }.sortedWith(compareByDescending<Itemizable>{ (it as RoutableItem).recommendedOrder}).get(0)
                 sortItemList()
                 setNextRecommendedDestination()
+                isGoToNextItem.value = true
             }
         }
     }

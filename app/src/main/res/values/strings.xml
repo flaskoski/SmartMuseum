@@ -20,4 +20,7 @@
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBH2PIjB-Bkfch6NcvFSxbJ4RNIhYJeUYg</string>
     <string name="next_Attractions">Clique aqui para ver próximas atrações</string>
     <string name="cancelarRota">Cancelar Rota</string>
+    <string name="lb_you_arrived">Você chegou ao próximo item. Clique aqui!</string>
+    <string name="ok">OK</string>
+    <string name="lb_next_item">O próximo item da sua visita é:</string>
 </resources>
