@@ -10,4 +10,9 @@
         android:title="@string/cancelarRota"
         />
 
+    <item
+        android:id="@+id/option_debug"
+        android:title="Debug"
+        />
+
 </menu>

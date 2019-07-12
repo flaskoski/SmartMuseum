@@ -59,7 +59,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         val distance = FloatArray(3)
         Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, destinationMarker?.position?.latitude!!, destinationMarker?.position?.longitude!!, distance)
         if(ApplicationProperties.isDebugOn)
-            return distance[0] < 11000
+            return distance[0] < 31000
         else return distance[0] < 11
     }
 
@@ -82,7 +82,9 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         val itemPathCoordinates = item.getPathCoordinates()
         itemPathCoordinates?.let{itemPath ->
             if(mCurrLocationMarker != null) {
-                mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath, mCurrLocationMarker?.position!!) }
+                if(previousItem!= null && previousItem.isUserPoint()) //se o ponto anterior é a localização do usuário
+                    mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath, mCurrLocationMarker?.position!!) }
+                else mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath) }
             }else
                 throw IllegalStateException("User map marker is null! Probable cause: User location wasn't found.")
 

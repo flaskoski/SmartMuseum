@@ -174,14 +174,13 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             confirmationDialog.setTitle("Atenção")
                     .setIcon(R.drawable.baseline_done_black_24)
                     .setMessage("Você já visitou todos os itens recomendados para você. Obrigado pela visita!")
-                    .setNeutralButton(android.R.string.ok, null)
+                    .setNeutralButton(android.R.string.ok){_,_ ->
+                        val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+                        startActivityForResult(getPreferencesIntent, requestGetPreferences)}
             confirmationDialog.show()
 
             view_next_item.visibility = View.GONE
             bt_begin_route.visibility = View.VISIBLE
-
-            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-            startActivityForResult(getPreferencesIntent, requestGetPreferences)
         }
     }
 
@@ -318,6 +317,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                             bt_begin_route.visibility = View.VISIBLE
                         }.setNegativeButton(android.R.string.no){ _, _ -> }
                 confirmationDialog.show()
+                true
+            }
+            R.id.option_debug->{
+                ApplicationProperties.isDebugOn = !ApplicationProperties.isDebugOn
                 true
             }
             else -> super.onOptionsItemSelected(item)

@@ -39,4 +39,8 @@ object ApplicationProperties {
             //sheet_next_items.parent.invalidate()
         }
     }
+
+    fun resetConfigurations() {
+        user = null
+    }
 }

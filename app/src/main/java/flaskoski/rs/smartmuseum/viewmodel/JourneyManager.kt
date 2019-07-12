@@ -24,6 +24,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     var recommendedRouteBuilder : RecommendedRouteBuilder? = null
 //    var closestItem: Point? = null
     var lastItem : Point? = null
+    private var nextItem: Item? = null
     private val TAG = "JourneyManager"
 
     var ratingsList  = HashSet<Rating>()
@@ -172,23 +173,22 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     }
 
     private fun setNextRecommendedDestination() {
-        var item : Item? = null
+        nextItem = null
         if(!itemsList[0].isVisited && itemsList[0].recommendedOrder != Int.MAX_VALUE)
-            item = itemsList[0]
+            nextItem = itemsList[0]
 
-        if(item != null){
+        if(nextItem != null){
             if(lastItem != null){
                 if(lastItem!!.isUserPoint())
-                    recommendedRouteBuilder?.findAndSetShortestPathFromUserLocation(item, lastItem!!)
-                else recommendedRouteBuilder?.findAndSetShortestPath(item, lastItem!!)
+                    recommendedRouteBuilder?.findAndSetShortestPathFromUserLocation(nextItem!!, lastItem!!)
+                else recommendedRouteBuilder?.findAndSetShortestPath(nextItem!!, lastItem!!)
                 try{
-                    mapManager?.setDestination(item, lastItem)
+                    mapManager?.setDestination(nextItem!!, lastItem)
                 }
                 catch(e: java.lang.Exception){
                     e.printStackTrace()
     //                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
                 }
-                lastItem = item
             }
             else
                 Log.e(TAG, "Último ponto visitado não foi identificado!")
@@ -219,12 +219,13 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
     fun itemRatingChangeResult(data: Intent) {
         val rating : Rating? = data.getSerializableExtra(ApplicationProperties.TAG_ITEM_RATING)?.let { it as Rating }
-        val nextItem : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, false)
+        val goToNextItem : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, false)
         val arrived : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_ARRIVED, false)
         val visitedSubItems : List<String>? =  data.getSerializableExtra(ApplicationProperties.TAG_VISITED_SUBITEMS)?.let { it as List<String> }
         if(arrived)
             visitedSubItems?.let { sharedPreferences?.setVisitedSubItems(it) }
-        if(nextItem) {
+        if(goToNextItem) {
+            lastItem = nextItem
             isGoToNextItem.value = true
             isCloseToItem.value = false
             (lastItem as Item).isVisited = true
@@ -266,7 +267,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     }
 
     fun resetConfigurations(){
-        sharedPreferences?.resetJourney()
+        ApplicationProperties.resetConfigurations()
         ItemRepository.resetJourney()
         mapManager?.clearMap()
 

@@ -20,12 +20,14 @@ class RoutePolyline {
     private var userToPathPolyline: Polyline? = null
 
 
-    fun addRouteToMap(map: GoogleMap, itemPath: LinkedList<LatLng>, userPosition: LatLng) {
+    fun addRouteToMap(map: GoogleMap, itemPath: LinkedList<LatLng>, userPosition: LatLng? = null) {
         destinationPathPolyline = updatePolyline(map, itemPath, destinationPathPolyline, polylineOptions)
-        userToPathPolyline = updatePolyline(map, listOf(userPosition, itemPath.first), userToPathPolyline, userPolylineOptions)
-        val pattern = Arrays.asList(
-                Dot(), Gap(20f))
-        userToPathPolyline?.pattern = pattern
+        if(userPosition != null) {
+            userToPathPolyline = updatePolyline(map, listOf(userPosition, itemPath.first), userToPathPolyline, userPolylineOptions)
+            val pattern = Arrays.asList(
+                    Dot(), Gap(20f))
+            userToPathPolyline?.pattern = pattern
+        }else userToPathPolyline = null
     }
 
     fun updatePolyline(map: GoogleMap, path : List<LatLng>, line : Polyline?, lineOptions : PolylineOptions): Polyline? {
