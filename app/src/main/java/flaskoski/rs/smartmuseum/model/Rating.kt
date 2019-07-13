@@ -1,10 +1,18 @@
 package flaskoski.rs.smartmuseum.model
 
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
+import flaskoski.rs.smartmuseum.util.ParseTime
 import java.io.Serializable
 import java.util.*
 
 
-class Rating(val user : String ="", val item : String = "", var rating : Float = 0F, val type : String = TYPE_ITEM) : Serializable{
+class Rating(val user: String = "",
+             val item: String = "",
+             var rating: Float = 0F,
+             var recommendationRating: Float = 0F,
+             val type: String = TYPE_ITEM,
+             var recommendationSystem: String = ApplicationProperties.SYSTEM_USER_BASED,
+             var date: Date = ParseTime.getCurrentTime()) : Serializable{
     companion object {
         fun containsRating(ratingsList: ArrayList<Rating>, element: Rating): Boolean {
             return ratingsList.filter { rating ->

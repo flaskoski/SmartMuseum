@@ -47,7 +47,6 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
     var mapManager: MapManager? = null
     var userLocationManager : UserLocationManager? = null
-    val recommenderManager = RecommenderManager()
 
     private var activity: Activity? = null
     private var sharedPreferences: SharedPreferencesDAO? = null
@@ -105,11 +104,11 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     }
 
     private fun buildRecommender() {
-        recommenderManager.recommender = RecommenderBuilder().buildKNNRecommender(ratingsList)
+        ItemRepository.recommenderManager.recommender = RecommenderBuilder().buildKNNRecommender(ratingsList)
 
         if(!ApplicationProperties.userNotDefinedYet()) {
             for(item in itemsList){
-                val rating = recommenderManager.getPrediction(ApplicationProperties.user!!.id, item.id)
+                val rating = ItemRepository.recommenderManager.getPrediction(ApplicationProperties.user!!.id, item.id)
                 if (rating != null)
                     item.recommedationRating = rating
                 else item.recommedationRating = 0F

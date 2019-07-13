@@ -10,7 +10,7 @@
     android:layout_margin="1dp">
 
     <androidx.appcompat.widget.AppCompatRatingBar
-        android:id="@+id/ratingBar"
+        android:id="@+id/subitem_ratingBar"
         style="@android:style/Widget.DeviceDefault.Light.RatingBar.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -37,7 +37,7 @@
         card_view:srcCompat="@mipmap/image_not_found" />
 
     <ImageView
-        android:id="@+id/icon_visited"
+        android:id="@+id/subitem_icon_visited"
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:scaleX="0.8"

@@ -18,8 +18,8 @@ import flaskoski.rs.smartmuseum.listAdapter.SubItemListAdapter
 import flaskoski.rs.smartmuseum.model.GroupItem
 import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.model.Rating
-import flaskoski.rs.smartmuseum.model.SubItem
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
+import flaskoski.rs.smartmuseum.util.ParseTime
 import flaskoski.rs.smartmuseum.viewmodel.GroupItemActivityViewModel
 import kotlinx.android.synthetic.main.activity_item_detail.*
 
@@ -64,7 +64,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         setStars(rating)
         vm.currentItem?.let {
             supportActionBar?.title = it.title
-            itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating)
+            itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating, it.recommedationRating, recommendationSystem = ApplicationProperties.recommendationSystem)
             if(it.photoId.isNotBlank())
                 imageView.setImageResource(this.resources.getIdentifier(it.photoId, "drawable", applicationContext.packageName))
             else imageView.visibility = View.GONE
@@ -93,6 +93,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
 
 
         ApplicationProperties.user?.id?.let {
+            itemRating!!.date = ParseTime.getCurrentTime()
             RatingDAO().add(this!!.itemRating!!)
 
         }

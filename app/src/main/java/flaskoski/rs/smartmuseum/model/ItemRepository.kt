@@ -6,6 +6,7 @@ import com.google.android.gms.common.data.DataBufferObserver
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
+import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
 //import javax.inject.Inject
@@ -22,6 +23,7 @@ object ItemRepository //@Inject constructor
     var ratingList = HashSet<Rating>()
     var allElements = HashSet<Element>()
     val itemDAO = ItemDAO()
+    val recommenderManager = RecommenderManager()
 
     init{
         itemDAO.getAllPoints { elements ->
@@ -51,5 +53,13 @@ object ItemRepository //@Inject constructor
         }
 
         ratingList.removeAll( ratingList.filter { it.user == ApplicationProperties.user?.id && it.type != Rating.TYPE_FEATURE} )
+    }
+
+    fun setRecommendationRatingOnSubItemsOf(groupItem : GroupItem) : List<SubItem>{
+        val subItems = ItemRepository.subItemList.filter { subitem -> subitem.groupItem == groupItem.id }.let {it}
+        subItems.forEach{subitem ->
+            subitem.recommedationRating = recommenderManager.getPrediction(ApplicationProperties.user!!.id, subitem.id)?.let { it }?: 0f
+        }
+        return subItems
     }
 }

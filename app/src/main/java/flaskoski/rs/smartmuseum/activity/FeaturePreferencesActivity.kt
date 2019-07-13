@@ -21,7 +21,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
-import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
+import flaskoski.rs.smartmuseum.util.ParseTime
 
 
 class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
@@ -124,10 +124,12 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         //save ratings
         ApplicationProperties.user?.id?.let {
             for(feature in featureList) {
-                var rating = Rating(it, feature.id, feature.rating, Rating.TYPE_FEATURE)
+                var rating = Rating(it, feature.id, feature.rating, 0F, Rating.TYPE_FEATURE, ApplicationProperties.recommendationSystem)
 
-                if((list_features.adapter as FeaturesListAdapter).ratingsChanged)
-                    db.add(rating) //TODO needs an addAll function
+                if((list_features.adapter as FeaturesListAdapter).ratingsChanged) {
+                    rating.date = ParseTime.getCurrentTime()
+                    db.add(rating) //needs an addAll function
+                }
 
                 ratings.add(rating)
                 Log.i(TAG, rating.toString())

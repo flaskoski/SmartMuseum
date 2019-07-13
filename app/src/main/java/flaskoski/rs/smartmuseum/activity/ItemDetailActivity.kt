@@ -13,6 +13,7 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
+import flaskoski.rs.smartmuseum.util.ParseTime
 import kotlinx.android.synthetic.main.activity_item_detail.*
 
 class ItemDetailActivity  : AppCompatActivity() {
@@ -45,7 +46,7 @@ class ItemDetailActivity  : AppCompatActivity() {
         setStars(rating)
         currentItem?.let {
             supportActionBar?.title = it.title
-            itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating)
+            itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating, it.recommedationRating, recommendationSystem = ApplicationProperties.recommendationSystem)
             if(it.photoId.isNotBlank())
                 imageView.setImageResource(this.resources.getIdentifier(it.photoId, "drawable", applicationContext.packageName))
             else imageView.visibility = View.GONE
@@ -73,6 +74,7 @@ class ItemDetailActivity  : AppCompatActivity() {
 
 
         ApplicationProperties.user?.id?.let {
+            itemRating!!.date = ParseTime.getCurrentTime()
             RatingDAO().add(this.itemRating!!)
 
         }

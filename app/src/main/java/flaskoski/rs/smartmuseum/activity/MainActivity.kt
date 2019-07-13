@@ -26,6 +26,7 @@ import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.databinding.ActivityMainBinding
 import flaskoski.rs.smartmuseum.model.GroupItem
+import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.next_item.*
@@ -99,7 +100,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         //GridItems setup
         itemsGridList.layoutManager = GridLayoutManager(this, 2)
-        adapter = ItemsGridListAdapter(journeyManager.itemsList, applicationContext, this, journeyManager.recommenderManager)
+        adapter = ItemsGridListAdapter(journeyManager.itemsList, applicationContext, this, ItemRepository.recommenderManager)
         itemsGridList.adapter = adapter
 
         if(journeyManager.recoverSavedPreferences() == null){

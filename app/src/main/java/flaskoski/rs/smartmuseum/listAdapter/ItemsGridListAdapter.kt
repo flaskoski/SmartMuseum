@@ -42,7 +42,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
             p0.itemView.icon_visited.visibility = View.GONE
         }
         if(!ApplicationProperties.userNotDefinedYet()) {
-            val rating = recommenderManager.getPrediction(ApplicationProperties.user!!.id, itemsList.get(p1).id)
+            val rating = itemsList[p1].recommedationRating
             if(rating != null)
                 p0.itemView.ratingBar.rating = rating
             else p0.itemView.ratingBar.rating = 0F

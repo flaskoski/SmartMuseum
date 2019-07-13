@@ -23,8 +23,9 @@ class GroupItemActivityViewModel : ViewModel(){
     var currentItem: GroupItem? = null
     set(value){
         field = value
-        field?.let{
-            item -> subItemList.addAll(ItemRepository.subItemList.filter { it.groupItem == item.id }.let { it as ArrayList })
+        field?.let{ item ->
+            val subitems : List<SubItem> = ItemRepository.setRecommendationRatingOnSubItemsOf(item)
+            subItemList.addAll(subitems)
             subItemListChangedListener?.invoke()
         }
 

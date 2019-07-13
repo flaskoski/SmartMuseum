@@ -6,8 +6,6 @@ import com.google.android.gms.maps.model.LatLng
 import flaskoski.rs.smartmuseum.model.User
 
 object ApplicationProperties {
-    var user : User? = null
-
     //Custom application constants
     var isDebugOn: Boolean = true
     const val WESTERN_POINT : Double = -46.623196
@@ -21,6 +19,10 @@ object ApplicationProperties {
     const val TAG_VISITED_SUBITEMS = "visitedSubItems"
     const val TAG_ARRIVED: String = "arrived"
     const val USER_LOCATION_ITEM_ID: String = "userLocation"
+    const val SYSTEM_USER_BASED = "user_based"
+
+    var user : User? = null
+    val recommendationSystem: String = SYSTEM_USER_BASED
 
     fun userNotDefinedYet(): Boolean {
         //TODO check db if there is a current user

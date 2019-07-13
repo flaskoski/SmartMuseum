@@ -14,9 +14,11 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat.startActivityForResult
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.activity.ItemDetailActivity
+import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.model.SubItem
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
+import kotlinx.android.synthetic.main.grid_item.view.*
 import kotlinx.android.synthetic.main.sub_item.view.*
 
 class SubItemListAdapter(private val subItemList: List<Itemizable>,
@@ -41,9 +43,15 @@ class SubItemListAdapter(private val subItemList: List<Itemizable>,
                 activity.applicationContext.resources.getIdentifier(subItemList[p1].photoId,
                 "drawable", activity.applicationContext.packageName))
         if(subItemList[p1].isVisited){
-            p0.itemView.icon_visited.visibility = View.VISIBLE
-            p0.itemView.icon_visited.setBackgroundResource(android.R.drawable.checkbox_on_background)
-        }else p0.itemView.icon_visited.visibility = View.GONE
+            p0.itemView.subitem_icon_visited.visibility = View.VISIBLE
+            p0.itemView.subitem_icon_visited.setBackgroundResource(android.R.drawable.checkbox_on_background)
+        }else p0.itemView.subitem_icon_visited.visibility = View.GONE
+
+        val rating = subItemList[p1].recommedationRating
+        if(rating != null)
+            p0.itemView.subitem_ratingBar.rating = rating
+        else p0.itemView.subitem_ratingBar.rating = 0F
+
         p0.itemView.setOnClickListener{(activity as OnShareSubItemClickListener).shareOnItemClicked(p1)}
     }
 
