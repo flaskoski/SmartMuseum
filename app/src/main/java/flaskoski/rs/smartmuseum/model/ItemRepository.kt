@@ -62,4 +62,8 @@ object ItemRepository //@Inject constructor
         }
         return subItems
     }
+
+    fun resetRecommendedOrder() {
+        itemList.forEach { it.recommendedOrder = Int.MAX_VALUE }
+    }
 }

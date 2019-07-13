@@ -118,7 +118,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
                     .setMessage("Deseja ir ao próximo item da visita?")
                     .setPositiveButton(android.R.string.yes) { _, _ ->
                         goBack(true)
-                    }.setNegativeButton(android.R.string.no){ _, _ ->
+                    }.setNegativeButton(R.string.not_yet){ _, _ ->
                         goBack()
                     }
             confirmationDialog.show()

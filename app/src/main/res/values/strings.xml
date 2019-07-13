@@ -19,8 +19,12 @@
     <string name="rating5">Adorei!</string>
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBH2PIjB-Bkfch6NcvFSxbJ4RNIhYJeUYg</string>
     <string name="next_Attractions">Clique aqui para ver próximas atrações</string>
-    <string name="cancelarRota">Cancelar Rota</string>
+    <string name="cancelarRota">Recomeçar Visita</string>
     <string name="lb_you_arrived">Você chegou ao próximo item. Clique aqui!</string>
     <string name="ok">OK</string>
+    <string name="not_yet">Ainda Não</string>
     <string name="lb_next_item">O próximo item da sua visita é:</string>
+    <string name="welcome_title">Bem-vindo(a) ao Parque CienTec!</string>
+    <string name="welcome_message">Agora vamos usar suas informações para adaptar o passeio pensando no que você mais gosta. Vamos começar a visita?</string>
+    <string name="finishJourney">Cancelar Visita</string>
 </resources>

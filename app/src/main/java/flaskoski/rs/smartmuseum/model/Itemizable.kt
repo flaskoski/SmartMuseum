@@ -1,5 +1,9 @@
 package flaskoski.rs.smartmuseum.model
 
+
+/**
+ * Elements that have content
+ */
 interface Itemizable : Element {
     var title: String
     var description: String

@@ -1,16 +1,17 @@
 package flaskoski.rs.smartmuseum.viewmodel
 import android.app.Activity
 import android.content.Intent
+import android.location.Location
 import androidx.lifecycle.ViewModel
 import android.util.Log
 import androidx.databinding.Observable
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 import flaskoski.rs.smartmuseum.location.MapManager
 import flaskoski.rs.smartmuseum.model.*
-import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.routeBuilder.RecommendedRouteBuilder
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import flaskoski.rs.smartmuseum.util.ParseTime
@@ -42,7 +43,6 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     var isCloseToItem = MutableLiveData<Boolean>()
     //--
 
-    var timeAvailable: Double = 120.0
     private var startTime: Date? = null
 
     var mapManager: MapManager? = null
@@ -56,19 +56,24 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     //GET ITEMS INFORMATION
     private val isItemAndRatingListLoadedListener = object : Observable.OnPropertyChangedCallback(){
         override fun onPropertyChanged(observable: Observable, i: Int) {
+            //if items and ratings are loaded
             if(ItemRepository.isItemListLoaded.get() && ItemRepository.isRatingListLoaded.get()){
                 itemsList.addAll(ItemRepository.itemList)
                 ratingsList = ItemRepository.ratingList
                 subItemList = ItemRepository.subItemList
 
                 recommendedRouteBuilder = RecommendedRouteBuilder(ItemRepository.allElements)
-                lastItem = userLocationManager?.userLatLng?.let { recommendedRouteBuilder?.getNearestPointFromUser(Point(it)) }
-                        ?: recommendedRouteBuilder?.getAllEntrances()?.first()
+                lastItem = getFirstItem()
 
                 isItemsAndRatingsLoaded.value = true
                 buildRecommender()
             }
         }
+    }
+
+    private fun getFirstItem() : Point?{
+        return userLocationManager?.userLatLng?.let {recommendedRouteBuilder?.getNearestPointFromUser(Point(it))}
+                ?: recommendedRouteBuilder?.getAllEntrances()?.first()
     }
 
     init {
@@ -153,6 +158,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     }
 
     fun beginJourney() {
+        lastItem = getFirstItem()
         startTime = ParseTime.getCurrentTime()
         sharedPreferences?.saveStartTime(startTime!!)
         isJourneyFinishedFlag.value = false
@@ -163,12 +169,55 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         isGoToNextItem.value = true
     }
 
+    /***
+     * set app state with the information saved from the last time it was used if the user didn't finish the journey.
+     * @return User saved
+     */
+    fun recoverSavedPreferences(): User? {
+        ApplicationProperties.user = sharedPreferences?.getUser()
+        this.startTime = sharedPreferences?.getStartTime()
+        if(!ApplicationProperties.userNotDefinedYet()) {
+            this.isPreferencesSet.value = true
+            if(startTime != null)
+                this.isJourneyBegan.value = true
+        }
+        return ApplicationProperties.user
+    }
+
+    fun recoverSavedRecommendedItems() {
+        sharedPreferences?.getAllRecommendedItemStatus()?.let {list->
+            if (list.isNotEmpty()) {
+                list.forEach{recommendedItem ->
+                    val item : Itemizable?
+                    if(recommendedItem is RoutableItem) {
+                        item = itemsList.find{it.id == recommendedItem.id}
+                        item?.recommendedOrder = recommendedItem.recommendedOrder
+                    }else item = ItemRepository.subItemList.find{it.id == recommendedItem.id}
+                    item?.isVisited= recommendedItem.isVisited
+
+                }
+                lastItem = getFirstItem()
+                //?: itemsList.filter { it.isVisited }.sortedWith(compareByDescending<Itemizable>{ (it as RoutableItem).recommendedOrder}).get(0)
+                sortItemList()
+                setNextRecommendedDestination()
+                isGoToNextItem.value = true
+            }
+        }
+    }
+
+
     private fun getRecommendedRoute() {
         if(recommendedRouteBuilder == null || lastItem == null) throw Exception("previous point is null. Did you instantiate RecommendedRouteBuilder?")
 
-        val itemsRemaining = recommendedRouteBuilder?.getRecommendedRouteFrom(lastItem!!, timeAvailable,
-                startTime?.let { ParseTime.differenceInMinutesUntilNow(it) } ?: 0.0)
-        itemsRemaining?.toSet()?.let {sharedPreferences?.setAllRecommendedItems(it) }
+        ItemRepository.resetRecommendedOrder()
+        val itemsRemaining = recommendedRouteBuilder?.getRecommendedRouteFrom(lastItem!!,
+                ApplicationProperties.user?.timeAvailable?: 100.0,
+                startTime?.let {
+                    ParseTime.differenceInMinutesUntilNow(it) } ?: 0.0)
+        if(itemsRemaining!= null && itemsRemaining.isEmpty())
+            Log.w(TAG, "No time available for visiting any item.")
+        itemsRemaining?.toSet()?.let {
+            sharedPreferences?.setAllRecommendedItems(it) }
     }
 
     private fun setNextRecommendedDestination() {
@@ -182,7 +231,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                     recommendedRouteBuilder?.findAndSetShortestPathFromUserLocation(nextItem!!, lastItem!!)
                 else recommendedRouteBuilder?.findAndSetShortestPath(nextItem!!, lastItem!!)
                 try{
-                    mapManager?.setDestination(nextItem!!, lastItem)
+                    mapManager?.setDestination(nextItem!!, lastItem,
+                            LatLng(userLocationManager?.userLastKnownLocation?.latitude!!, userLocationManager?.userLastKnownLocation?.longitude!!))
                 }
                 catch(e: java.lang.Exception){
                     e.printStackTrace()
@@ -206,7 +256,6 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         (data.getSerializableExtra("featureRatings") as List<*>).forEach {
             ratingsList.add(it as Rating)
         }
-        timeAvailable = ApplicationProperties.user?.timeAvailable!!
         ApplicationProperties.user?.let { sharedPreferences?.saveUser(it) }
         updateRecommender()
        // getRecommendedRoute()
@@ -250,7 +299,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                 ratingsList.remove(rating)
                 ratingsList.add(rating)
                 updateRecommender()
-                if(isJourneyBegan.value!!) {
+                if(isJourneyBegan.value!!) if(rating.item != nextItem?.id){
                     getRecommendedRoute()
                     sortItemList()
                     setNextRecommendedDestination()
@@ -258,57 +307,26 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             }
     }
 
-    private fun finishJourney() {
+    fun finishJourney() {
         sharedPreferences?.clear()
+        ApplicationProperties.resetConfigurations()
         resetConfigurations()
         isPreferencesSet.value = false
         isJourneyFinishedFlag.value = true
     }
 
-    fun resetConfigurations(){
-        ApplicationProperties.resetConfigurations()
+    fun restartJourney(){
+        sharedPreferences?.resetJourney()
+        resetConfigurations()
+    }
+
+    private fun resetConfigurations(){
         ItemRepository.resetJourney()
         mapManager?.clearMap()
 
         isJourneyBegan.value = false
         isGoToNextItem.value = false
         isCloseToItem.value = false
-    }
-    /***
-     * set app state with the information saved from the last time it was used if the user didn't finish the journey.
-     * @return User saved
-     */
-
-    fun recoverSavedPreferences(): User? {
-        ApplicationProperties.user = sharedPreferences?.getUser()
-        this.startTime = sharedPreferences?.getStartTime()
-        if(!ApplicationProperties.userNotDefinedYet()) {
-            this.isPreferencesSet.value = true
-            if(startTime != null)
-                this.isJourneyBegan.value = true
-        }
-        return ApplicationProperties.user
-    }
-
-    fun recoverSavedJourney() {
-        sharedPreferences?.getAllRecommendedItemStatus()?.let {list->
-            if (list.isNotEmpty()) {
-                list.forEach{recommendedItem ->
-                    val item : Itemizable?
-                    if(recommendedItem is RoutableItem) {
-                        item = itemsList.find{it.id == recommendedItem.id}
-                        item?.recommendedOrder = recommendedItem.recommendedOrder
-                    }else item = ItemRepository.subItemList.find{it.id == recommendedItem.id}
-                    item?.isVisited= recommendedItem.isVisited
-
-                }
-                lastItem = userLocationManager?.userLatLng?.let { Point(it)}
-                        //?: itemsList.filter { it.isVisited }.sortedWith(compareByDescending<Itemizable>{ (it as RoutableItem).recommendedOrder}).get(0)
-                sortItemList()
-                setNextRecommendedDestination()
-                isGoToNextItem.value = true
-            }
-        }
     }
 
     //TODO move to GroupItem class
@@ -319,5 +337,13 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             if(item != null) subItems.add(item)
         }
         return subItems
+    }
+
+    fun focusOnUserPosition() {
+        userLocationManager?.userLastKnownLocation?.let {
+            mapManager?.goToLocation(it)
+//            mapManager?.setDestination(nextItem!!, lastItem, LatLng(userLastKnowLocation.latitude, userLastKnowLocation.longitude))
+        }
+
     }
 }

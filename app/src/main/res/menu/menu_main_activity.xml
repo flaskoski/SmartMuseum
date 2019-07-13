@@ -6,10 +6,13 @@
         android:title="@string/option_feature"
         />
     <item
-        android:id="@+id/option_cancelar_rota"
+        android:id="@+id/option_restart"
         android:title="@string/cancelarRota"
         />
-
+    <item
+        android:id="@+id/option_finish"
+        android:title="@string/finishJourney"
+        />
     <item
         android:id="@+id/option_debug"
         android:title="Debug"

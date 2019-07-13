@@ -78,15 +78,14 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         return null
     }
 
-    fun setDestination(item: Item, previousItem: Point?) : MapManager{
+    fun setDestination(item: Item, previousItem: Point?, lastKnownUserLocation : LatLng? = null) : MapManager{
         val itemPathCoordinates = item.getPathCoordinates()
         itemPathCoordinates?.let{itemPath ->
             if(mCurrLocationMarker != null) {
-                if(previousItem!= null && previousItem.isUserPoint()) //se o ponto anterior é a localização do usuário
-                    mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath, mCurrLocationMarker?.position!!) }
-                else mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath) }
-            }else
-                throw IllegalStateException("User map marker is null! Probable cause: User location wasn't found.")
+                mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath, mCurrLocationMarker?.position) }
+            }else if(lastKnownUserLocation != null)
+                mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath, lastKnownUserLocation) }
+            else throw IllegalStateException("User map marker is null! Probable cause: User location wasn't found.")
 
             // .width(1.5f))
             mMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder()

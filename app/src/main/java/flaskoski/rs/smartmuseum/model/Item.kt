@@ -1,6 +1,7 @@
 package flaskoski.rs.smartmuseum.model
 
 /**
+ * Routable items (have content, can be rated and considered on recommended route) with LatLng coordinates
  * @param timeNeeded to see the item (in minutes)
  */
 

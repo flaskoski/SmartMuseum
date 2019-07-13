@@ -7,6 +7,9 @@ import java.io.Serializable
 import java.util.*
 import kotlin.collections.HashMap
 
+/**
+ * Routable element with LatLng coordinates
+ */
 open class Point(
         override var id: String = "",
         var lat: Double? = null,

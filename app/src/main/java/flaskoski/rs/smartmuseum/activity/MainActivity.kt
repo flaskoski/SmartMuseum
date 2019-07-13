@@ -71,6 +71,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
 
         loading_view.visibility = View.VISIBLE
+
         //attach view model to activity
         journeyManager = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(JourneyManager::class.java)
 
@@ -78,6 +79,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         journeyManager.updateActivity(this)
         journeyManager.buildMap(supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
 
+        //set observable states
         journeyManager.isPreferencesSet.observe(this, preferencesSetListener)
         journeyManager.isItemsAndRatingsLoaded.observe(this, isItemsAndRatingsLoadedListener)
         journeyManager.isJourneyBegan.observe(this, isJourneyBeganListener)
@@ -90,7 +92,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             loading_view.visibility = View.GONE
         }
 
-        //bottomsheet setup
+        //bottomsheet setup and bring views to front
         bottomSheetBehavior = BottomSheetBehavior.from(sheet_next_items)
         ApplicationProperties.bringToFront(loading_view, 50f)
         ApplicationProperties.bringToFront(sheet_next_items, 40f)
@@ -118,26 +120,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 //                }
         }
 
-//        @Suppress("ConstantConditionIf")
-//        if(isDebugging) {
-//            val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
-//            var name = ""
-//            name = sharedPref.getString("name", "")
-//            ApplicationProperties.user = User(name, "Felipe", 155.0, userTimeSpent)
-//            with (sharedPref.edit()) {
-//                putString("name", "Felipe")
-//                apply()
-//            }
-          //  bt_begin_route.visibility = View.VISIBLE
-//            journeyManager.isPreferencesSet.value = true
-//        }
-//        else{
-//            if (ApplicationProperties.userNotDefinedYet()) {
-//                val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-//                startActivityForResult(getPreferencesIntent, requestGetPreferences)
-//            }
-//        }
-        //--
     }
 
     //Show next item card on screen
@@ -150,13 +132,13 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private val preferencesSetListener = Observer<Boolean>{ preferencesSet : Boolean ->
         if(preferencesSet && !journeyManager.isJourneyBegan.value!!){
-            bt_begin_route.visibility = View.VISIBLE
+            showStartMessage()
         }
     }
 
     private val isItemsAndRatingsLoadedListener = Observer<Boolean>{ loaded : Boolean ->
         if(loaded && journeyManager.isJourneyBegan.value!!) {
-            journeyManager.recoverSavedJourney()
+            journeyManager.recoverSavedRecommendedItems()
 
             //DEBUG
             //shareOnItemClicked(journeyManager.itemsList.indexOf(journeyManager.itemsList.find{ it.id == "7I7lVxSXOjvYWE2e5i72"}),false)
@@ -165,8 +147,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     private val isJourneyBeganListener = Observer<Boolean> { isJourneyBegan: Boolean ->
-        if(isJourneyBegan)
-            bt_begin_route.visibility = View.GONE
     }
 
     private val isJourneyFinishedListener = Observer<Boolean> { isJourneyFinished: Boolean ->
@@ -181,10 +161,17 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             confirmationDialog.show()
 
             view_next_item.visibility = View.GONE
-            bt_begin_route.visibility = View.VISIBLE
         }
     }
 
+    private fun showStartMessage() {
+        val startDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
+        startDialog.setTitle(getString(R.string.welcome_title))
+                .setMessage(getString(R.string.welcome_message))
+                .setNeutralButton(android.R.string.ok) { _, _ -> beginJourney() }
+                .setOnDismissListener { beginJourney() }
+        startDialog.show()
+    }
     private val isGoToNextItemListener = Observer<Boolean> { isCurrentItemVisited: Boolean ->
         if(isCurrentItemVisited && journeyManager.isJourneyBegan.value!!){
             lb_info.text = getString(R.string.lb_next_item)
@@ -201,11 +188,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         view_next_item.visibility = View.GONE
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun onClickBeginRoute(v : View){
+    fun beginJourney(){
         try {
             journeyManager.beginJourney()
-            bt_begin_route.visibility = View.GONE
         }
         catch (e: IllegalStateException){
             Log.e(TAG, e.message)
@@ -287,7 +272,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     fun goToUserLocation(@Suppress("UNUSED_PARAMETER") v: View) {
-        journeyManager.userLocationManager?.userLastKnownLocation?.let { journeyManager.mapManager?.goToLocation(it) }
+        journeyManager.focusOnUserPosition()
     }
 
 
@@ -307,17 +292,21 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 startActivityForResult(goToFeaturePreferences, requestGetPreferences)
                 true
             }
-            R.id.option_cancelar_rota -> {
+            R.id.option_restart -> {
                 val confirmationDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
                 confirmationDialog.setTitle("Atenção")
                         .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setMessage("Deseja cancelar a sua visita? Isso irá apagar suas informações de itens que já visitou.")
+                        .setMessage("Deseja recomeçar a sua visita? Isso irá apagar suas informações de itens que já visitou.")
                         .setPositiveButton(android.R.string.yes) { _, _ ->
-                            journeyManager.resetConfigurations()
+                            journeyManager.restartJourney()
                             view_next_item.visibility = View.GONE
-                            bt_begin_route.visibility = View.VISIBLE
+                            showStartMessage()
                         }.setNegativeButton(android.R.string.no){ _, _ -> }
                 confirmationDialog.show()
+                true
+            }
+            R.id.option_finish -> {
+                journeyManager.finishJourney()
                 true
             }
             R.id.option_debug->{

@@ -69,7 +69,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         if(!ApplicationProperties.userNotDefinedYet()){
             txt_username.setText(ApplicationProperties.user?.name)
             txt_hh.setText((ApplicationProperties.user!!.timeAvailable/60.0).toInt().toString())
-            txt_mm.setText((ApplicationProperties.user!!.timeAvailable%60).toString())
+            txt_mm.setText((ApplicationProperties.user!!.timeAvailable%60).toInt().toString())
         }
 
     }

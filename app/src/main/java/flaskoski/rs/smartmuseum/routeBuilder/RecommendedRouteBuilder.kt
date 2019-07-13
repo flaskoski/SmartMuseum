@@ -32,7 +32,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
         allItems.filter {!it.isVisited}.sortedByDescending { it.recommedationRating }.forEach{ item ->
             if(totalCost + item.timeNeeded + MIN_TIME_BETWEEN_ITEMS < timeAvailable){
                 totalCost += item.timeNeeded + MIN_TIME_BETWEEN_ITEMS
-//                if(item is SubItem)
+//                 if(item is SubItem)
 //                    if(itemsRemaining.none{ it.id == item.groupItem })
 //                        allItems.find { it.id == item.groupItem }?.let{ parent -> itemsRemaining.add(parent)}
                 itemsRemaining.add(item)
@@ -62,6 +62,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
                 }
                 catch(e: Exception){
                     startPoint = null
+                    e.printStackTrace()
                 }
                 if (nextPoint != null) {
                     startPoint = nextPoint
