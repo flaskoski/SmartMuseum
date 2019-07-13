@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.Toast
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
@@ -12,6 +13,7 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Feature
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
+import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import kotlinx.android.synthetic.main.feature_item.view.*
 
 class FeaturesListAdapter(private val featuresList: List<Feature>, private val context: Context, val onRatingsCompletedCallback: OnShareClickListener) : RecyclerView.Adapter<FeaturesListAdapter.ItemViewHolder>() {
@@ -67,6 +69,7 @@ class FeaturesListAdapter(private val featuresList: List<Feature>, private val c
         val starViews = listOf<ImageView>(p0.itemView.img_star1, p0.itemView.img_star2, p0.itemView.img_star3, p0.itemView.img_star4, p0.itemView.img_star5)
 
         val rate = fun(v : View) {
+            closeKeyboard(v)
             ratingsChanged = true
 
             if(!isRatingAlreadySet(p1)) featuresRated++
@@ -86,8 +89,14 @@ class FeaturesListAdapter(private val featuresList: List<Feature>, private val c
 
         if( isRatingAlreadySet(p1))
             rate(starViews.get((featuresList.get(p1).rating-1).toInt()))
+
+
     }
 
+    fun closeKeyboard(v : View){
+        val imm: InputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(v.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+    }
     private fun checkIfRatingsCompletedAndSetFlag() {
         if (featuresRated >= featuresList.size) {
             onRatingsCompletedCallback.onRatingsCompleted()

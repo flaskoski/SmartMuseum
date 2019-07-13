@@ -54,10 +54,11 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 //        }
         txt_mm.setOnFocusChangeListener { v, focused ->
             if (!focused) {
-                val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                 val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(v.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
             }
         }
+
         txt_hh.addTextChangedListener(object : TextWatcher{
             override fun afterTextChanged(p0: Editable?) {
                 if(txt_hh.text.toString().length > 0)
