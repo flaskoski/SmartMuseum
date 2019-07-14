@@ -289,21 +289,22 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         val visitedSubItems : List<String>? =  data.getSerializableExtra(ApplicationProperties.TAG_VISITED_SUBITEMS)?.let { it as List<String> }
         if(arrived)
             visitedSubItems?.let { sharedPreferences?.setVisitedSubItems(it) }
+        if(rating != null) {//rating changed
+            ratingsList.remove(rating)
+            ratingsList.add(rating)
+            updateRecommender()
+        }
+
         if(goToNextItem) {
             lastItem = nextItem
             isGoToNextItem.value = true
             isCloseToItem.value = false
             (lastItem as Item).isVisited = true
 
-            if(rating != null) {//rating changed
-                ratingsList.remove(rating)
-                ratingsList.add(rating)
-                updateRecommender()
-            }else sharedPreferences?.setRecommendedItem(lastItem as Item)
+            sharedPreferences?.setRecommendedItem(lastItem as Item)
 
             if(isJourneyFinished())
                 finishJourney()
-
             else {
                 if (rating != null)
                     getRecommendedRoute()
@@ -312,11 +313,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             }
         }
         else
-            if(rating != null) {//rating changed
-                ratingsList.remove(rating)
-                ratingsList.add(rating)
-                updateRecommender()
-                if(isJourneyBegan.value!!) if(rating.item != nextItem?.id){
+            if(rating != null) {//rating changed from an item that is not the destination item
+                if(isJourneyBegan.value!! && rating.item != nextItem?.id){
                     getRecommendedRoute()
                     sortItemList()
                     setNextRecommendedDestination()

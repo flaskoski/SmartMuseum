@@ -89,6 +89,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         journeyManager.itemListChangedListener = {
             @Suppress("UNNECESSARY_SAFE_CALL")
             adapter?.notifyDataSetChanged()
+            if(view_next_item.visibility == View.VISIBLE)
+                updateNextItemCard()
             loading_view.visibility = View.GONE
         }
 
@@ -189,6 +191,13 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             view_next_item.visibility = View.VISIBLE
             view_next_item.setOnClickListener{}
         }
+    }
+
+
+    private fun updateNextItemCard() {
+        view_next_item.lb_next_item_name.text = journeyManager.itemsList[0].title
+        view_next_item.next_item_ratingBar.rating = journeyManager.itemsList[0].recommedationRating
+        view_next_item.next_item_img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
     }
 
     fun onClickNextItemOk(v : View){
