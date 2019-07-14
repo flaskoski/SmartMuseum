@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         //set observable states
         journeyManager.isPreferencesSet.observe(this, preferencesSetListener)
-        journeyManager.isItemsAndRatingsLoaded.observe(this, isItemsAndRatingsLoadedListener)
+        journeyManager.isItemsAndRatingsLoaded.observe(this, isItemsAndRatingsLoadedListener  )
         journeyManager.isJourneyBegan.observe(this, isJourneyBeganListener)
         journeyManager.isCloseToItem.observe(this, closeToItemIsChangedListener)
         journeyManager.isGoToNextItem.observe(this, isGoToNextItemListener)
@@ -105,7 +105,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         adapter = ItemsGridListAdapter(journeyManager.itemsList, applicationContext, this, ItemRepository.recommenderManager)
         itemsGridList.adapter = adapter
 
-        if(journeyManager.recoverSavedPreferences() == null){
+        if(journeyManager.isItemsAndRatingsLoaded.value!!)
+        {
+            journeyManager.setNextRecommendedDestination()
+        }else if(journeyManager.recoverSavedPreferences() == null){
             //--DEBUG
 //                @Suppress("ConstantConditionIf")
 //                if(isDebugging) {
@@ -136,13 +139,17 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
+    override fun onDestroy() {
+        journeyManager.setOnDestroyActivityState()
+        super.onDestroy()
+    }
+
     private val isItemsAndRatingsLoadedListener = Observer<Boolean>{ loaded : Boolean ->
         if(loaded && journeyManager.isJourneyBegan.value!!) {
-            journeyManager.recoverSavedRecommendedItems()
-
+            journeyManager.recoverCurrentState()
+            loading_view.visibility = View.GONE
             //DEBUG
             //shareOnItemClicked(journeyManager.itemsList.indexOf(journeyManager.itemsList.find{ it.id == "7I7lVxSXOjvYWE2e5i72"}),false)
-
         }
     }
 

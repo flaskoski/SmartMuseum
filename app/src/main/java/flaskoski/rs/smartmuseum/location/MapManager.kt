@@ -8,6 +8,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
+import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.model.Point
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import java.lang.IllegalStateException
@@ -73,12 +74,19 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         return this
     }
 
-    fun addItem(item : Item) : Marker? {
-        item.getCoordinates()?.let { return mMap?.addMarker(MarkerOptions().position(it).title(item.title)) }
+    fun addItemToMap(item: Item, isVisitedItem: Boolean) : Marker? {
+        item.getCoordinates()?.let {
+            if(isVisitedItem)
+                return mMap?.addMarker(MarkerOptions().position(it).title(item.title).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))
+            return mMap?.addMarker(MarkerOptions().position(it).title(item.title))
+        }
         return null
     }
 
     fun setDestination(item: Item, previousItem: Point?, lastKnownUserLocation : LatLng? = null) : MapManager{
+        clearMap()
+        setVisitedItems()
+
         val itemPathCoordinates = item.getPathCoordinates()
         itemPathCoordinates?.let{itemPath ->
             if(mCurrLocationMarker != null) {
@@ -87,18 +95,19 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
                 mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath, lastKnownUserLocation) }
             else throw IllegalStateException("User map marker is null! Probable cause: User location wasn't found.")
 
-            // .width(1.5f))
             mMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder()
                     .include(previousItem?.getCoordinates()).include(item.getCoordinates()).build(), 130))
-                    //.include(mCurrLocationMarker?.position).include(item.getCoordinates()).build(), 130))
-
-            if(destinationMarker != null) //last marker changed to green
-                destinationMarker?.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-            destinationMarker = addItem(item)
+            destinationMarker = addItemToMap(item, false)
             alreadyInformed = false
 
         }
         return this
+    }
+
+    private fun setVisitedItems() {
+        ItemRepository.itemList.filter { it.isVisited }.forEach {
+            addItemToMap(it, true)
+        }
     }
 
     private fun isDestinationSet(): Boolean {
@@ -107,8 +116,8 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
 
     fun clearMap() : MapManager{
         mMap?.clear()
-        if(destinationMarker != null) destinationMarker = null
-        if(mCurrLocationMarker != null) mCurrLocationMarker = null
+        destinationMarker = null
+        mCurrLocationMarker = null
         routePolyline.clear()
         return this
     }

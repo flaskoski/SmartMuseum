@@ -1,7 +1,6 @@
 package flaskoski.rs.smartmuseum.viewmodel
 import android.app.Activity
 import android.content.Intent
-import android.location.Location
 import androidx.lifecycle.ViewModel
 import android.util.Log
 import androidx.databinding.Observable
@@ -41,6 +40,9 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     var isJourneyFinishedFlag = MutableLiveData<Boolean>()
     var isJourneyBegan = MutableLiveData<Boolean>()
     var isCloseToItem = MutableLiveData<Boolean>()
+
+    var isMapLoaded: Boolean = false
+    private var whenMapLoadedSetDestination: Boolean = false
     //--
 
     private var startTime: Date? = null
@@ -65,8 +67,12 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                 recommendedRouteBuilder = RecommendedRouteBuilder(ItemRepository.allElements)
                 lastItem = getFirstItem()
 
-                isItemsAndRatingsLoaded.value = true
                 buildRecommender()
+                recoverSavedRecommendedItems()
+                sortItemList()
+                setNextRecommendedDestination()
+                isItemsAndRatingsLoaded.value = true
+
             }
         }
     }
@@ -91,9 +97,34 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
         //maps setup
         userLocationManager = UserLocationManager(REQUEST_CHANGE_LOCATION_SETTINGS)
-        mapManager = MapManager(this)
+        mapManager = MapManager(this){
+            isMapLoaded = true
+            Log.i(TAG, "Map loaded")
+            if(whenMapLoadedSetDestination) {
+                whenMapLoadedSetDestination = false
+                setNextRecommendedDestination()
+            }
+                //mapManager?.setDestination()
+        }
         userLocationManager?.onUserLocationUpdateCallback = mapManager?.updateUserLocationCallback
+    }
 
+    fun recoverSavedRecommendedItems() {
+        sharedPreferences?.getAllRecommendedItemStatus()?.let {list->
+            if (list.isNotEmpty()) {
+                list.forEach{recommendedItem ->
+                    val item : Itemizable?
+                    if(recommendedItem is RoutableItem) {
+                        item = itemsList.find{it.id == recommendedItem.id}
+                        item?.recommendedOrder = recommendedItem.recommendedOrder
+                    }else item = ItemRepository.subItemList.find{it.id == recommendedItem.id}
+                    item?.isVisited= recommendedItem.isVisited
+
+                }
+                lastItem = getFirstItem()
+                //?: itemsList.filter { it.isVisited }.sortedWith(compareByDescending<Itemizable>{ (it as RoutableItem).recommendedOrder}).get(0)
+            }
+        }
     }
 
     fun updateActivity(activity : Activity) {
@@ -174,35 +205,19 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
      * @return User saved
      */
     fun recoverSavedPreferences(): User? {
-        ApplicationProperties.user = sharedPreferences?.getUser()
-        this.startTime = sharedPreferences?.getStartTime()
-        if(!ApplicationProperties.userNotDefinedYet()) {
-            this.isPreferencesSet.value = true
-            if(startTime != null)
-                this.isJourneyBegan.value = true
+        if(ApplicationProperties.userNotDefinedYet() || startTime == null) {
+            ApplicationProperties.user = sharedPreferences?.getUser()
+            this.startTime = sharedPreferences?.getStartTime()
+            if (!ApplicationProperties.userNotDefinedYet()) {
+                isPreferencesSet.value = true
+                if (startTime != null)
+                    isJourneyBegan.value = true
+            }
+        }else{
+            isPreferencesSet.value = true
+            isJourneyBegan.value = true
         }
         return ApplicationProperties.user
-    }
-
-    fun recoverSavedRecommendedItems() {
-        sharedPreferences?.getAllRecommendedItemStatus()?.let {list->
-            if (list.isNotEmpty()) {
-                list.forEach{recommendedItem ->
-                    val item : Itemizable?
-                    if(recommendedItem is RoutableItem) {
-                        item = itemsList.find{it.id == recommendedItem.id}
-                        item?.recommendedOrder = recommendedItem.recommendedOrder
-                    }else item = ItemRepository.subItemList.find{it.id == recommendedItem.id}
-                    item?.isVisited= recommendedItem.isVisited
-
-                }
-                lastItem = getFirstItem()
-                //?: itemsList.filter { it.isVisited }.sortedWith(compareByDescending<Itemizable>{ (it as RoutableItem).recommendedOrder}).get(0)
-                sortItemList()
-                setNextRecommendedDestination()
-                isGoToNextItem.value = true
-            }
-        }
     }
 
 
@@ -220,32 +235,34 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             sharedPreferences?.setAllRecommendedItems(it) }
     }
 
-    private fun setNextRecommendedDestination() {
-        nextItem = null
-        if(!itemsList[0].isVisited && itemsList[0].recommendedOrder != Int.MAX_VALUE)
-            nextItem = itemsList[0]
+    fun setNextRecommendedDestination() {
+        if(isMapLoaded) {
+            nextItem = null
+            if (!itemsList[0].isVisited && itemsList[0].recommendedOrder != Int.MAX_VALUE)
+                nextItem = itemsList[0]
 
-        if(nextItem != null){
-            if(lastItem != null){
-                if(lastItem!!.isUserPoint())
-                    recommendedRouteBuilder?.findAndSetShortestPathFromUserLocation(nextItem!!, lastItem!!)
-                else recommendedRouteBuilder?.findAndSetShortestPath(nextItem!!, lastItem!!)
-                try{
-                    mapManager?.setDestination(nextItem!!, lastItem,
-                            LatLng(userLocationManager?.userLastKnownLocation?.latitude!!, userLocationManager?.userLastKnownLocation?.longitude!!))
-                }
-                catch(e: java.lang.Exception){
-                    e.printStackTrace()
-    //                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
-                }
-            }
-            else
-                Log.e(TAG, "Último ponto visitado não foi identificado!")
-        }
-        else {
-            Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
+            if (nextItem != null) {
+                if (lastItem != null) {
+                    if (lastItem!!.isUserPoint())
+                        recommendedRouteBuilder?.findAndSetShortestPathFromUserLocation(nextItem!!, lastItem!!)
+                    else recommendedRouteBuilder?.findAndSetShortestPath(nextItem!!, lastItem!!)
+
+                    try {
+                        mapManager?.setDestination(nextItem!!, lastItem,
+                                LatLng(userLocationManager?.userLastKnownLocation?.latitude!!, userLocationManager?.userLastKnownLocation?.longitude!!))
+                        isGoToNextItem.value = true
+                    } catch (e: java.lang.Exception) {
+                        e.printStackTrace()
+                        //                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
+                    }
+
+                } else
+                    Log.e(TAG, "Último ponto visitado não foi identificado!")
+            } else {
+                Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
 //            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_LONG).show()
-        }
+            }
+        }else whenMapLoadedSetDestination = true
     }
 
     fun changeLocationSettingsResult() {
@@ -345,5 +362,13 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 //            mapManager?.setDestination(nextItem!!, lastItem, LatLng(userLastKnowLocation.latitude, userLastKnowLocation.longitude))
         }
 
+    }
+
+    fun recoverCurrentState() {
+
+    }
+
+    fun setOnDestroyActivityState() {
+        isMapLoaded = false
     }
 }

@@ -41,10 +41,9 @@ class RoutePolyline {
         }
         else
         {//update line
-            val points: List<LatLng>? = line.points
-            (points as ArrayList).clear()
-            //points.add(mCurrLocationMarker!!.position)
+            val points = ArrayList<LatLng>()
             points.addAll(path)
+            line.points.clear()
             line.points = points
             return line
         }
