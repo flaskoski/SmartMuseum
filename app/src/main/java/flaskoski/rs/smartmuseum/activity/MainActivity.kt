@@ -107,7 +107,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         adapter = ItemsGridListAdapter(journeyManager.itemsList, applicationContext, this, ItemRepository.recommenderManager)
         itemsGridList.adapter = adapter
 
-        if(journeyManager.isItemsAndRatingsLoaded.value!!)
+        if(journeyManager.isItemsAndRatingsLoaded.value!! && journeyManager.isJourneyBegan.value!!)
         {
             journeyManager.setNextRecommendedDestination()
         }else if(journeyManager.recoverSavedPreferences() == null){

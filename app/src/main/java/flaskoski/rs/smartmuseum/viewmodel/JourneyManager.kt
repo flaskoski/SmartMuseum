@@ -107,6 +107,10 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                 //mapManager?.setDestination()
         }
         userLocationManager?.onUserLocationUpdateCallback = mapManager?.updateUserLocationCallback
+
+        //If exited the app but didn't terminate it and then came back, the ItemRepository will already be loaded
+        if(ItemRepository.itemList.isNotEmpty() && ItemRepository.ratingList.isNotEmpty())
+            isItemAndRatingListLoadedListener.onPropertyChanged(ItemRepository.isItemListLoaded, 0)
     }
 
     fun recoverSavedRecommendedItems() {
