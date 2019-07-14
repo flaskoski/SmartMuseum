@@ -27,4 +27,6 @@
     <string name="welcome_title">Bem-vindo(a) ao Parque CienTec!</string>
     <string name="welcome_message">Agora vamos usar suas informações para adaptar o passeio pensando no que você mais gosta. Vamos começar a visita?</string>
     <string name="finishJourney">Cancelar Visita</string>
+    <string name="other_subitems">Outros Itens</string>
+    <string name="recommended_subitems">Itens Recomendados</string>
 </resources>

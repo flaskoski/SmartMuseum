@@ -5,7 +5,6 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties.EASTERN_POINT
 import flaskoski.rs.smartmuseum.util.ApplicationProperties.NORTHERN_POINT
 import flaskoski.rs.smartmuseum.util.ApplicationProperties.SOUTHERN_POINT
 import flaskoski.rs.smartmuseum.util.ApplicationProperties.WESTERN_POINT
-import flaskoski.rs.smartmuseum.util.ApplicationProperties.user
 import java.lang.NullPointerException
 import java.util.*
 
@@ -26,6 +25,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
     fun getRecommendedRouteFrom(start : Point, timeAvailable : Double, initialCost : Double): LinkedList<Itemizable> {
         var startPoint : Point? = start
         itemsRemaining.clear()
+        allRemainingSubItemsSetRecommendedFalse()
         var totalCost = initialCost
         var count = 0
         //add most recommended Points (items or subItems' parents) that have not been visited yet (plus a min. time between items) until it reaches total available time
@@ -90,6 +90,10 @@ class RecommendedRouteBuilder(elements: Set<Element>){
             itemsRemaining.removeLast()
         }
         return itemsRemaining
+    }
+
+    private fun allRemainingSubItemsSetRecommendedFalse() {
+        ItemRepository.subItemList.filter { !it.isVisited}.forEach { it.isRecommended = false }
     }
 
 

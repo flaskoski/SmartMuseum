@@ -30,7 +30,9 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
     lateinit var starViews : List<ImageView>
     private val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
 
-    private lateinit var adapter: SubItemListAdapter
+    private lateinit var recommendedSubItemsAdapter: SubItemListAdapter
+    private lateinit var otherSubItemsAdapter: SubItemListAdapter
+
     private lateinit var vm: GroupItemActivityViewModel
 
     private val REQUEST_SUBITEM_PAGE: Int = 3
@@ -50,11 +52,16 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         vm.arrived = extras.getBooleanExtra(ApplicationProperties.TAG_ARRIVED, false)
         vm.subItemListChangedListener = {
             @Suppress("UNNECESSARY_SAFE_CALL")
-            adapter?.notifyDataSetChanged()
+            recommendedSubItemsAdapter?.notifyDataSetChanged()
+            otherSubItemsAdapter?.notifyDataSetChanged()
         }
-        recommended_items_list.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        adapter = SubItemListAdapter(vm.subItemList, this)
-        recommended_items_list.adapter = adapter
+        list_recommended_items.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        list_other_items.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recommendedSubItemsAdapter = SubItemListAdapter(vm.recommendedSubItemList, this)
+        otherSubItemsAdapter = SubItemListAdapter(vm.otherSubItemList, this)
+        list_recommended_items.adapter = recommendedSubItemsAdapter
+        list_other_items.adapter = otherSubItemsAdapter
+
         vm.currentItem = extras.getSerializableExtra("itemClicked") as GroupItem?
         //currentItem?.subItems?.map { it ->  }
         //-->

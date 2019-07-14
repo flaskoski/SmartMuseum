@@ -39,7 +39,9 @@ class ItemDetailActivity  : AppCompatActivity() {
 
         //<--ItemDetails
         lb_recommended_items.visibility = View.GONE
-        recommended_items_list.visibility = View.GONE
+        list_recommended_items.visibility = View.GONE
+        lb_other_items.visibility = View.GONE
+        list_other_items.visibility = View.GONE
         //-->
 
         if(!arrived) bt_next_item.visibility = View.GONE

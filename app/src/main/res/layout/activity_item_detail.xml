@@ -66,11 +66,35 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
-                android:text="Itens Recomendados"
+                android:text="@string/recommended_subitems"
                 android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recommended_items_list"
+                android:id="@+id/list_recommended_items"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                tools:listitem="@layout/sub_item" >
+
+            </androidx.recyclerview.widget.RecyclerView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"/>
+
+            <TextView
+                android:id="@+id/lb_other_items"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:text="@string/other_subitems"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/list_other_items"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -81,7 +105,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_gravity="right"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:onClick="goToNextItem"
                 android:paddingLeft="8dp"
@@ -198,7 +222,6 @@
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

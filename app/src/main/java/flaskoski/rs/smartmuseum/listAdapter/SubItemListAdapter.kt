@@ -36,9 +36,9 @@ class SubItemListAdapter(private val subItemList: List<Itemizable>,
     }
 
     override fun onBindViewHolder(p0: ItemViewHolder, p1: Int) {
-//        p0.itemView.txt_featureName.text = subItemList[p1].description
-//        p0.itemView.img_itemThumb.setImageResource(context.resources.getIdentifier(subItemList?.get(p1)?.photoId, "drawable", context.packageName))
-//        p0.itemView.setBackgroundResource(context.resources.getIdentifier(subItemList?.get(p1)?.photoId, "drawable", context.packageName))
+//        p0.itemView.txt_featureName.text = recommendedSubItemList[p1].description
+//        p0.itemView.img_itemThumb.setImageResource(context.resources.getIdentifier(recommendedSubItemList?.get(p1)?.photoId, "drawable", context.packageName))
+//        p0.itemView.setBackgroundResource(context.resources.getIdentifier(recommendedSubItemList?.get(p1)?.photoId, "drawable", context.packageName))
         p0.itemView.layout_subitem.setBackgroundResource(
                 activity.applicationContext.resources.getIdentifier(subItemList[p1].photoId,
                 "drawable", activity.applicationContext.packageName))

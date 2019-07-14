@@ -68,12 +68,16 @@ class SharedPreferencesDAO(activity : Activity){
         return allRecommendedItems
     }
 
-    fun setAllRecommendedItems(recommendedItems : Set<Itemizable>){
-        db.all.filter { it.value is Boolean && it.key.contains(ITEM_PREFIX) }.keys.forEach {
-            db.all.remove(it)
-        }
+    fun setAllRecommendedItems(recommendedItems: List<Item>, recommendedSubItems: List<SubItem>){
+        val allRecommendedItems = ArrayList<Itemizable>()
+        allRecommendedItems.addAll(recommendedItems)
+        allRecommendedItems.addAll(recommendedSubItems)
+
         with(db.edit()){
-            recommendedItems.forEach {
+            db.all.filter { it.value is Boolean && it.key.contains(ITEM_PREFIX) }.keys.forEach {
+                remove(it)
+            }
+            allRecommendedItems.forEach {
                 if(it is RoutableItem)
                     putBoolean("${ITEM_PREFIX}${it.id}_${it.recommendedOrder}", it.isVisited)
                 else putBoolean("${ITEM_PREFIX}${it.id}_0", it.isVisited)

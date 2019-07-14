@@ -231,8 +231,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                     ParseTime.differenceInMinutesUntilNow(it) } ?: 0.0)
         if(itemsRemaining!= null && itemsRemaining.isEmpty())
             Log.w(TAG, "No time available for visiting any item.")
-        itemsRemaining?.toSet()?.let {
-            sharedPreferences?.setAllRecommendedItems(it) }
+        sharedPreferences?.setAllRecommendedItems(itemsList.filter { it.recommendedOrder != Int.MAX_VALUE }, subItemList.filter { it.isRecommended })
     }
 
     fun setNextRecommendedDestination() {
