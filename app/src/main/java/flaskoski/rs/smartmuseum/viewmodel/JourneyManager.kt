@@ -43,6 +43,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
     var isMapLoaded: Boolean = false
     private var whenMapLoadedSetDestination: Boolean = false
+    //tell activity if the route was reconfigured due to the new ratings given
+    var isRatingChanged: Boolean = false
     //--
 
     private var startTime: Date? = null
@@ -231,8 +233,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         ItemRepository.resetRecommendedOrder()
         val itemsRemaining = recommendedRouteBuilder?.getRecommendedRouteFrom(lastItem!!,
                 ApplicationProperties.user?.timeAvailable?: 100.0,
-                startTime?.let {
-                    ParseTime.differenceInMinutesUntilNow(it) } ?: 0.0)
+                startTime?.let { ParseTime.differenceInMinutesUntilNow(it) } ?: 0.0)
         if(itemsRemaining!= null && itemsRemaining.isEmpty())
             Log.w(TAG, "No time available for visiting any item.")
         sharedPreferences?.setAllRecommendedItems(itemsList.filter { it.recommendedOrder != Int.MAX_VALUE }, subItemList.filter { it.isRecommended })
@@ -296,6 +297,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             ratingsList.remove(rating)
             ratingsList.add(rating)
             updateRecommender()
+            isRatingChanged = true
         }
 
         if(goToNextItem) {
@@ -371,5 +373,9 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
     fun setOnDestroyActivityState() {
         isMapLoaded = false
+    }
+
+    fun nextItemCardShowedWithRatingChangeWarning() {
+        isRatingChanged = false
     }
 }

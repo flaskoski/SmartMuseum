@@ -7,7 +7,7 @@ import flaskoski.rs.smartmuseum.model.User
 
 object ApplicationProperties {
     //Custom application constants
-    var isDebugOn: Boolean = true
+    var isDebugOn: Boolean = false
     const val WESTERN_POINT : Double = -46.623196
     const val EASTERN_POINT : Double = -46.620273
     const val NORTHERN_POINT : Double = -23.649290

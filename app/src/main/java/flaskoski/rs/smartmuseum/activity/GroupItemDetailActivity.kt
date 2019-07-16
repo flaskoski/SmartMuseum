@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import android.view.MenuItem
 import android.view.View
@@ -15,9 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.listAdapter.SubItemListAdapter
-import flaskoski.rs.smartmuseum.model.GroupItem
-import flaskoski.rs.smartmuseum.model.ItemRepository
-import flaskoski.rs.smartmuseum.model.Rating
+import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import flaskoski.rs.smartmuseum.util.ParseTime
 import flaskoski.rs.smartmuseum.viewmodel.GroupItemActivityViewModel
@@ -63,9 +62,11 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         list_other_items.adapter = otherSubItemsAdapter
 
         vm.currentItem = extras.getSerializableExtra("itemClicked") as GroupItem?
-        //currentItem?.subItems?.map { it ->  }
-        //-->
-
+        if(vm.currentItem == null){
+            Log.e(TAG, "Error when getting currentItem (GroupItem) extra!")
+            Toast.makeText(applicationContext, "Erro ao carregar item!", Toast.LENGTH_LONG).show()
+            return
+        }
 
         if(!vm.arrived) bt_next_item.visibility = View.GONE
         setStars(rating)
@@ -154,7 +155,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
     }
 
     //<--GroupItem
-    override fun shareOnItemClicked(itemPosition: Int) {
+    override fun shareOnItemClicked(subItem: SubItem) {
         if(ApplicationProperties.user == null) {
             Toast.makeText(applicationContext,
                     "Usário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG)
@@ -168,7 +169,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
 //                && it.item == itemId }?.let {
 //            itemRating = it.rating
 //        }
-        vm.setCurrentSubItem(itemPosition)
+        vm.currentSubItem = subItem
         viewItemDetails.putExtra("itemClicked", vm.currentSubItem)
         viewItemDetails.putExtra(ApplicationProperties.TAG_ITEM_RATING, ItemRepository.ratingList.find {vm.currentSubItem?.id == it.item && ApplicationProperties.user?.id == it.user}?.rating)
         ActivityCompat.startActivityForResult(this, viewItemDetails, REQUEST_SUBITEM_PAGE, null)

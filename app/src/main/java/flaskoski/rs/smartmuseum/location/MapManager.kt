@@ -78,7 +78,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         item.getCoordinates()?.let {
             if(isVisitedItem)
                 return mMap?.addMarker(MarkerOptions().position(it).title(item.title).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))
-            return mMap?.addMarker(MarkerOptions().position(it).title(item.title))
+            return mMap?.addMarker(MarkerOptions().position(it).title(item.title).icon(BitmapDescriptorFactory.defaultMarker()))
         }
         return null
     }

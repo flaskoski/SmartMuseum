@@ -29,4 +29,6 @@
     <string name="finishJourney">Cancelar Visita</string>
     <string name="other_subitems">Outros Itens</string>
     <string name="recommended_subitems">Itens Recomendados</string>
+    <string name="lb_next_item_with_rating_change">Sua rota recomendada foi atualizada! O próximo item da sua visita é:</string>
+    <string name="no">Não</string>
 </resources>

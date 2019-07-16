@@ -23,7 +23,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
     }
 
     fun getRecommendedRouteFrom(start : Point, timeAvailable : Double, initialCost : Double): LinkedList<Itemizable> {
-        var startPoint : Point? = start
+        var startPoint : Point = start
         itemsRemaining.clear()
         allRemainingSubItemsSetRecommendedFalse()
         var totalCost = initialCost
@@ -44,12 +44,14 @@ class RecommendedRouteBuilder(elements: Set<Element>){
         //remove the min_time between items since it will check the determined time (on db) of each route now
         totalCost -= (count-1) * MIN_TIME_BETWEEN_ITEMS
 //        itemsRemaining.removeLast()
+
         var itemsCost = totalCost
 
         //now will consider the db time to get to each point in the most recommended items list
         //for all points remaining, calculate db time and then if available time is passed, remove the least recommended and try again.
         val allPointsRemainingSize = itemsRemaining.size
         for(i in allPointsRemainingSize downTo 1 ){
+            var currentStartPoint = startPoint
             var enoughTime = true
             for(j in 1 .. i) {
                 //TODO MEMORIZE ITEMS ROUTE COST
@@ -57,19 +59,19 @@ class RecommendedRouteBuilder(elements: Set<Element>){
                 //time between routableItems only
                 var nextPoint : Point? = null
                 try {
-                    nextPoint = museumGraph?.getNextClosestItemFromList(startPoint!!,
-                            (itemsRemaining.subList(0, i).filter { it is RoutableItem }.toSet() as Set<Point>))!!
+                    nextPoint = museumGraph?.getNextClosestItemFromList(currentStartPoint,
+                            (itemsRemaining.filter { it is RoutableItem }.toSet() as Set<Point>))!!
                 }
                 catch(e: Exception){
-                    startPoint = null
+                    //startPoint = null
                     e.printStackTrace()
                 }
                 if (nextPoint != null) {
-                    startPoint = nextPoint
-                    if (totalCost + startPoint.cost <= timeAvailable) {
-                        totalCost += startPoint.cost
-                        (startPoint as Item).isVisited = true
-                        startPoint.recommendedOrder = j
+                    currentStartPoint = nextPoint
+                    if (totalCost + currentStartPoint.cost <= timeAvailable) {
+                        totalCost += currentStartPoint.cost
+                        (currentStartPoint as Item).isVisited = true
+                        currentStartPoint.recommendedOrder = j
                     }
                     else{
                         enoughTime = false

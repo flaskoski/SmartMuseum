@@ -3,10 +3,7 @@ package flaskoski.rs.smartmuseum.viewmodel
 import android.app.Activity
 import android.content.Intent
 import androidx.lifecycle.ViewModel
-import flaskoski.rs.smartmuseum.model.GroupItem
-import flaskoski.rs.smartmuseum.model.ItemRepository
-import flaskoski.rs.smartmuseum.model.Rating
-import flaskoski.rs.smartmuseum.model.SubItem
+import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 
 class GroupItemActivityViewModel : ViewModel(){
@@ -20,7 +17,7 @@ class GroupItemActivityViewModel : ViewModel(){
     var arrived: Boolean = false
 
     var currentItem: GroupItem? = null
-    set(value){
+        set(value){
         field = value
         field?.let{ item ->
             val subitems : List<SubItem> = ItemRepository.setRecommendationRatingOnSubItemsOf(item)
@@ -33,10 +30,6 @@ class GroupItemActivityViewModel : ViewModel(){
 
     }
 
-    fun setCurrentSubItem(position : Int){
-        currentSubItem = recommendedSubItemList[position]
-    }
-
     fun subItemVisitedResult(activity: Activity, data: Intent?) {
         if(data != null) {
             val rating: Rating? = data.getSerializableExtra(ApplicationProperties.TAG_ITEM_RATING)?.let { it as Rating }
@@ -44,7 +37,7 @@ class GroupItemActivityViewModel : ViewModel(){
                 ItemRepository.saveRating(rating)
                 isRatingChanged = true
             }
-            if(arrived)
+            if(arrived || currentItem!!.isVisited)
                 currentSubItem?.let {
                     it.isVisited = true
                     visitedSubItems.add(it.id)

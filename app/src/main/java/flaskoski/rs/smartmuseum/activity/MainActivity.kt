@@ -163,8 +163,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             val confirmationDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
             confirmationDialog.setTitle("Atenção")
                     .setIcon(R.drawable.baseline_done_black_24)
-                    .setMessage("Você já visitou todos os itens recomendados para você. Obrigado pela visita!")
-                    .setNeutralButton(android.R.string.ok){_,_ ->
+                    .setMessage("""Você já visitou todos os itens recomendados para você dentro do seu tempo disponível. Obrigado pela visita!
+                        |Deseja continuar a usar o aplicativo para ver detalhes de mais itens?""".trimMargin())
+                    .setPositiveButton(android.R.string.yes){_,_->}
+                    .setNegativeButton(R.string.no){_,_ ->
                         val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
                         startActivityForResult(getPreferencesIntent, requestGetPreferences)}
             confirmationDialog.show()
@@ -177,19 +179,27 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         val startDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
         startDialog.setTitle(getString(R.string.welcome_title))
                 .setMessage(getString(R.string.welcome_message))
-                .setNeutralButton(android.R.string.ok) { _, _ -> beginJourney() }
+                .setNeutralButton(android.R.string.ok) { _, _ -> }
                 .setOnDismissListener { beginJourney() }
         startDialog.show()
     }
+
+    private fun showNextItemCard(){
+        if(journeyManager.isRatingChanged) {
+            lb_info.text = getString(R.string.lb_next_item_with_rating_change)
+            journeyManager.nextItemCardShowedWithRatingChangeWarning()
+        }else lb_info.text = getString(R.string.lb_next_item)
+
+        bt_ok.visibility = View.VISIBLE
+        view_next_item.lb_next_item_name.text = journeyManager.itemsList[0].title
+        view_next_item.next_item_ratingBar.rating = journeyManager.itemsList[0].recommedationRating
+        view_next_item.next_item_img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
+        view_next_item.visibility = View.VISIBLE
+        view_next_item.setOnClickListener{}
+    }
     private val isGoToNextItemListener = Observer<Boolean> { isCurrentItemVisited: Boolean ->
         if(isCurrentItemVisited && journeyManager.isJourneyBegan.value!!){
-            lb_info.text = getString(R.string.lb_next_item)
-            bt_ok.visibility = View.VISIBLE
-            view_next_item.lb_next_item_name.text = journeyManager.itemsList[0].title
-            view_next_item.next_item_ratingBar.rating = journeyManager.itemsList[0].recommedationRating
-            view_next_item.next_item_img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
-            view_next_item.visibility = View.VISIBLE
-            view_next_item.setOnClickListener{}
+            showNextItemCard()
         }
     }
 
