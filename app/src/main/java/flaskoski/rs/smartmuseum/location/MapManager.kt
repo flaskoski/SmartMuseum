@@ -96,7 +96,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
             else throw IllegalStateException("User map marker is null! Probable cause: User location wasn't found.")
 
             mMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder()
-                    .include(previousItem?.getCoordinates()).include(item.getCoordinates()).build(), 130))
+                    .include(mCurrLocationMarker?.position?: previousItem?.getCoordinates()).include(item.getCoordinates()).build(), 130))
             destinationMarker = addItemToMap(item, false)
             alreadyInformed = false
 
