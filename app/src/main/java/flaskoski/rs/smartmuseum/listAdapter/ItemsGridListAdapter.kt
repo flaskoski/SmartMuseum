@@ -1,16 +1,21 @@
 package flaskoski.rs.smartmuseum.listAdapter
 
 import android.content.Context
-import android.graphics.Color
+import android.graphics.BitmapFactory
 import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.grid_item.view.*
+import java.io.IOException
+import android.graphics.drawable.Drawable
+import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.model.ItemRepository
+import java.io.InputStream
+
 
 class ItemsGridListAdapter(private val itemsList: List<Item>,
                            private val context: Context,
@@ -24,7 +29,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
     }
     override fun onBindViewHolder(p0: ItemViewHolder, p1: Int) {
         p0.itemView.lb_item_name.text = itemsList.get(p1).title
-        p0.itemView.img_itemThumb.setImageResource(context.resources.getIdentifier(itemsList[p1].photoId, "drawable", context.packageName))
+        ItemRepository.loadImage(context, p0.itemView.img_itemThumb, itemsList[p1].photoId)
         //p0.itemView.ratingBar.rating = itemsList.get(p1).avgRating
 
         if(itemsList[p1].isVisited) {

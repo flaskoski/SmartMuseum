@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.ImageView
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
@@ -42,6 +43,7 @@ class ItemDetailActivity  : AppCompatActivity() {
         list_recommended_items.visibility = View.GONE
         lb_other_items.visibility = View.GONE
         list_other_items.visibility = View.GONE
+        separator_lists.visibility = View.GONE
         //-->
 
         if(!arrived) bt_next_item.visibility = View.GONE
@@ -50,7 +52,7 @@ class ItemDetailActivity  : AppCompatActivity() {
             supportActionBar?.title = it.title
             itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating, it.recommedationRating, recommendationSystem = ApplicationProperties.recommendationSystem)
             if(it.photoId.isNotBlank())
-                imageView.setImageResource(this.resources.getIdentifier(it.photoId, "drawable", applicationContext.packageName))
+                ItemRepository.loadImage(applicationContext, imageView, it.photoId)
             else imageView.visibility = View.GONE
             item_description.text = it.description
         }

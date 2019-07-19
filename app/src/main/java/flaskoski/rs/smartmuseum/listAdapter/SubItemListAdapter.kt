@@ -6,8 +6,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.model.SubItem
+import kotlinx.android.synthetic.main.activity_item_detail.*
 import kotlinx.android.synthetic.main.sub_item.view.*
 
 class SubItemListAdapter(private val subItemList: List<SubItem>,
@@ -28,9 +30,8 @@ class SubItemListAdapter(private val subItemList: List<SubItem>,
 //        p0.itemView.txt_featureName.text = recommendedSubItemList[p1].description
 //        p0.itemView.img_itemThumb.setImageResource(context.resources.getIdentifier(recommendedSubItemList?.get(p1)?.photoId, "drawable", context.packageName))
 //        p0.itemView.setBackgroundResource(context.resources.getIdentifier(recommendedSubItemList?.get(p1)?.photoId, "drawable", context.packageName))
-        p0.itemView.layout_subitem.setBackgroundResource(
-                activity.applicationContext.resources.getIdentifier(subItemList[p1].photoId,
-                "drawable", activity.applicationContext.packageName))
+        if(subItemList[p1].photoId.isNotBlank())
+            ItemRepository.loadBackgroundPhoto(activity.applicationContext, p0.itemView.layout_subitem, subItemList[p1].photoId)
         if(subItemList[p1].isVisited){
             p0.itemView.subitem_icon_visited.visibility = View.VISIBLE
             p0.itemView.subitem_icon_visited.setBackgroundResource(android.R.drawable.checkbox_on_background)

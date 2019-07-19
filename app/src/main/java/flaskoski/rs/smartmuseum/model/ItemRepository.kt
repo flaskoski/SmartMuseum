@@ -1,5 +1,9 @@
 package flaskoski.rs.smartmuseum.model
 
+import android.content.Context
+import android.graphics.drawable.Drawable
+import android.view.View
+import android.widget.ImageView
 import androidx.databinding.ObservableBoolean
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.common.data.DataBufferObserver
@@ -9,6 +13,10 @@ import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
+import kotlinx.android.synthetic.main.grid_item.view.*
+import java.io.IOException
+import java.io.InputStream
+
 //import javax.inject.Inject
 //import javax.inject.Singleton
 
@@ -66,4 +74,34 @@ object ItemRepository //@Inject constructor
     fun resetRecommendedOrder() {
         itemList.forEach { it.recommendedOrder = Int.MAX_VALUE }
     }
+
+    fun loadImage(context: Context, imageView: ImageView, photoId: String) {
+        val ims = getInputStreamImage(context, photoId)
+        if(ims != null)
+            imageView.setImageDrawable(Drawable.createFromStream(ims,null))
+        else{
+            val identifier = context.resources.getIdentifier(photoId, "drawable",context.packageName)
+            if(identifier != 0)
+                imageView.setImageResource(identifier)
+        }
+    }
+
+    fun loadBackgroundPhoto(context: Context, view: View, photoId: String){
+        val ims = getInputStreamImage(context, photoId)
+        if(ims != null)
+            view.background = Drawable.createFromStream(ims,null)
+        else{
+            val identifier = context.resources.getIdentifier(photoId, "drawable",context.packageName)
+            if(identifier != 0)
+                view.setBackgroundResource(identifier)
+        }
+    }
+    private fun getInputStreamImage(context : Context, photoId : String) : InputStream? {
+        var extensions = listOf("jpg", "jpeg")
+        for(e in extensions)
+            try { return context.assets.open("${photoId}.${e}")
+            } catch (_: IOException) {}
+        return null
+    }
+
 }

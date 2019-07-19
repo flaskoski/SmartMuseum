@@ -20,6 +20,7 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private val requestGetPreferences: Int = 1
     private val requestItemRatingChange: Int = 2
+    var isFirstItem: Boolean = true
 
     private val TAG = "MainActivity"
 //    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
@@ -207,11 +209,16 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private fun updateNextItemCard() {
         view_next_item.lb_next_item_name.text = journeyManager.itemsList[0].title
         view_next_item.next_item_ratingBar.rating = journeyManager.itemsList[0].recommedationRating
-        view_next_item.next_item_img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
+        ItemRepository.loadImage(applicationContext, view_next_item.next_item_img_itemThumb, journeyManager.itemsList[0].photoId)
     }
 
     fun onClickNextItemOk(v : View){
         view_next_item.visibility = View.GONE
+        if(isFirstItem) {
+            Toast.makeText(applicationContext, "Siga a linha azul para chegar em seu próximo destino.",
+                    Toast.LENGTH_LONG).show()
+            isFirstItem = false
+        }
     }
 
     fun beginJourney(){

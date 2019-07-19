@@ -7,7 +7,7 @@
     android:id="@+id/layout_subitem"
     android:layout_width="120dp"
     android:layout_height="140dp"
-    android:layout_margin="1dp">
+    android:layout_margin="2dp">
 
     <androidx.appcompat.widget.AppCompatRatingBar
         android:id="@+id/subitem_ratingBar"
