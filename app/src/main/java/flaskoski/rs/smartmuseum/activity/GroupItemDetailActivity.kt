@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Html
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import android.view.MenuItem
@@ -76,7 +77,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
             if(it.photoId.isNotBlank())
                 ItemRepository.loadImage(applicationContext, imageView, it.photoId)
             else imageView.visibility = View.GONE
-            item_description.text = it.description
+            item_description.text = Html.fromHtml( it.description)
         }
     }
 
@@ -93,7 +94,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
     }
 
     fun rate(v : View){
-        //txt_rating.visibility = View.VISIBLE
+        lb_avalie.visibility = View.VISIBLE
         val index = starViews.indexOf(v)
         itemRating!!.rating = (index+1).toFloat()
         setStars(itemRating!!.rating)

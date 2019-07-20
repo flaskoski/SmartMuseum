@@ -18,7 +18,7 @@ class ItemDAO /*@Inject constructor*/(val db: FirebaseFirestore = FirebaseFirest
                     for (document in result) {
                         Log.d(TAG, document.id + " => " + document.data)
                         var item: Element
-                        item = when (document["type"]) {
+                        item = when (document["type"].toString().toLowerCase()) {
                             "item" -> document.toObject(Item::class.java)
                             "subitem" -> document.toObject(SubItem::class.java)
                             "groupitem" -> document.toObject(GroupItem::class.java)
