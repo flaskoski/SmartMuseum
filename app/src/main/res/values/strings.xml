@@ -12,23 +12,26 @@
     <string name="title_notifications">Notifications</string>
     <string name="title_activity_main2">Main2Activity</string>
     <string name="option_feature">Preferências</string>
-    <string name="rating1">Detestei!</string>
-    <string name="rating2">Não Gostei! </string>
-    <string name="rating3">Regular </string>
-    <string name="rating4">Gostei!</string>
-    <string name="rating5">Adorei!</string>
+    <string name="rating1">Não Gostei!</string>
+    <string name="rating2">Regular</string>
+    <string name="rating3">Gostei!</string>
+    <string name="rating4">Muito bom!</string>
+    <string name="rating5">Incrível!</string>
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBH2PIjB-Bkfch6NcvFSxbJ4RNIhYJeUYg</string>
     <string name="next_Attractions">Clique aqui para ver próximas atrações</string>
     <string name="cancelarRota">Recomeçar Visita</string>
-    <string name="lb_you_arrived">Você chegou ao próximo item. Clique aqui!</string>
+    <string name="lb_you_arrived">Você chegou à próxima atração. Clique aqui!</string>
     <string name="ok">OK</string>
     <string name="not_yet">Ainda Não</string>
-    <string name="lb_next_item">O próximo item da sua visita é:</string>
+    <string name="lb_next_item">A próxima atração da sua visita é:</string>
+    <string name="lb_next_item_with_rating_change">Sua rota recomendada foi atualizada! A próxima atração da sua visita é:</string>
     <string name="welcome_title">Bem-vindo(a) ao Parque CienTec!</string>
     <string name="welcome_message">Agora vamos usar suas informações para adaptar o passeio pensando no que você mais gosta. Vamos começar a visita?</string>
     <string name="finishJourney">Cancelar Visita</string>
-    <string name="other_subitems">Outros Itens</string>
-    <string name="recommended_subitems">Itens Recomendados</string>
-    <string name="lb_next_item_with_rating_change">Sua rota recomendada foi atualizada! O próximo item da sua visita é:</string>
+    <string name="other_subitems">Outras atrações</string>
+    <string name="recommended_subitems">Atrações Recomendadas</string>
     <string name="no">Não</string>
+    <string name="review_item_request">Por favor avalie o quanto você gostou dessa atração em relação às demais.</string>
+    <string name="question_next_item">Deseja ir à próxima atração da visita?</string>
+    <string name="follow_line">Siga a linha azul para chegar em seu próximo destino.</string>
 </resources>

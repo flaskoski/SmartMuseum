@@ -14,6 +14,8 @@ class GroupItemActivityViewModel : ViewModel(){
     val visitedSubItems = ArrayList<String>()
     var subItemListChangedListener : (() -> Unit)? = null
 
+    var itemRating : Rating? = null
+
     var arrived: Boolean = false
 
     var currentItem: GroupItem? = null

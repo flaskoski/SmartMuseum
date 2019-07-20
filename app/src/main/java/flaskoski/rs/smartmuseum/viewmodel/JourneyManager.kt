@@ -39,6 +39,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     var isGoToNextItem = MutableLiveData<Boolean>()
     var isJourneyFinishedFlag = MutableLiveData<Boolean>()
     var isJourneyBegan = MutableLiveData<Boolean>()
+
+    var showNextItem_okPressed = false
     var isCloseToItem = MutableLiveData<Boolean>()
 
     var isMapLoaded: Boolean = false
@@ -67,14 +69,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                 subItemList = ItemRepository.subItemList
 
                 recommendedRouteBuilder = RecommendedRouteBuilder(ItemRepository.allElements)
-                lastItem = getFirstItem()
-
                 buildRecommender()
-                recoverSavedRecommendedItems()
-                sortItemList()
-                setNextRecommendedDestination()
                 isItemsAndRatingsLoaded.value = true
-
             }
         }
     }
@@ -115,23 +111,6 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             isItemAndRatingListLoadedListener.onPropertyChanged(ItemRepository.isItemListLoaded, 0)
     }
 
-    fun recoverSavedRecommendedItems() {
-        sharedPreferences?.getAllRecommendedItemStatus()?.let {list->
-            if (list.isNotEmpty()) {
-                list.forEach{recommendedItem ->
-                    val item : Itemizable?
-                    if(recommendedItem is RoutableItem) {
-                        item = itemsList.find{it.id == recommendedItem.id}
-                        item?.recommendedOrder = recommendedItem.recommendedOrder
-                    }else item = ItemRepository.subItemList.find{it.id == recommendedItem.id}
-                    item?.isVisited= recommendedItem.isVisited
-
-                }
-                lastItem = getFirstItem()
-                //?: itemsList.filter { it.isVisited }.sortedWith(compareByDescending<Itemizable>{ (it as RoutableItem).recommendedOrder}).get(0)
-            }
-        }
-    }
 
     fun updateActivity(activity : Activity) {
         this.activity = activity
@@ -167,20 +146,6 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         itemListChangedListener?.invoke()
     }
 
-//    fun getNextClosestItem(): Point? {
-//        //TODO: Has to catch the closest entrance to the user
-//        if(this.museumGraph?.entrances == null) {
-//            Log.e(TAG, "no entrances found!")
-//            throw Exception("No entrances found in the graph!")
-//        }
-//
-//        lastItem = this.closestItem ?: museumGraph?.entrances?.first()
-//        lastItem?.isClosest = false
-//        closestItem = museumGraph?.getClosestItemTo(lastItem!!)
-//        closestItem?.isClosest = true
-//        return closestItem
-//    }
-
     override fun onUserArrivedToDestination() {
         isCloseToItem.value = true
     }
@@ -206,6 +171,15 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         isGoToNextItem.value = true
     }
 
+    fun recoverCurrentState() {
+        lastItem = getFirstItem()
+        recoverSavedRecommendedItems()
+        sortItemList()
+        setNextRecommendedDestination()
+    }
+
+
+
     /***
      * set app state with the information saved from the last time it was used if the user didn't finish the journey.
      * @return User saved
@@ -226,6 +200,23 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         return ApplicationProperties.user
     }
 
+    fun recoverSavedRecommendedItems() {
+        sharedPreferences?.getAllRecommendedItemStatus()?.let {list->
+            if (list.isNotEmpty()) {
+                list.forEach{recommendedItem ->
+                    val item : Itemizable?
+                    if(recommendedItem is RoutableItem) {
+                        item = itemsList.find{it.id == recommendedItem.id}
+                        item?.recommendedOrder = recommendedItem.recommendedOrder
+                    }else item = ItemRepository.subItemList.find{it.id == recommendedItem.id}
+                    item?.isVisited= recommendedItem.isVisited
+
+                }
+                lastItem = getFirstItem()
+                //?: itemsList.filter { it.isVisited }.sortedWith(compareByDescending<Itemizable>{ (it as RoutableItem).recommendedOrder}).get(0)
+            }
+        }
+    }
 
     private fun getRecommendedRoute() {
         if(recommendedRouteBuilder == null || lastItem == null) throw Exception("previous point is null. Did you instantiate RecommendedRouteBuilder?")
@@ -347,6 +338,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         isJourneyBegan.value = false
         isGoToNextItem.value = false
         isCloseToItem.value = false
+        showNextItem_okPressed = false
     }
 
     //TODO move to GroupItem class
@@ -364,10 +356,6 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             mapManager?.goToLocation(it)
 //            mapManager?.setDestination(nextItem!!, lastItem, LatLng(userLastKnowLocation.latitude, userLastKnowLocation.longitude))
         }
-
-    }
-
-    fun recoverCurrentState() {
 
     }
 

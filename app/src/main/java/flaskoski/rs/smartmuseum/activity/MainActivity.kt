@@ -130,12 +130,15 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     //Show next item card on screen
-    private val closeToItemIsChangedListener = Observer<Boolean> { isClose : Boolean -> if(isClose) {
-        view_next_item.lb_info.text = getString(R.string.lb_you_arrived)
-        view_next_item.visibility = View.VISIBLE
-        bt_ok.visibility = View.GONE
-        view_next_item.setOnClickListener { this.shareOnItemClicked(0, true) }
-    }}
+    private val closeToItemIsChangedListener = Observer<Boolean> { isClose : Boolean ->
+        if(isClose && journeyManager.showNextItem_okPressed) {
+            journeyManager.showNextItem_okPressed = false
+            view_next_item.lb_info.text = getString(R.string.lb_you_arrived)
+            view_next_item.visibility = View.VISIBLE
+            bt_ok.visibility = View.GONE
+            view_next_item.setOnClickListener { this.shareOnItemClicked(0, true) }
+        }
+    }
 
     private val preferencesSetListener = Observer<Boolean>{ preferencesSet : Boolean ->
         if(preferencesSet && !journeyManager.isJourneyBegan.value!!){
@@ -165,7 +168,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             val confirmationDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
             confirmationDialog.setTitle("Atenção")
                     .setIcon(R.drawable.baseline_done_black_24)
-                    .setMessage("""Você já visitou todos os itens recomendados para você dentro do seu tempo disponível. Obrigado pela visita!
+                    .setMessage("""Você já visitou todas as atrações recomendadas para você dentro do seu tempo disponível. Obrigado pela visita!
                         |Deseja continuar a usar o aplicativo para ver detalhes de mais itens?""".trimMargin())
                     .setPositiveButton(android.R.string.yes){_,_->}
                     .setNegativeButton(R.string.no){_,_ ->
@@ -193,9 +196,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }else lb_info.text = getString(R.string.lb_next_item)
 
         bt_ok.visibility = View.VISIBLE
+
         view_next_item.lb_next_item_name.text = journeyManager.itemsList[0].title
         view_next_item.next_item_ratingBar.rating = journeyManager.itemsList[0].recommedationRating
-        view_next_item.next_item_img_itemThumb.setImageResource(applicationContext.resources.getIdentifier(journeyManager.itemsList[0].photoId, "drawable", applicationContext.packageName))
+        ItemRepository.loadImage(applicationContext, view_next_item.next_item_img_itemThumb, journeyManager.itemsList[0].photoId)
         view_next_item.visibility = View.VISIBLE
         view_next_item.setOnClickListener{}
     }
@@ -213,12 +217,14 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     fun onClickNextItemOk(v : View){
+        journeyManager.showNextItem_okPressed = true
         view_next_item.visibility = View.GONE
         if(isFirstItem) {
-            Toast.makeText(applicationContext, "Siga a linha azul para chegar em seu próximo destino.",
+            Toast.makeText(applicationContext, getString(R.string.follow_line),
                     Toast.LENGTH_LONG).show()
             isFirstItem = false
         }
+        closeToItemIsChangedListener.onChanged(journeyManager.isCloseToItem.value)
     }
 
     fun beginJourney(){

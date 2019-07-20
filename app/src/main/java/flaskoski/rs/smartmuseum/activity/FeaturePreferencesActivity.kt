@@ -21,6 +21,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
+import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.util.ParseTime
 
 
@@ -91,7 +92,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
     private fun areFieldsCorrect(): Boolean {
         //No username
         if(txt_username.text.isBlank() || txt_hh.text.isBlank() || txt_mm.text.isBlank()){
-            Toast.makeText(applicationContext, "Campo em branco! Por favor, complete todos os campos.", Toast.LENGTH_SHORT).show()
+            Snackbar.make(bt_confirm, "Campo em branco! Por favor, complete todos os campos.", Snackbar.LENGTH_LONG).show()
 
             if(txt_username.text.isBlank())
                 txt_username.setError("Nome em branco!")

@@ -9,6 +9,7 @@ import androidx.appcompat.app.AlertDialog
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
+import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.ItemRepository
@@ -101,7 +102,7 @@ class ItemDetailActivity  : AppCompatActivity() {
             val confirmationDialog = AlertDialog.Builder(this@ItemDetailActivity, R.style.Theme_AppCompat_Dialog_Alert)
             confirmationDialog.setTitle("Atenção")
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setMessage("Deseja ir ao próximo item da visita?")
+                    .setMessage(getString(R.string.question_next_item))
                     .setPositiveButton(android.R.string.yes) { _, _ ->
                         goBack(true)
                     }.setNegativeButton(R.string.not_yet){ _, _ ->
@@ -115,10 +116,14 @@ class ItemDetailActivity  : AppCompatActivity() {
     }
 
     private fun goBack(goToNextItem : Boolean = false){
+        if(arrived && itemRating!!.rating == 0F) {
+            Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()
+            return
+        }
         val returnRatingIntent = Intent()
         if(isRatingChanged)
             returnRatingIntent.putExtra(ApplicationProperties.TAG_ITEM_RATING, itemRating)
-        if(arrived) returnRatingIntent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, goToNextItem)
+        if(arrived)returnRatingIntent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, goToNextItem)
         setResult(Activity.RESULT_OK, returnRatingIntent)
         finish()
     }

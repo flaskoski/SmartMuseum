@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.listAdapter.SubItemListAdapter
@@ -26,7 +27,6 @@ import kotlinx.android.synthetic.main.activity_item_detail.*
 class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShareSubItemClickListener{
 
     private val TAG = "ItemDetails"
-    private var itemRating : Rating? = null
     lateinit var starViews : List<ImageView>
     private val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
 
@@ -73,7 +73,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         setStars(rating)
         vm.currentItem?.let {
             supportActionBar?.title = it.title
-            itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating, it.recommedationRating, recommendationSystem = ApplicationProperties.recommendationSystem)
+            vm.itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating, it.recommedationRating, recommendationSystem = ApplicationProperties.recommendationSystem)
             if(it.photoId.isNotBlank())
                 ItemRepository.loadImage(applicationContext, imageView, it.photoId)
             else imageView.visibility = View.GONE
@@ -96,14 +96,14 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
     fun rate(v : View){
         lb_avalie.visibility = View.VISIBLE
         val index = starViews.indexOf(v)
-        itemRating!!.rating = (index+1).toFloat()
-        setStars(itemRating!!.rating)
+        vm.itemRating!!.rating = (index+1).toFloat()
+        setStars(vm.itemRating!!.rating)
         //Toast.makeText(applicationContext, ratingTexts[index], Toast.LENGTH_SHORT).show()
 
 
         ApplicationProperties.user?.id?.let {
-            itemRating!!.date = ParseTime.getCurrentTime()
-            RatingDAO().add(this!!.itemRating!!)
+            vm.itemRating!!.date = ParseTime.getCurrentTime()
+            RatingDAO().add(vm.itemRating!!)
 
         }
         vm.isRatingChanged = true
@@ -124,7 +124,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
             val confirmationDialog = AlertDialog.Builder(this@GroupItemDetailActivity, R.style.Theme_AppCompat_Dialog_Alert)
             confirmationDialog.setTitle("Atenção")
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setMessage("Deseja ir ao próximo item da visita?")
+                    .setMessage(getString(R.string.question_next_item))
                     .setPositiveButton(android.R.string.yes) { _, _ ->
                         goBack(true)
                     }.setNegativeButton(R.string.not_yet){ _, _ ->
@@ -138,11 +138,16 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
     }
 
     private fun goBack(goToNextItem : Boolean = false){
+        if(vm.arrived && vm.itemRating!!.rating == 0F) {
+            Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()
+            return
+        }
+
         val returnRatingIntent = Intent()
         if(vm.visitedSubItems.isNotEmpty())
             returnRatingIntent.putExtra(ApplicationProperties.TAG_VISITED_SUBITEMS, vm.visitedSubItems)
         if(vm.isRatingChanged)
-            returnRatingIntent.putExtra(ApplicationProperties.TAG_ITEM_RATING, itemRating)
+            returnRatingIntent.putExtra(ApplicationProperties.TAG_ITEM_RATING, vm.itemRating)
         if(vm.arrived){
             returnRatingIntent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, goToNextItem)
             returnRatingIntent.putExtra(ApplicationProperties.TAG_ARRIVED, true)
