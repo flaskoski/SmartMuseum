@@ -38,7 +38,7 @@ class ItemDetailActivity  : AppCompatActivity() {
         val extras = intent
         currentItem = extras.getSerializableExtra("itemClicked") as Itemizable?
         arrived = extras.getBooleanExtra("arrived", false)
-        val rating = extras.getFloatExtra(ApplicationProperties.TAG_ITEM_RATING, 0F)
+        val rating = extras.getFloatExtra(ApplicationProperties.TAG_ITEM_RATING_VALUE, 0F)
 
         //<--ItemDetails
         lb_recommended_items.visibility = View.GONE
@@ -52,7 +52,11 @@ class ItemDetailActivity  : AppCompatActivity() {
         setStars(rating)
         currentItem?.let {
             supportActionBar?.title = it.title
-            itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating, it.recommedationRating, recommendationSystem = ApplicationProperties.recommendationSystem)
+            itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating, it.recommedationRating,
+                    ApplicationProperties.recommendationSystem,
+                    ApplicationProperties.getCurrentVersion(applicationContext)!!,
+                    ApplicationProperties.user!!.location?.latitude,
+                    ApplicationProperties.user!!.location?.longitude)
             if(it.photoId.isNotBlank())
                 ItemRepository.loadImage(applicationContext, imageView, it.photoId)
             else imageView.visibility = View.GONE
@@ -121,8 +125,10 @@ class ItemDetailActivity  : AppCompatActivity() {
             return
         }
         val returnRatingIntent = Intent()
-        if(isRatingChanged)
-            returnRatingIntent.putExtra(ApplicationProperties.TAG_ITEM_RATING, itemRating)
+        if(isRatingChanged){
+            ItemRepository.saveRating(itemRating!!)
+            returnRatingIntent.putExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID, itemRating?.item)
+        }
         if(arrived)returnRatingIntent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, goToNextItem)
         setResult(Activity.RESULT_OK, returnRatingIntent)
         finish()

@@ -4,6 +4,12 @@ import android.os.Build
 import android.view.View
 import com.google.android.gms.maps.model.LatLng
 import flaskoski.rs.smartmuseum.model.User
+import android.content.pm.PackageManager
+import android.R.attr.versionName
+import android.content.Context
+import android.content.pm.PackageInfo
+import com.google.common.reflect.Reflection.getPackageName
+
 
 object ApplicationProperties {
     //Custom application constants
@@ -14,7 +20,8 @@ object ApplicationProperties {
     const val SOUTHERN_POINT : Double = -23.652896
 
     //technical constants
-    const val TAG_ITEM_RATING = "itemRating"
+    const val TAG_RATING_CHANGED_ITEM_ID = "ratingChangedItemId"
+    const val TAG_ITEM_RATING_VALUE = "itemRatingValue"
     const val TAG_GO_NEXT_ITEM = "nextItem"
     const val TAG_VISITED_SUBITEMS = "visitedSubItems"
     const val TAG_ARRIVED: String = "arrived"
@@ -44,5 +51,19 @@ object ApplicationProperties {
 
     fun resetConfigurations() {
         user = null
+    }
+    var currentVersion : String? = null
+    fun getCurrentVersion(context : Context) : String? {
+        currentVersion?.let { it }
+                ?: try {
+                    currentVersion = context.packageManager.getPackageInfo(context.packageName, 0).versionName
+                }
+                catch (e: PackageManager.NameNotFoundException) { e.printStackTrace() }
+        return currentVersion
+    }
+
+    var latestVersion : String? = null
+    fun getLatestVersion(){
+
     }
 }

@@ -34,9 +34,8 @@ class GroupItemActivityViewModel : ViewModel(){
 
     fun subItemVisitedResult(activity: Activity, data: Intent?) {
         if(data != null) {
-            val rating: Rating? = data.getSerializableExtra(ApplicationProperties.TAG_ITEM_RATING)?.let { it as Rating }
-            if (rating != null) {
-                ItemRepository.saveRating(rating)
+            val ratingChangedItemId: String? = data.getStringExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID)
+            if (ratingChangedItemId != null) {
                 isRatingChanged = true
             }
             if(arrived || currentItem!!.isVisited)

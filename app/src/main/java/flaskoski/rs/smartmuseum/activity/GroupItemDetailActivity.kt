@@ -45,7 +45,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
 
         val extras = intent
 //        subItems = extras.getSerializableExtra("subItems")?.let { it as List<Itemizable> }
-        val rating = extras.getFloatExtra("itemRating", 0F)
+        val rating = extras.getFloatExtra(ApplicationProperties.TAG_ITEM_RATING_VALUE, 0F)
 
         //<--GroupItem
         vm = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(GroupItemActivityViewModel::class.java)
@@ -73,7 +73,11 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         setStars(rating)
         vm.currentItem?.let {
             supportActionBar?.title = it.title
-            vm.itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating, it.recommedationRating, recommendationSystem = ApplicationProperties.recommendationSystem)
+            vm.itemRating = Rating(ApplicationProperties.user!!.id, it.id, rating, it.recommedationRating,
+                    ApplicationProperties.recommendationSystem,
+                    ApplicationProperties.getCurrentVersion(applicationContext)!!,
+                    ApplicationProperties.user!!.location?.latitude,
+                    ApplicationProperties.user!!.location?.longitude)
             if(it.photoId.isNotBlank())
                 ItemRepository.loadImage(applicationContext, imageView, it.photoId)
             else imageView.visibility = View.GONE
@@ -146,8 +150,11 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         val returnRatingIntent = Intent()
         if(vm.visitedSubItems.isNotEmpty())
             returnRatingIntent.putExtra(ApplicationProperties.TAG_VISITED_SUBITEMS, vm.visitedSubItems)
-        if(vm.isRatingChanged)
-            returnRatingIntent.putExtra(ApplicationProperties.TAG_ITEM_RATING, vm.itemRating)
+        if(vm.isRatingChanged){
+            ItemRepository.ratingList.remove(vm.itemRating)
+            ItemRepository.ratingList.add(vm.itemRating!!)
+            returnRatingIntent.putExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID, vm.itemRating?.item)
+        }
         if(vm.arrived){
             returnRatingIntent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, goToNextItem)
             returnRatingIntent.putExtra(ApplicationProperties.TAG_ARRIVED, true)
@@ -177,7 +184,8 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
 //        }
         vm.currentSubItem = subItem
         viewItemDetails.putExtra("itemClicked", vm.currentSubItem)
-        viewItemDetails.putExtra(ApplicationProperties.TAG_ITEM_RATING, ItemRepository.ratingList.find {vm.currentSubItem?.id == it.item && ApplicationProperties.user?.id == it.user}?.rating)
+        viewItemDetails.putExtra(ApplicationProperties.TAG_ITEM_RATING_VALUE, ItemRepository.ratingList.
+                find {vm.currentSubItem?.id == it.item && ApplicationProperties.user?.id == it.user}?.rating)
         ActivityCompat.startActivityForResult(this, viewItemDetails, REQUEST_SUBITEM_PAGE, null)
     }
 

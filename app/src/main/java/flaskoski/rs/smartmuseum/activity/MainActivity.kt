@@ -281,6 +281,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         viewItemDetails.putExtra("itemClicked",  journeyManager.itemsList[p1])
         //viewItemDetails.putExtra("subItems",  subItems)
         viewItemDetails.putExtra("itemRating",  itemRating)
+
+        ApplicationProperties.user?.let {
+            it.location = journeyManager.userLocationManager?.userLatLng
+        }?: Log.e(TAG, "gridItem(${p1})OnClick - user not defined!")
+
         if(p1 == 0 && journeyManager.isCloseToItem.value!!)
             viewItemDetails.putExtra(ApplicationProperties.TAG_ARRIVED, true)
         else viewItemDetails.putExtra(ApplicationProperties.TAG_ARRIVED, isArrived)

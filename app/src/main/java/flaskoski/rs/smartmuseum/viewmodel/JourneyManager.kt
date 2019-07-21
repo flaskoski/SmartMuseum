@@ -288,15 +288,13 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     }
 
     fun itemRatingChangeResult(data: Intent) {
-        val rating : Rating? = data.getSerializableExtra(ApplicationProperties.TAG_ITEM_RATING)?.let { it as Rating }
+        val ratingChangedItemId : String? = data.getStringExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID)
         val goToNextItem : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, false)
         val arrived : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_ARRIVED, false)
         val visitedSubItems : List<String>? =  data.getSerializableExtra(ApplicationProperties.TAG_VISITED_SUBITEMS)?.let { it as List<String> }
         if(arrived)
             visitedSubItems?.let { sharedPreferences?.setVisitedSubItems(it) }
-        if(rating != null) {//rating changed
-            ratingsList.remove(rating)
-            ratingsList.add(rating)
+        if(ratingChangedItemId != null) {
             updateRecommender()
             isRatingChanged = true
         }
@@ -312,15 +310,15 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             if(isJourneyFinished())
                 finishJourney()
             else {
-                if (rating != null)
+                if (ratingChangedItemId != null)
                     getRecommendedRoute()
                 sortItemList()
                 setNextRecommendedDestination()
             }
         }
         else
-            if(rating != null) {//rating changed from an item that is not the destination item
-                if(isJourneyBegan.value!! && rating.item != nextItem?.id){
+            if(ratingChangedItemId != null) {//rating changed from an item that is not the destination item
+                if(isJourneyBegan.value!! && ratingChangedItemId != nextItem?.id){
                     getRecommendedRoute()
                     sortItemList()
                     setNextRecommendedDestination()
