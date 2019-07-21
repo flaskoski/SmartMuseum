@@ -29,7 +29,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
         var totalCost = initialCost
         var count = 0
         //add most recommended Points (items or subItems' parents) that have not been visited yet (plus a min. time between items) until it reaches total available time
-        allItems.filter {!it.isVisited}.sortedByDescending { it.recommedationRating }.forEach{ item ->
+        allItems.filter {!it.isVisited && !it.isRemoved}.sortedByDescending { it.recommedationRating }.forEach{ item ->
             if(totalCost + item.timeNeeded + MIN_TIME_BETWEEN_ITEMS < timeAvailable){
                 totalCost += item.timeNeeded + MIN_TIME_BETWEEN_ITEMS
 //                 if(item is SubItem)
@@ -123,5 +123,10 @@ class RecommendedRouteBuilder(elements: Set<Element>){
         if(lat > SOUTHERN_POINT && lat < NORTHERN_POINT && lng > WESTERN_POINT && lng < EASTERN_POINT)
             return true
         return false
+    }
+
+    fun removeItemFromRoute(itemToBeRemoved: Item) {
+        itemToBeRemoved.isRemoved = true
+        itemToBeRemoved.recommendedOrder = Int.MAX_VALUE
     }
 }

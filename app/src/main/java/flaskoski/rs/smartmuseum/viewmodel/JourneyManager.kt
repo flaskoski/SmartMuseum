@@ -230,6 +230,16 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         sharedPreferences?.setAllRecommendedItems(itemsList.filter { it.recommendedOrder != Int.MAX_VALUE }, subItemList.filter { it.isRecommended })
     }
 
+    fun removeItemFromRoute(itemToBeRemoved: Item, callback: () -> Unit) {
+        recommendedRouteBuilder?.removeItemFromRoute(itemToBeRemoved)
+                ?: Log.e(TAG, "removeItemFromRoute - recommendedRouteBuilder is null")
+        sharedPreferences?.removeItem(itemToBeRemoved)
+                ?: Log.e(TAG, "removeItemFromRoute - sharedPreferences is null")
+        sortItemList()
+        setNextRecommendedDestination()
+        callback.invoke()
+    }
+
     fun setNextRecommendedDestination() {
         if(isMapLoaded) {
             nextItem = null

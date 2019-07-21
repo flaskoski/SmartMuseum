@@ -34,4 +34,5 @@
     <string name="review_item_request">Por favor avalie o quanto você gostou dessa atração em relação às demais.</string>
     <string name="question_next_item">Deseja ir à próxima atração da visita?</string>
     <string name="follow_line">Siga a linha azul para chegar em seu próximo destino.</string>
+    <string name="item_removed">Atração removida com sucesso!</string>
 </resources>

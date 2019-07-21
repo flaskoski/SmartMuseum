@@ -124,4 +124,11 @@ class SharedPreferencesDAO(activity : Activity){
             apply()
         }
     }
+
+    fun removeItem(itemToBeRemoved: Item) {
+        with(db.edit()){
+            remove("${ITEM_PREFIX}${itemToBeRemoved.id}_${itemToBeRemoved.recommendedOrder}")
+            apply()
+        }
+    }
 }

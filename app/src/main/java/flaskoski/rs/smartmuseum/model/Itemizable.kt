@@ -13,4 +13,5 @@ interface Itemizable : Element {
     var recommedationRating: Float
     var timeNeeded : Double
     var isVisited: Boolean
+    var isRemoved: Boolean
 }

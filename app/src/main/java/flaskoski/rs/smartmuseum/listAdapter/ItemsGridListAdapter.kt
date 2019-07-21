@@ -32,6 +32,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
         ItemRepository.loadImage(context, p0.itemView.img_itemThumb, itemsList[p1].photoId)
         //p0.itemView.ratingBar.rating = itemsList.get(p1).avgRating
 
+        //TODO grid item factory class with different grid items type classes
         if(itemsList[p1].isVisited) {
             p0.itemView.setBackgroundResource(R.color.colorVisitedItem)
             p0.itemView.icon_visited.setBackgroundResource(context.resources.getIdentifier("baseline_done_black_24",
@@ -41,6 +42,8 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
         else if(itemsList[p1].recommendedOrder != Int.MAX_VALUE){
             p0.itemView.setBackgroundResource(R.color.colorRecommendedItem)
             p0.itemView.icon_visited.visibility = View.GONE
+            p0.itemView.bt_remove_item.visibility = View.VISIBLE
+            p0.itemView.bt_remove_item.setImageResource(android.R.drawable.btn_dialog)
         }
         else{
             p0.itemView.setBackgroundResource(android.R.color.white)
@@ -60,6 +63,9 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
 //
 //            startActivity(context, viewItemDetails, null)
         }
+        p0.itemView.bt_remove_item.setOnClickListener{
+            mainActivityCallback.shareOnRemoveItemClicked(p1)
+        }
     }
 
     override fun onCreateViewHolder(p0: ViewGroup, viewType: Int): ItemViewHolder {
@@ -75,6 +81,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
 
     interface OnShareClickListener{
         fun shareOnItemClicked(p1 : Int, isArrived : Boolean = false)
+        fun shareOnRemoveItemClicked(p1 : Int)
     }
 }
 

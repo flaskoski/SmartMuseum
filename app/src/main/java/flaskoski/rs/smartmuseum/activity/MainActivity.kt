@@ -287,6 +287,21 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         startActivityForResult(viewItemDetails, requestItemRatingChange)
     }
 
+    override fun shareOnRemoveItemClicked(p1: Int) {
+        val confirmationDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
+        confirmationDialog.setTitle("Atenção")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setMessage("Tem certeza que deseja remover essa atração da sua rota recomendada?")
+                .setPositiveButton(android.R.string.yes) { _, _ ->
+                    journeyManager?.removeItemFromRoute(journeyManager.itemsList[p1]){
+                        Snackbar.make(sheet_next_items, getString(R.string.item_removed), Snackbar.LENGTH_SHORT).show()
+                    }
+                    view_next_item.visibility = View.GONE
+                }.setNegativeButton(android.R.string.no){ _, _ -> }
+        confirmationDialog.show()
+    }
+
+
     //-------------MAPS AND LOCATION----------------------------------------
 
     override fun onResume() {
