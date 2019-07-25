@@ -308,7 +308,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     journeyManager?.removeItemFromRoute(journeyManager.itemsList[p1]){
                         Snackbar.make(sheet_next_items, getString(R.string.item_removed), Snackbar.LENGTH_SHORT).show()
                     }
-                    view_next_item.visibility = View.GONE
+                   // view_next_item.visibility = View.GONE
                 }.setNegativeButton(android.R.string.no){ _, _ -> }
         confirmationDialog.show()
     }

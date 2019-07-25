@@ -120,7 +120,7 @@ class ItemDetailActivity  : AppCompatActivity() {
     }
 
     private fun goBack(goToNextItem : Boolean = false){
-        if(arrived && itemRating!!.rating == 0F) {
+        if(arrived && !goToNextItem && itemRating!!.rating == 0F) {
             Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()
             return
         }
