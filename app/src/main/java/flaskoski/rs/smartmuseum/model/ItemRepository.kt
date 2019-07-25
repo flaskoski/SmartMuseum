@@ -39,8 +39,8 @@ object ItemRepository //@Inject constructor
 //            lastItem = recommendedRouteBuilder?.getAllEntrances()?.first()
 //            @Suppress("UNCHECKED_CAST")
             allElements = elements as HashSet<Element>
-            itemList.addAll(elements.filter { it is Item || it is GroupItem }.let {list -> list  as List<Item>})
-            subItemList.addAll(elements.filter { it is SubItem}.let {list -> list as List<SubItem> } )
+            itemList.addAll(elements.filter { (it is Item || it is GroupItem) && !(it as Itemizable).isClosed }.let {list -> list  as List<Item>})
+            subItemList.addAll(elements.filter { it is SubItem && !it.isClosed}.let {list -> list as List<SubItem> } )
             isItemListLoaded.set(true)
         }
         val ratingDAO = RatingDAO()
@@ -49,6 +49,7 @@ object ItemRepository //@Inject constructor
             isRatingListLoaded.set(true)
         }
     }
+
     fun saveRating(rating : Rating){
         ratingList.remove(rating)
         ratingList.add(rating)

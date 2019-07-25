@@ -4,22 +4,24 @@ import android.content.Context
 import flaskoski.rs.smartmuseum.model.Rating
 import net.librec.conf.Configuration
 import flaskoski.rs.smartmuseum.recommender.RSCustomConvertor.NioFreeTextDataModel
+import net.librec.recommender.AbstractRecommender
 import net.librec.recommender.Recommender
 import net.librec.recommender.RecommenderContext
+import net.librec.recommender.cf.ItemKNNRecommender
 import net.librec.recommender.cf.UserKNNRecommender
 import net.librec.similarity.CosineSimilarity
 import java.util.HashSet
 
 class RecommenderBuilder{
 
-    private var recommender : Recommender? = null
+    private var recommender : AbstractRecommender? = null
     private lateinit var knn : String
     private var useRanking: Boolean = false
     private val TAG = "RecommenderBuilder"
 
     fun buildKNNRecommender(ratings: Set<Rating>,
                             knn: Int =  4,
-                            useRanking: Boolean = false) : Recommender{
+                            useRanking: Boolean = false) : AbstractRecommender{
         this.knn = knn.toString()
         this.useRanking = useRanking
 

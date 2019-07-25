@@ -14,4 +14,5 @@ interface Itemizable : Element {
     var timeNeeded : Double
     var isVisited: Boolean
     var isRemoved: Boolean
+    var isClosed: Boolean
 }

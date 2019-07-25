@@ -20,7 +20,8 @@ open class Item(id: String = "",
            override var recommendedOrder : Int = Int.MAX_VALUE,
            //var contentUri: String = "",
            override var isVisited: Boolean = false,
-           override var isRemoved: Boolean = false) : RoutableItem, Point(id, lat, lng, isEntrance, isExit){
+           override var isRemoved: Boolean = false,
+           override var isClosed: Boolean = false) : RoutableItem, Point(id, lat, lng, isEntrance, isExit){
 
 
     override fun toString(): String {

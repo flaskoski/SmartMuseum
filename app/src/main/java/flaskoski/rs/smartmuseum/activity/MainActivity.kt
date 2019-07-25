@@ -28,7 +28,9 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.databinding.ActivityMainBinding
 import flaskoski.rs.smartmuseum.model.GroupItem
 import flaskoski.rs.smartmuseum.model.ItemRepository
+import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
+import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.next_item.*
 import kotlinx.android.synthetic.main.next_item.view.*
@@ -127,6 +129,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 //                }
         }
 
+        if(!NetworkVerifier().isNetworkAvailable(applicationContext))
+            AlertBuider().showNetworkDisconnected(this@MainActivity)
     }
 
     //Show next item card on screen
@@ -239,6 +243,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if(!NetworkVerifier().isNetworkAvailable(applicationContext))
+            AlertBuider().showNetworkDisconnected(this@MainActivity)
+
         if (resultCode == RESULT_OK && data != null) {
             loading_view.visibility = View.VISIBLE
 

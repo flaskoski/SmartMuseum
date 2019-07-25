@@ -22,6 +22,7 @@ import android.text.TextWatcher
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
 import com.google.android.material.snackbar.Snackbar
+import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import flaskoski.rs.smartmuseum.util.ParseTime
 
 
@@ -33,11 +34,15 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
     private var allFeaturesRated : Boolean = false
 
 
+    private lateinit var internetConnectionWarning: Snackbar
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(flaskoski.rs.smartmuseum.R.layout.activity_feature_preferences)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Preferências"
+
+        internetConnectionWarning = Snackbar.make(bt_confirm, "Conexão com a internet não encontrada. Por favor verifique sua conexão!", Snackbar.LENGTH_LONG)
 
         featureList.add(Feature("Física", "O que é eletricidade e como ela funciona"))
         featureList.add(Feature("Química", "A água é composta de dois átomos de hidrogênio e um de oxigênio"))
@@ -74,19 +79,22 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             txt_mm.setText((ApplicationProperties.user!!.timeAvailable%60).toInt().toString())
         }
 
+        if(!NetworkVerifier().isNetworkAvailable(applicationContext))
+            internetConnectionWarning.show()
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                saveFeaturePreferences(txt_username)
+                saveFeaturePreferences()
             }
         }
         return super.onOptionsItemSelected(item)
     }
 
     override fun onBackPressed() {
-       saveFeaturePreferences(txt_username)
+       saveFeaturePreferences()
     }
 
     private fun areFieldsCorrect(): Boolean {
@@ -103,13 +111,19 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             return false
         }
         if(!allFeaturesRated){
-            Toast.makeText(applicationContext, "Por favor, informe seu nível de interesse para cada frase antes de avançar.", Toast.LENGTH_LONG).show()
+            Snackbar.make(bt_confirm, "Por favor, informe seu nível de interesse para cada frase antes de avançar.", Snackbar.LENGTH_LONG).show()
             return false
         }
         return true
     }
 
-    fun saveFeaturePreferences(v : View) {
+    fun checkInternetAndSave(v : View){
+        if(!NetworkVerifier().isNetworkAvailable(applicationContext))
+            internetConnectionWarning.show()
+        else saveFeaturePreferences()
+    }
+
+    fun saveFeaturePreferences() {
 
         if(!areFieldsCorrect()) return
 

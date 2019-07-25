@@ -16,4 +16,5 @@ class SubItem(
         override var recommedationRating: Float = 3f,
         override var timeNeeded: Double = 5.0,
         override var isVisited: Boolean = false,
-        override var isRemoved: Boolean = false) : Itemizable, Serializable
+        override var isRemoved: Boolean = false,
+        override var isClosed: Boolean = false) : Itemizable, Serializable
