@@ -6,6 +6,10 @@
         android:title="@string/option_feature"
         />
     <item
+        android:id="@+id/option_questionnaire"
+        android:title="@string/option_questionario"
+        />
+    <item
         android:id="@+id/option_restart"
         android:title="@string/cancelarRota"
         />

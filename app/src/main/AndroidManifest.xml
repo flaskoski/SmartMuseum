@@ -13,6 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".activity.FeaturePreferencesActivity"></activity>
+        <activity android:name=".activity.QuestionnaireActivity"></activity>
         <activity android:name=".activity.GroupItemDetailActivity"></activity>
         <activity android:name=".activity.ItemDetailActivity">
         </activity>

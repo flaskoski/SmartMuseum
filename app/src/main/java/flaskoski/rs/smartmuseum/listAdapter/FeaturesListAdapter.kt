@@ -16,7 +16,8 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import kotlinx.android.synthetic.main.feature_item.view.*
 
-class FeaturesListAdapter(private val featuresList: List<Feature>, private val context: Context, val onRatingsCompletedCallback: OnShareClickListener) : RecyclerView.Adapter<FeaturesListAdapter.ItemViewHolder>() {
+class FeaturesListAdapter(isFeaturePreferences : Boolean = true, private val featuresList: List<Feature>, private val context: Context,
+                          val onRatingsCompletedCallback: OnShareClickListener) : RecyclerView.Adapter<FeaturesListAdapter.ItemViewHolder>(){
     var ratingsChanged : Boolean = false
     private var featuresRated = 0
     init{
@@ -27,19 +28,20 @@ class FeaturesListAdapter(private val featuresList: List<Feature>, private val c
             featureNames.add(feature.id)
         }
         //look for feature ratings on db and update
-        ApplicationProperties.user?.id?.let {userId ->
-            RatingDAO().getAllFromUserByType(userId, Rating.TYPE_FEATURE) {featureRatings ->
-                Toast.makeText(context, "Carregando valores...", Toast.LENGTH_SHORT)
-                for(rating in featureRatings){
-                    featuresList.find{ i -> i.id == rating.item }.let { feature ->
-                        feature?.rating = rating.rating
-                        featuresRated++
+        if(isFeaturePreferences)
+            ApplicationProperties.user?.id?.let {userId ->
+                RatingDAO().getAllFromUserByType(userId, Rating.TYPE_FEATURE) {featureRatings ->
+                    Toast.makeText(context, "Carregando valores...", Toast.LENGTH_SHORT).show()
+                    for(rating in featureRatings){
+                        featuresList.find{ i -> i.id == rating.item }.let { feature ->
+                            feature?.rating = rating.rating
+                            featuresRated++
+                        }
                     }
+                    notifyDataSetChanged()
+                    checkIfRatingsCompletedAndSetFlag()
                 }
-                notifyDataSetChanged()
-                checkIfRatingsCompletedAndSetFlag()
             }
-        }
     }
 
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){

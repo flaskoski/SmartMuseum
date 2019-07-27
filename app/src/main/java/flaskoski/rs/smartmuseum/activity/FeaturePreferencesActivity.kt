@@ -50,7 +50,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         featureList.add(Feature("Geologia", "O granito é um tipo de rocha que se origina de magma como o expelido por vulcões"))
         featureList.add(Feature("Biologia", "A bactéria é um tipo de célula e está presente em quase todos os lugares da terra"))
 
-        val adapter = FeaturesListAdapter(featureList, applicationContext, this)
+        val adapter = FeaturesListAdapter(true, featureList, applicationContext, this)
         list_features.layoutManager = LinearLayoutManager(applicationContext)
         list_features.adapter = adapter
 
