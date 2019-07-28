@@ -6,7 +6,7 @@ import flaskoski.rs.smartmuseum.model.User
 
 class UserDAO//(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
 //    private val TAG = "RatingDAO"
-//    private var name : String = ""
+//    private var age : String = ""
 //
 //    fun add(user: User) {
 //        db.collection("ratings")
@@ -31,12 +31,12 @@ class UserDAO//(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
 //    }
 //
 //    private fun restoreName(user: User) {
-//        user.name = name
+//        user.age = age
 //    }
 //
 //    private fun removeName(user: User) {
-//        name = user.name
-//        user.name = ""
+//        age = user.age
+//        user.age = ""
 //    }
 //
 //}

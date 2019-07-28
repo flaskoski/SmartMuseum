@@ -9,7 +9,7 @@ import java.util.*
 
 class SharedPreferencesDAO(activity : Activity){
     val USER_ID = "userId"
-    val USER_NAME = "userName"
+    val USER_AGE = "userAge"
     val START_TIME = "startTime"
     val TIME_AVAILABLE = "timeAvailable"
     private val ITEM_PREFIX = "item_"
@@ -23,7 +23,7 @@ class SharedPreferencesDAO(activity : Activity){
     fun saveUser(user : User){
         with(db.edit()){
             putString(USER_ID, user.id)
-            putString(USER_NAME, user.name)
+            putInt(USER_AGE, user.age)
             putFloat(TIME_AVAILABLE, user.timeAvailable.toFloat())
 
             apply()
@@ -32,10 +32,10 @@ class SharedPreferencesDAO(activity : Activity){
 
     fun getUser(): User? {
         var userId = db.getString(USER_ID, "")
-        var userName = db.getString(USER_NAME, "")
+        var userAge = db.getInt(USER_AGE, -1)
         var userTimeAvailable = db.getFloat(TIME_AVAILABLE, -1f).toDouble()
         if(userId.isNotBlank() && userTimeAvailable > 0)
-            return User(userId, userName, userTimeAvailable)
+            return User(userId, userAge, userTimeAvailable)
         return null
     }
 

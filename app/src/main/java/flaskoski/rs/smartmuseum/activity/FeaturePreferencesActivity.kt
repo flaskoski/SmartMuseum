@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.listAdapter.FeaturesListAdapter
 import flaskoski.rs.smartmuseum.model.Feature
@@ -67,14 +66,14 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 
         txt_hh.addTextChangedListener(object : TextWatcher{
             override fun afterTextChanged(p0: Editable?) {
-                if(txt_hh.text.toString().length > 0)
+                if(txt_hh.text.isNotEmpty())
                     txt_mm.requestFocus()
             }
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
 
         if(!ApplicationProperties.userNotDefinedYet()){
-            txt_username.setText(ApplicationProperties.user?.name)
+            txt_user_age.setText(ApplicationProperties.user?.age.toString())
             txt_hh.setText((ApplicationProperties.user!!.timeAvailable/60.0).toInt().toString())
             txt_mm.setText((ApplicationProperties.user!!.timeAvailable%60).toInt().toString())
         }
@@ -99,11 +98,11 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 
     private fun areFieldsCorrect(): Boolean {
         //No username
-        if(txt_username.text.isBlank() || txt_hh.text.isBlank() || txt_mm.text.isBlank()){
+        if(txt_user_age.text.isBlank() || txt_hh.text.isBlank() || txt_mm.text.isBlank()){
             Snackbar.make(bt_confirm, "Campo em branco! Por favor, complete todos os campos.", Snackbar.LENGTH_LONG).show()
 
-            if(txt_username.text.isBlank())
-                txt_username.setError("Nome em branco!")
+            if(txt_user_age.text.isBlank())
+                txt_user_age.setError("Idade em branco!")
             if(txt_hh.text.isBlank())
                 txt_hh.setError("Horas em branco!")
             if(txt_mm.text.isBlank())
@@ -123,16 +122,16 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         else saveFeaturePreferences()
     }
 
-    fun saveFeaturePreferences() {
+    private fun saveFeaturePreferences() {
 
         if(!areFieldsCorrect()) return
 
         //username informed
         if(ApplicationProperties.userNotDefinedYet())
             saveCurrentUser()
-        //username already exists -> update name and keep id
+        //username already exists -> update age and keep id
         else {
-            ApplicationProperties.user!!.name = txt_username.text.toString()
+            ApplicationProperties.user!!.age = txt_user_age.text.toString().toInt()
             ApplicationProperties.user!!.timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
         }
 
@@ -162,7 +161,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 
     private fun saveCurrentUser() {
         val timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
-        ApplicationProperties.user = User(UUID.randomUUID().toString(), txt_username.text.toString(), timeAvailable)
+        ApplicationProperties.user = User(UUID.randomUUID().toString(), txt_user_age.text.toString().toInt(), timeAvailable)
     }
 
     override fun onRatingsCompleted() {
