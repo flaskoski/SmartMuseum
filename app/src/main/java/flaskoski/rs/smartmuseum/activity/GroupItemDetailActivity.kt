@@ -32,7 +32,9 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
 
     private lateinit var recommendedSubItemsAdapter: SubItemListAdapter
     private lateinit var otherSubItemsAdapter: SubItemListAdapter
-
+    companion object {
+        val EXTRA_IS_SUBITEM = "isSubitem"
+    }
     private lateinit var vm: GroupItemActivityViewModel
 
     private val REQUEST_SUBITEM_PAGE: Int = 3
@@ -103,13 +105,12 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         vm.itemRating!!.rating = (index+1).toFloat()
         setStars(vm.itemRating!!.rating)
         //Toast.makeText(applicationContext, ratingTexts[index], Toast.LENGTH_SHORT).show()
-
-
         ApplicationProperties.user?.id?.let {
             vm.itemRating!!.date = ParseTime.getCurrentTime()
             RatingDAO().add(vm.itemRating!!)
 
         }
+        ItemRepository.saveRating(vm.itemRating!!)
         vm.isRatingChanged = true
     }
 
@@ -142,7 +143,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
     }
 
     private fun goBack(goToNextItem : Boolean = false){
-        if(vm.arrived && vm.itemRating!!.rating == 0F) {
+        if(vm.arrived && goToNextItem &&  vm.itemRating!!.rating == 0F) {
             Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()
             return
         }
@@ -151,8 +152,6 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         if(vm.visitedSubItems.isNotEmpty())
             returnRatingIntent.putExtra(ApplicationProperties.TAG_VISITED_SUBITEMS, vm.visitedSubItems)
         if(vm.isRatingChanged){
-            ItemRepository.ratingList.remove(vm.itemRating)
-            ItemRepository.ratingList.add(vm.itemRating!!)
             returnRatingIntent.putExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID, vm.itemRating?.item)
         }
         if(vm.arrived){
@@ -184,6 +183,8 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
 //        }
         vm.currentSubItem = subItem
         viewItemDetails.putExtra("itemClicked", vm.currentSubItem)
+        viewItemDetails.putExtra(ApplicationProperties.TAG_ARRIVED, vm.arrived)
+        viewItemDetails.putExtra(EXTRA_IS_SUBITEM, true)
         viewItemDetails.putExtra(ApplicationProperties.TAG_ITEM_RATING_VALUE, ItemRepository.ratingList.
                 find {vm.currentSubItem?.id == it.item && ApplicationProperties.user?.id == it.user}?.rating)
         ActivityCompat.startActivityForResult(this, viewItemDetails, REQUEST_SUBITEM_PAGE, null)

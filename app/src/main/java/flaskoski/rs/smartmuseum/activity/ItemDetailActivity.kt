@@ -29,6 +29,8 @@ class ItemDetailActivity  : AppCompatActivity() {
     private val ratingTexts = listOf(R.string.rating1, R.string.rating2, R.string.rating3, R.string.rating4, R.string.rating5)
     private var arrived: Boolean = false
 
+    private var isSubitem: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_item_detail)
@@ -38,6 +40,7 @@ class ItemDetailActivity  : AppCompatActivity() {
         val extras = intent
         currentItem = extras.getSerializableExtra("itemClicked") as Itemizable?
         arrived = extras.getBooleanExtra("arrived", false)
+        isSubitem = extras.getBooleanExtra(GroupItemDetailActivity.EXTRA_IS_SUBITEM, false)
         val rating = extras.getFloatExtra(ApplicationProperties.TAG_ITEM_RATING_VALUE, 0F)
 
         //<--ItemDetails
@@ -48,7 +51,7 @@ class ItemDetailActivity  : AppCompatActivity() {
         separator_lists.visibility = View.GONE
         //-->
 
-        if(!arrived) bt_next_item.visibility = View.GONE
+        if(!arrived || isSubitem) bt_next_item.visibility = View.GONE
         setStars(rating)
         currentItem?.let {
             supportActionBar?.title = it.title
@@ -102,7 +105,7 @@ class ItemDetailActivity  : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if(arrived){
+        if(arrived && !isSubitem){
             val confirmationDialog = AlertDialog.Builder(this@ItemDetailActivity, R.style.Theme_AppCompat_Dialog_Alert)
             confirmationDialog.setTitle("Atenção")
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -120,7 +123,7 @@ class ItemDetailActivity  : AppCompatActivity() {
     }
 
     private fun goBack(goToNextItem : Boolean = false){
-        if(arrived && !goToNextItem && itemRating!!.rating == 0F) {
+        if(arrived && (goToNextItem || isSubitem)  && itemRating!!.rating == 0F) {
             Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()
             return
         }
