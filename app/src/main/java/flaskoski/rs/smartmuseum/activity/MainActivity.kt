@@ -130,6 +130,16 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 //                }
         }
 
+        ApplicationProperties.checkForUpdates(ApplicationProperties.getCurrentVersionCode(applicationContext)){isThereUpdates ->
+            if(isThereUpdates)
+                if(ApplicationProperties.checkIfForceUpdateIsOn() == true)
+                    AlertBuider().showUpdateRequired(this@MainActivity){
+                        finish()
+                    }
+                else{
+                    AlertBuider().showUpdateAvailable(this@MainActivity)
+                }
+        }
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))
             AlertBuider().showNetworkDisconnected(this@MainActivity)
     }

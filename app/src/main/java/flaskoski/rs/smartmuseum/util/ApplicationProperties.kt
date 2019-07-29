@@ -2,13 +2,13 @@ package flaskoski.rs.smartmuseum.util
 
 import android.os.Build
 import android.view.View
-import com.google.android.gms.maps.model.LatLng
 import flaskoski.rs.smartmuseum.model.User
 import android.content.pm.PackageManager
-import android.R.attr.versionName
 import android.content.Context
-import android.content.pm.PackageInfo
-import com.google.common.reflect.Reflection.getPackageName
+import androidx.core.content.pm.PackageInfoCompat
+import flaskoski.rs.smartmuseum.DAO.ConfigurationsDAO
+import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.model.Configurations
 
 
 object ApplicationProperties {
@@ -28,6 +28,7 @@ object ApplicationProperties {
     const val USER_LOCATION_ITEM_ID: String = "userLocation"
     const val SYSTEM_USER_BASED = "user_based"
 
+    var updateConfigurations : Configurations? = null
     var user : User? = null
     val recommendationSystem: String = SYSTEM_USER_BASED
 
@@ -51,7 +52,8 @@ object ApplicationProperties {
     fun resetConfigurations() {
         user = null
     }
-    var currentVersion : String? = null
+    private var currentVersion : String? = null
+    private var currentVersionCode: Long = 0
     fun getCurrentVersion(context : Context) : String? {
         currentVersion?.let { it }
                 ?: try {
@@ -61,8 +63,25 @@ object ApplicationProperties {
         return currentVersion
     }
 
-    var latestVersion : String? = null
-    fun getLatestVersion(){
-
+    fun getCurrentVersionCode(context: Context): Long {
+        if(currentVersionCode.toInt() == 0)
+            try{currentVersionCode =  PackageInfoCompat.getLongVersionCode(context.packageManager.getPackageInfo(context.packageName, 0)) }
+            catch (e: Exception) { e.printStackTrace() }
+        return currentVersionCode
     }
+
+    fun checkForUpdates(currentVersion: Long, callback: (isThereUpdates : Boolean) -> Unit){
+        if(updateConfigurations == null)
+            ConfigurationsDAO().getUpdates(){
+                updateConfigurations = it
+                callback(updateConfigurations?.latestVersion?:-1 > currentVersion)
+            }
+        else callback(updateConfigurations!!.latestVersion > currentVersion)
+    }
+
+    fun checkIfForceUpdateIsOn(): Boolean? {
+        return updateConfigurations?.forceUpdate
+    }
+
+
 }

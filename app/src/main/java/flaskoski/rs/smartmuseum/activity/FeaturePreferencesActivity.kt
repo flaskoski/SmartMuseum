@@ -73,12 +73,23 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
 
-        if(!ApplicationProperties.userNotDefinedYet()){
+        if(ApplicationProperties.userNotDefinedYet())
+            ApplicationProperties.checkForUpdates(ApplicationProperties.getCurrentVersionCode(applicationContext)){isThereUpdates ->
+                if(isThereUpdates)
+                    if(ApplicationProperties.checkIfForceUpdateIsOn() == true)
+                        AlertBuider().showUpdateRequired(this@FeaturePreferencesActivity){
+                            finish()
+                        }
+                    else{
+                        AlertBuider().showUpdateAvailable(this@FeaturePreferencesActivity)
+                    }
+            }
+        else {
             txt_user_age.setText(ApplicationProperties.user?.age.toString())
-            txt_hh.setText((ApplicationProperties.user!!.timeAvailable/60.0).toInt().toString())
-            txt_mm.setText((ApplicationProperties.user!!.timeAvailable%60).toInt().toString())
+            txt_hh.setText((ApplicationProperties.user!!.timeAvailable / 60.0).toInt().toString())
+            txt_mm.setText((ApplicationProperties.user!!.timeAvailable % 60).toInt().toString())
         }
-
+        
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))
             internetConnectionWarning.show()
 
