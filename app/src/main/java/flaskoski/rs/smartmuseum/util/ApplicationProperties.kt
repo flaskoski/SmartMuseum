@@ -32,7 +32,6 @@ object ApplicationProperties {
     val recommendationSystem: String = SYSTEM_USER_BASED
 
     fun userNotDefinedYet(): Boolean {
-        //TODO check db if there is a current user
         return user == null
     }
 

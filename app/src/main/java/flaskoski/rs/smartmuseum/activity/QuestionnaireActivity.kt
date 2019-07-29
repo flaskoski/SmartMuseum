@@ -89,7 +89,8 @@ class QuestionnaireActivity : AppCompatActivity(), FeaturesListAdapter.OnShareCl
         //save ratings
         ApplicationProperties.user?.id?.let {
             for(feature in questionList) {
-                var rating = Rating(it, feature.id, feature.rating, 0F, Rating.TYPE_FEATURE, ApplicationProperties.recommendationSystem)
+                var rating = Rating(it, feature.id, feature.rating, 0F, ApplicationProperties.recommendationSystem,
+                        ApplicationProperties.getCurrentVersion(applicationContext)?.let { it}?:"", type = Rating.TYPE_FEATURE)
 
                 if((list_questions.adapter as FeaturesListAdapter).ratingsChanged) {
                     rating.date = ParseTime.getCurrentTime()

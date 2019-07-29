@@ -17,31 +17,25 @@ import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import kotlinx.android.synthetic.main.feature_item.view.*
 
 class FeaturesListAdapter(isFeaturePreferences : Boolean = true, private val featuresList: List<Feature>, private val context: Context,
-                          val onRatingsCompletedCallback: OnShareClickListener) : RecyclerView.Adapter<FeaturesListAdapter.ItemViewHolder>(){
+                          private val onRatingsCompletedCallback: OnShareClickListener) : RecyclerView.Adapter<FeaturesListAdapter.ItemViewHolder>(){
     var ratingsChanged : Boolean = false
     private var featuresRated = 0
     init{
         featuresRated = 0
-        //get feature names
-        val featureNames = ArrayList<String>()
-        for(feature in featuresList){
-            featureNames.add(feature.id)
-        }
         //look for feature ratings on db and update
-        if(isFeaturePreferences)
-            ApplicationProperties.user?.id?.let {userId ->
-                RatingDAO().getAllFromUserByType(userId, Rating.TYPE_FEATURE) {featureRatings ->
-                    Toast.makeText(context, "Carregando valores...", Toast.LENGTH_SHORT).show()
-                    for(rating in featureRatings){
-                        featuresList.find{ i -> i.id == rating.item }.let { feature ->
-                            feature?.rating = rating.rating
-                            featuresRated++
-                        }
+        ApplicationProperties.user?.id?.let {userId ->
+            RatingDAO().getAllFromUserByType(userId, Rating.TYPE_FEATURE, isFeaturePreferences) {featureRatings ->
+                Toast.makeText(context, "Carregando valores...", Toast.LENGTH_SHORT).show()
+                for(rating in featureRatings){
+                    featuresList.find{ i -> i.id == rating.item }.let { feature ->
+                        feature?.rating = rating.rating
+                        featuresRated++
                     }
-                    notifyDataSetChanged()
-                    checkIfRatingsCompletedAndSetFlag()
                 }
+                notifyDataSetChanged()
+                checkIfRatingsCompletedAndSetFlag()
             }
+        }
     }
 
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
@@ -83,14 +77,14 @@ class FeaturesListAdapter(isFeaturePreferences : Boolean = true, private val fea
             checkIfRatingsCompletedAndSetFlag()
         }
 
-        p0.itemView.txt_featureName.text = featuresList.get(p1).description
+        p0.itemView.txt_featureName.text = featuresList[p1].description
         starViews.forEach{ star ->
             star.setImageResource(android.R.drawable.btn_star_big_off)
             star.setOnClickListener(rate)
         }
 
         if( isRatingAlreadySet(p1))
-            rate(starViews.get((featuresList.get(p1).rating-1).toInt()))
+            rate(starViews.get((featuresList[p1].rating-1).toInt()))
 
 
     }

@@ -122,8 +122,8 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         return this
     }
 
-    fun goToLocation(location: Location) : MapManager {
-        mMap?.animateCamera(CameraUpdateFactory.newLatLng(LatLng(location.latitude, location.longitude)))
+    fun goToLocation(location: LatLng) : MapManager {
+        mMap?.animateCamera(CameraUpdateFactory.newLatLng(location))
         return this
     }
 }

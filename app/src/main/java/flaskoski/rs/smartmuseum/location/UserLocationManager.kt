@@ -48,14 +48,15 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
         createLocationRequest()
     }
 
-    val userLastKnownLocation : Location?
+    val userLastKnownLocation : LatLng?
         get() {
             activity?.let {activity->
                 if (ActivityCompat.checkSelfPermission(activity.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
                     return null
                 }
-                return locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                val location = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                return location?.let{ LatLng(it.latitude, it.longitude) }
             }
             return null
         }

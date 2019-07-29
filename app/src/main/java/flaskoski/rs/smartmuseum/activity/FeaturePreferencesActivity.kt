@@ -21,6 +21,7 @@ import android.text.TextWatcher
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
 import com.google.android.material.snackbar.Snackbar
+import flaskoski.rs.smartmuseum.DAO.UserDAO
 import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import flaskoski.rs.smartmuseum.util.ParseTime
 
@@ -122,6 +123,21 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         else saveFeaturePreferences()
     }
 
+    private fun addFeatureRatingsToDB(userId : String, featureId : String, featureRating : Float): Rating {
+        //var ratings = ArrayList<Rating>()
+        var rating = Rating(userId, featureId, featureRating, 0F, ApplicationProperties.recommendationSystem,
+                ApplicationProperties.getCurrentVersion(applicationContext)?.let { it}?:"", type = Rating.TYPE_FEATURE)
+
+        if((list_features.adapter as FeaturesListAdapter).ratingsChanged) {
+            rating.date = ParseTime.getCurrentTime()
+            db.add(rating) //needs an addAll function
+        }
+
+       // ratings.add(rating)
+        Log.i(TAG, "$rating added to ratings!")
+        return rating
+    }
+
     private fun saveFeaturePreferences() {
 
         if(!areFieldsCorrect()) return
@@ -138,17 +154,11 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         var ratings = ArrayList<Rating>()
         //save ratings
         ApplicationProperties.user?.id?.let {
+
             for(feature in featureList) {
-                var rating = Rating(it, feature.id, feature.rating, 0F, Rating.TYPE_FEATURE, ApplicationProperties.recommendationSystem)
-
-                if((list_features.adapter as FeaturesListAdapter).ratingsChanged) {
-                    rating.date = ParseTime.getCurrentTime()
-                    db.add(rating) //needs an addAll function
-                }
-
-                ratings.add(rating)
-                Log.i(TAG, rating.toString())
+                ratings.add(addFeatureRatingsToDB(it, feature.id, feature.rating))
             }
+            ratings.add(addFeatureRatingsToDB(it, User.FIELD_AGE, ApplicationProperties.user!!.getAgeGroup()))
         }
 
         //TODO check if correctly saved on db
@@ -162,6 +172,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
     private fun saveCurrentUser() {
         val timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
         ApplicationProperties.user = User(UUID.randomUUID().toString(), txt_user_age.text.toString().toInt(), timeAvailable)
+        UserDAO().add(ApplicationProperties.user!!)
     }
 
     override fun onRatingsCompleted() {

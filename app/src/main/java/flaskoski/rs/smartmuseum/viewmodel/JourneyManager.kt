@@ -77,7 +77,9 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
     private fun getFirstItem() : Point?{
         return userLocationManager?.userLatLng?.let {recommendedRouteBuilder?.getNearestPointFromUser(Point(it))}
-                ?: recommendedRouteBuilder?.getAllEntrances()?.first()
+                ?: userLocationManager?.userLastKnownLocation?.let{
+                    recommendedRouteBuilder?.getNearestPointFromUser(Point(it))
+                            ?: recommendedRouteBuilder?.getAllEntrances()?.first()}
     }
 
     init {
