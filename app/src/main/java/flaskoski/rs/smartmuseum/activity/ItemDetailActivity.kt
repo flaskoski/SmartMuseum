@@ -111,22 +111,34 @@ class ItemDetailActivity  : AppCompatActivity() {
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setMessage(getString(R.string.question_next_item))
                     .setPositiveButton(android.R.string.yes) { _, _ ->
-                        goBack(true)
+                        checkIfCanGoBackAndGo(true)
                     }.setNegativeButton(R.string.not_yet){ _, _ ->
-                        goBack()
+                        checkIfCanGoBackAndGo()
                     }
             confirmationDialog.show()
         }
         else{
-           goBack()
+           checkIfCanGoBackAndGo()
         }
     }
 
-    private fun goBack(goToNextItem : Boolean = false){
-        if(arrived && (goToNextItem || isSubitem)  && itemRating!!.rating == 0F) {
-            Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()
-            return
-        }
+    private fun checkIfCanGoBackAndGo(goToNextItem : Boolean = false){
+        if(arrived && itemRating!!.rating == 0F) {
+            if(isSubitem)
+                AlertDialog.Builder(this@ItemDetailActivity, R.style.Theme_AppCompat_Dialog_Alert).setTitle("Atenção")
+                        .setPositiveButton(R.string.yes){_,_->
+                            Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()}
+                        .setNegativeButton(R.string.no){_,_->
+                               goBack(goToNextItem)
+                        }.setMessage("Você já visitou essa atração?".trimMargin())
+                        .show()
+            else if(goToNextItem)
+                Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()
+        }else
+            goBack(goToNextItem)
+    }
+
+    private fun goBack(goToNextItem : Boolean) {
         val returnRatingIntent = Intent()
         if(isRatingChanged){
             ItemRepository.saveRating(itemRating!!)
@@ -138,6 +150,6 @@ class ItemDetailActivity  : AppCompatActivity() {
     }
 
     fun goToNextItem(v: View){
-        goBack(true)
+        checkIfCanGoBackAndGo(true)
     }
 }

@@ -99,7 +99,7 @@ class QuestionnaireActivity : AppCompatActivity(), FeaturesListAdapter.OnShareCl
                 ratings.add(rating)
             }
         }
-
+        setResult(Activity.RESULT_OK)
         finish()
     }
 

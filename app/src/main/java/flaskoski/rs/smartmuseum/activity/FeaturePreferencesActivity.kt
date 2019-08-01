@@ -77,11 +77,11 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             ApplicationProperties.checkForUpdates(ApplicationProperties.getCurrentVersionCode(applicationContext)){isThereUpdates ->
                 if(isThereUpdates)
                     if(ApplicationProperties.checkIfForceUpdateIsOn() == true)
-                        AlertBuider().showUpdateRequired(this@FeaturePreferencesActivity){
+                        AlertBuilder().showUpdateRequired(this@FeaturePreferencesActivity){
                             finish()
                         }
                     else{
-                        AlertBuider().showUpdateAvailable(this@FeaturePreferencesActivity)
+                        AlertBuilder().showUpdateAvailable(this@FeaturePreferencesActivity)
                     }
             }
         else {
@@ -89,7 +89,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             txt_hh.setText((ApplicationProperties.user!!.timeAvailable / 60.0).toInt().toString())
             txt_mm.setText((ApplicationProperties.user!!.timeAvailable % 60).toInt().toString())
         }
-        
+
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))
             internetConnectionWarning.show()
 

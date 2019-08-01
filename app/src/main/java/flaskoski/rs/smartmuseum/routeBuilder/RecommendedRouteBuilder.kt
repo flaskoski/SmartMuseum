@@ -42,7 +42,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
             else return@forEach
         }
         //remove the min_time between items since it will check the determined time (on db) of each route now
-        totalCost -= (count-1) * MIN_TIME_BETWEEN_ITEMS
+        totalCost -= count * MIN_TIME_BETWEEN_ITEMS
 //        itemsRemaining.removeLast()
 
         var itemsCost = totalCost

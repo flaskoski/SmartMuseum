@@ -21,6 +21,7 @@ import kotlin.collections.ArrayList
 class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     : ViewModel(), MapManager.OnUserArrivedToDestinationListener {
 
+    var checkedForUpdates: Boolean = false
     var recommendedRouteBuilder : RecommendedRouteBuilder? = null
 //    var closestItem: Point? = null
     var lastItem : Point? = null
@@ -167,7 +168,10 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         sharedPreferences?.saveStartTime(startTime!!)
         isJourneyFinishedFlag.value = false
         isJourneyBegan.value = true
-        getRecommendedRoute()
+        if(!getRecommendedRoute()){
+            completeJourney()
+            return
+        }
         sortItemList()
         setNextRecommendedDestination()
         isGoToNextItem.value = true
@@ -220,16 +224,19 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         }
     }
 
-    private fun getRecommendedRoute() {
+    private fun getRecommendedRoute(): Boolean {
         if(recommendedRouteBuilder == null || lastItem == null) throw Exception("previous point is null. Did you instantiate RecommendedRouteBuilder?")
 
         ItemRepository.resetRecommendedOrder()
         val itemsRemaining = recommendedRouteBuilder?.getRecommendedRouteFrom(lastItem!!,
                 ApplicationProperties.user?.timeAvailable?: 100.0,
                 startTime?.let { ParseTime.differenceInMinutesUntilNow(it) } ?: 0.0)
-        if(itemsRemaining!= null && itemsRemaining.isEmpty())
+        if(itemsRemaining!= null && itemsRemaining.isEmpty()) {
             Log.w(TAG, "No time available for visiting any item.")
+            return false
+        }
         sharedPreferences?.setAllRecommendedItems(itemsList.filter { it.recommendedOrder != Int.MAX_VALUE }, subItemList.filter { it.isRecommended })
+        return true
     }
 
     fun removeItemFromRoute(itemToBeRemoved: Item, callback: () -> Unit) {
@@ -310,30 +317,41 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             sharedPreferences?.setRecommendedItem(lastItem as Item)
 
             if(isJourneyFinished())
-                finishJourney()
+                completeJourney()
             else {
                 if (ratingChangedItemId != null)
-                    getRecommendedRoute()
+                    if(!getRecommendedRoute()){
+                        completeJourney()
+                        return
+                    }
                 sortItemList()
                 setNextRecommendedDestination()
             }
         }
         else
-            if(ratingChangedItemId != null) {//rating changed from an item that is not the destination item
-                if(isJourneyBegan.value!! && ratingChangedItemId != nextItem?.id){
-                    getRecommendedRoute()
+            if(ratingChangedItemId != null) {
+                if(isJourneyBegan.value!! && ratingChangedItemId != nextItem?.id){//rating changed from an item that is not the destination item
+                    if(!getRecommendedRoute()){
+                        completeJourney()
+                        return
+                    }
                     sortItemList()
                     setNextRecommendedDestination()
                 }
             }
     }
 
-    fun finishJourney() {
+    //to go to satisfaction survey
+    fun completeJourney() {
+        isJourneyFinishedFlag.value = true
+    }
+
+    //user finished using the app -> doesn't want to use the app to further check items. Erase all the configured data
+    fun finishUserSession(){
         sharedPreferences?.clear()
         ApplicationProperties.resetConfigurations()
         resetConfigurations()
         isPreferencesSet.value = false
-        isJourneyFinishedFlag.value = true
     }
 
     fun restartJourney(){
@@ -376,4 +394,5 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     fun nextItemCardShowedWithRatingChangeWarning() {
         isRatingChanged = false
     }
+
 }

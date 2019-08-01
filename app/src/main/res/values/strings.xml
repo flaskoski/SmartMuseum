@@ -27,7 +27,7 @@
     <string name="lb_next_item_with_rating_change">Sua rota recomendada foi atualizada! A próxima atração da sua visita é:</string>
     <string name="welcome_title">Bem-vindo(a) ao Parque CienTec!</string>
     <string name="welcome_message">Agora vamos usar suas informações para adaptar o passeio pensando no que você mais gosta. Vamos começar a visita?</string>
-    <string name="finishJourney">Cancelar Visita</string>
+    <string name="finishJourney">Terminar Visita</string>
     <string name="other_subitems">Outras atrações</string>
     <string name="recommended_subitems">Atrações Recomendadas</string>
     <string name="no">Não</string>
@@ -38,4 +38,5 @@
     <string name="avaliar_app">Por favor, avalie sua experiência no Parque CienTec respondendo as perguntas abaixo:</string>
     <string name="confirmar">Confirmar</string>
     <string name="option_questionario">Questionário</string>
+    <string name="yes">Sim</string>
 </resources>

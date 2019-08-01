@@ -30,7 +30,6 @@ import flaskoski.rs.smartmuseum.model.GroupItem
 import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
-import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.next_item.*
 import kotlinx.android.synthetic.main.next_item.view.*
@@ -130,18 +129,23 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 //                }
         }
 
-        ApplicationProperties.checkForUpdates(ApplicationProperties.getCurrentVersionCode(applicationContext)){isThereUpdates ->
-            if(isThereUpdates)
-                if(ApplicationProperties.checkIfForceUpdateIsOn() == true)
-                    AlertBuider().showUpdateRequired(this@MainActivity){
-                        finish()
-                    }
-                else{
-                    AlertBuider().showUpdateAvailable(this@MainActivity)
-                }
-        }
+
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))
-            AlertBuider().showNetworkDisconnected(this@MainActivity)
+            AlertBuilder().showNetworkDisconnected(this@MainActivity)
+
+        if(!journeyManager.checkedForUpdates) {
+            journeyManager.checkedForUpdates = true
+            ApplicationProperties.checkForUpdates(ApplicationProperties.getCurrentVersionCode(applicationContext)) { isThereUpdates ->
+                if (isThereUpdates)
+                    if (ApplicationProperties.checkIfForceUpdateIsOn() == true)
+                        AlertBuilder().showUpdateRequired(this@MainActivity) {
+                            finish()
+                        }
+                    else {
+                        AlertBuilder().showUpdateAvailable(this@MainActivity)
+                    }
+            }
+        }
     }
 
     //Show next item card on screen
@@ -185,7 +189,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     .setIcon(R.drawable.baseline_done_black_24)
                     .setMessage("""Você já visitou todas as atrações recomendadas para você dentro do seu tempo disponível.
                         |Por favor nos informe agora o que achou da visita com essa rápida pesquisa.""".trimMargin())
-                    .setNeutralButton(R.string.ok){_,_ ->
+                    .setNeutralButton(R.string.ok){_,_ ->}
+                    .setOnDismissListener {
                         val goToQuestionnaire = Intent(applicationContext, QuestionnaireActivity::class.java)
                         startActivityForResult(goToQuestionnaire, requestQuestionnaire)}
                     .show()
@@ -253,7 +258,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))
-            AlertBuider().showNetworkDisconnected(this@MainActivity)
+            AlertBuilder().showNetworkDisconnected(this@MainActivity)
 
         if (resultCode == RESULT_OK && data != null) {
             loading_view.visibility = View.VISIBLE
@@ -268,24 +273,24 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 requestItemRatingChange-> {
                     journeyManager.itemRatingChangeResult(data)
                 }
-                requestQuestionnaire->{
-                    if(journeyManager.isJourneyFinishedFlag.value!!) {
-                        AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
-                                .setTitle("Atenção")
-                                .setIcon(R.drawable.baseline_done_black_24)
-                                .setMessage("""Você já visitou todas as atrações recomendadas para você dentro do seu tempo disponível. Obrigado pela visita!
-                        |Deseja continuar a usar o aplicativo para ver detalhes de mais itens?""".trimMargin())
-                                .setPositiveButton(android.R.string.yes) { _, _ -> }
-                                .setNegativeButton(R.string.no) { _, _ ->
-                                    val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-                                    startActivityForResult(getPreferencesIntent, requestGetPreferences)
-                                }
-                                .show()
-                        view_next_item.visibility = View.GONE
-                    }
-                }
             }
             loading_view.visibility = View.GONE
+
+        }else if(resultCode == RESULT_OK && requestCode == requestQuestionnaire){
+            if(journeyManager.isJourneyFinishedFlag.value!!) {
+                AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
+                        .setTitle("Atenção")
+                        .setIcon(R.drawable.baseline_done_black_24)
+                        .setMessage("""Obrigado pela visita! Deseja continuar a usar o aplicativo para ver detalhes de mais itens?""".trimMargin())
+                        .setPositiveButton(R.string.yes) { _, _ -> }
+                        .setNegativeButton(R.string.no) { _, _ ->
+                            journeyManager.finishUserSession()
+                            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+                            startActivityForResult(getPreferencesIntent, requestGetPreferences)
+                        }
+                        .show()
+                view_next_item.visibility = View.GONE
+            }
         }
     }
 
@@ -402,7 +407,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 true
             }
             R.id.option_finish -> {
-                journeyManager.finishJourney()
+                journeyManager.completeJourney()
                 true
             }
             R.id.option_debug->{
