@@ -21,6 +21,10 @@ import kotlinx.android.synthetic.main.activity_item_detail.*
 
 class ItemDetailActivity  : AppCompatActivity() {
 
+    companion object {
+        const val TAG_IS_SUBITEM_VISITED = "isSubItemVisited"
+    }
+
     private var isRatingChanged = false
     private var currentItem : Itemizable? = null
     private val TAG = "ItemDetails"
@@ -129,7 +133,7 @@ class ItemDetailActivity  : AppCompatActivity() {
                         .setPositiveButton(R.string.yes){_,_->
                             Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()}
                         .setNegativeButton(R.string.no){_,_->
-                               goBack(goToNextItem)
+                               goBack()
                         }.setMessage("Você já visitou essa atração?".trimMargin())
                         .show()
             else if(goToNextItem)
@@ -138,13 +142,17 @@ class ItemDetailActivity  : AppCompatActivity() {
             goBack(goToNextItem)
     }
 
-    private fun goBack(goToNextItem : Boolean) {
+    private fun goBack(goToNextItem : Boolean = false) {
         val returnRatingIntent = Intent()
         if(isRatingChanged){
             ItemRepository.saveRating(itemRating!!)
             returnRatingIntent.putExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID, itemRating?.item)
         }
-        if(arrived)returnRatingIntent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, goToNextItem)
+        if(arrived){
+            if(isSubitem){ if(itemRating?.rating == 0F)
+                returnRatingIntent.putExtra(TAG_IS_SUBITEM_VISITED, false)}
+            else returnRatingIntent.putExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, goToNextItem)
+        }
         setResult(Activity.RESULT_OK, returnRatingIntent)
         finish()
     }

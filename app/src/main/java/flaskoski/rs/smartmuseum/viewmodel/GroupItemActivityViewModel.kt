@@ -3,6 +3,7 @@ package flaskoski.rs.smartmuseum.viewmodel
 import android.app.Activity
 import android.content.Intent
 import androidx.lifecycle.ViewModel
+import flaskoski.rs.smartmuseum.activity.ItemDetailActivity
 import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 
@@ -35,10 +36,11 @@ class GroupItemActivityViewModel : ViewModel(){
     fun subItemVisitedResult(activity: Activity, data: Intent?) {
         if(data != null) {
             val ratingChangedItemId: String? = data.getStringExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID)
+            val isSubItemVisited: Boolean = data.getBooleanExtra(ItemDetailActivity.TAG_IS_SUBITEM_VISITED, true)
             if (ratingChangedItemId != null) {
                 isRatingChanged = true
             }
-            if(arrived || currentItem!!.isVisited)
+            if((arrived || currentItem!!.isVisited) && isSubItemVisited)
                 currentSubItem?.let {
                     it.isVisited = true
                     visitedSubItems.add(it.id)

@@ -114,13 +114,15 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             Snackbar.make(bt_confirm, "Campo em branco! Por favor, complete todos os campos.", Snackbar.LENGTH_LONG).show()
 
             if(txt_user_age.text.isBlank())
-                txt_user_age.setError("Idade em branco!")
+                txt_user_age.error = "Idade em branco!"
             if(txt_hh.text.isBlank())
-                txt_hh.setError("Horas em branco!")
+                txt_hh.error = "Horas em branco!"
             if(txt_mm.text.isBlank())
-                txt_mm.setError("Minutos em branco!")
+                txt_mm.error = "Minutos em branco!"
             return false
         }
+        if(txt_hh.text.toString()=="0" && txt_mm.text.toString().toDouble() < 30.0)
+            txt_mm.error = "O tempo mínimo de visita pelo aplicativo é de 30 minutos."
         if(!allFeaturesRated){
             Snackbar.make(bt_confirm, "Por favor, informe seu nível de interesse para cada frase antes de avançar.", Snackbar.LENGTH_LONG).show()
             return false
