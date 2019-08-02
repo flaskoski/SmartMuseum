@@ -317,7 +317,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
         viewItemDetails.putExtra("itemClicked",  journeyManager.itemsList[p1])
         //viewItemDetails.putExtra("subItems",  subItems)
-        viewItemDetails.putExtra("itemRating",  itemRating)
+        viewItemDetails.putExtra(ApplicationProperties.TAG_ITEM_RATING_VALUE,  itemRating)
 
         ApplicationProperties.user?.let {
             it.location = journeyManager.userLocationManager?.userLatLng
