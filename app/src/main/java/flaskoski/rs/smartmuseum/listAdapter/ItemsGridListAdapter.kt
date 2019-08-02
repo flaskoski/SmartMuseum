@@ -38,6 +38,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
             p0.itemView.icon_visited.setBackgroundResource(context.resources.getIdentifier("baseline_done_black_24",
                     "drawable", context.packageName))
             p0.itemView.icon_visited.visibility = View.VISIBLE
+            p0.itemView.bt_remove_item.visibility = View.GONE
         }
         else if(itemsList[p1].recommendedOrder != Int.MAX_VALUE){
             p0.itemView.setBackgroundResource(R.color.colorRecommendedItem)
@@ -48,6 +49,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
         else{
             p0.itemView.setBackgroundResource(android.R.color.white)
             p0.itemView.icon_visited.visibility = View.GONE
+            p0.itemView.bt_remove_item.visibility = View.GONE
         }
         if(!ApplicationProperties.userNotDefinedYet()) {
             val rating = itemsList[p1].recommedationRating

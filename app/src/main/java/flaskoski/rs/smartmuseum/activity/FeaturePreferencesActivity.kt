@@ -121,8 +121,10 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
                 txt_mm.error = "Minutos em branco!"
             return false
         }
-        if(txt_hh.text.toString()=="0" && txt_mm.text.toString().toDouble() < 30.0)
+        if(txt_hh.text.toString()=="0" && txt_mm.text.toString().toDouble() < 30.0) {
             txt_mm.error = "O tempo mínimo de visita pelo aplicativo é de 30 minutos."
+            return false
+        }
         if(!allFeaturesRated){
             Snackbar.make(bt_confirm, "Por favor, informe seu nível de interesse para cada frase antes de avançar.", Snackbar.LENGTH_LONG).show()
             return false
