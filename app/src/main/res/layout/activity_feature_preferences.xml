@@ -12,12 +12,10 @@
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:scrollbars="vertical"
         app:layout_constraintBottom_toTopOf="@+id/bt_confirm"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:layout_constraintTop_toBottomOf="@+id/lb_your_interests"
         tools:listitem="@layout/feature_item" />
 
     <Button
@@ -45,7 +43,7 @@
         app:layout_constraintTop_toTopOf="@+id/txt_user_age" />
 
     <TextView
-        android:id="@+id/lb_username2"
+        android:id="@+id/lb_time_available"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -56,23 +54,31 @@
         app:layout_constraintTop_toTopOf="@+id/txt_hh" />
 
     <TextView
+        android:id="@+id/lb_username4"
+        android:layout_width="193dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:text="Você ja visitou o parque CienTec antes?"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/switch_already_visited"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/switch_already_visited" />
+
+    <TextView
         android:id="@+id/lb_username3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="4dp"
         android:text=":"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/txt_hh"
         app:layout_constraintEnd_toStartOf="@+id/txt_mm"
-        app:layout_constraintStart_toEndOf="@+id/txt_hh"
         app:layout_constraintTop_toTopOf="@+id/txt_hh" />
 
     <EditText
         android:id="@+id/txt_user_age"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:ems="10"
@@ -80,15 +86,13 @@
         android:inputType="number"
         android:maxLength="3"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@id/lb_username"
         app:layout_constraintTop_toTopOf="parent">
 
         <requestFocus />
     </EditText>
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/lb_your_interests"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -97,29 +101,43 @@
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txt_hh" />
+        app:layout_constraintTop_toBottomOf="@+id/lb_username4" />
 
     <EditText
         android:id="@+id/txt_hh"
         android:layout_width="25dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginEnd="4dp"
         android:ems="10"
         android:hint="H"
         android:inputType="number"
         android:maxLength="1"
-        app:layout_constraintStart_toEndOf="@+id/lb_username2"
+        app:layout_constraintEnd_toStartOf="@+id/lb_username3"
         app:layout_constraintTop_toBottomOf="@+id/txt_user_age" />
 
     <EditText
         android:id="@+id/txt_mm"
         android:layout_width="40dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:ems="10"
         android:hint="MM"
         android:inputType="number"
         android:maxLength="2"
-        app:layout_constraintStart_toEndOf="@+id/txt_hh"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txt_user_age" />
+
+    <Switch
+        android:id="@+id/switch_already_visited"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:checked="false"
+        android:text="Não"
+        android:textOff="Não"
+        android:textOn="Sim"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txt_mm" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

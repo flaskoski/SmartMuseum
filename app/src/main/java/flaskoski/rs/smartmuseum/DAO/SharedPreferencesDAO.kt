@@ -8,24 +8,21 @@ import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
 
 class SharedPreferencesDAO(activity : Activity){
-    val USER_ID = "userId"
-    val USER_AGE = "userAge"
-    val START_TIME = "startTime"
-    val TIME_AVAILABLE = "timeAvailable"
+    private val USER_ID = "userId"
+    private val USER_AGE = "userAge"
+    private val START_TIME = "startTime"
+    private val TIME_AVAILABLE = "timeAvailable"
+    private val ALREADY_VISITED: String = ""
     private val ITEM_PREFIX = "item_"
 
-    private var db: SharedPreferences
-
-    init{
-        db = activity.getPreferences(Context.MODE_PRIVATE)
-    }
+    private var db: SharedPreferences = activity.getPreferences(Context.MODE_PRIVATE)
 
     fun saveUser(user : User){
         with(db.edit()){
             putString(USER_ID, user.id)
             putInt(USER_AGE, user.age)
+            putBoolean(ALREADY_VISITED, user.alreadyVisited)
             putFloat(TIME_AVAILABLE, user.timeAvailable.toFloat())
-
             apply()
         }
     }
@@ -33,9 +30,10 @@ class SharedPreferencesDAO(activity : Activity){
     fun getUser(): User? {
         var userId = db.getString(USER_ID, "")
         var userAge = db.getInt(USER_AGE, -1)
+        var alreadyVisited = db.getBoolean(ALREADY_VISITED, false)
         var userTimeAvailable = db.getFloat(TIME_AVAILABLE, -1f).toDouble()
         if(userId.isNotBlank() && userTimeAvailable > 0)
-            return User(userId, userAge, userTimeAvailable)
+            return User(userId, userAge, alreadyVisited, userTimeAvailable)
         return null
     }
 

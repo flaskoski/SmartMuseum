@@ -50,7 +50,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         featureList.add(Feature("Geologia", "O granito é um tipo de rocha que se origina de magma como o expelido por vulcões"))
         featureList.add(Feature("Biologia", "A bactéria é um tipo de célula e está presente em quase todos os lugares da terra"))
         featureList.add(Feature("História", "Segundo a mitologia grega, Atena é a deusa da sabedoria"))
-        featureList.add(Feature("Natureza", "Andar à beira da praia ou próximo da natureza"))
+        featureList.add(Feature("Natureza", "Gosto de andar à beira da praia ou próximo da natureza"))
 
         val adapter = FeaturesListAdapter(true, featureList, applicationContext, this)
         list_features.layoutManager = LinearLayoutManager(applicationContext)
@@ -60,12 +60,17 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 //            val inputManager = applicationContext.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
 //            inputManager.hideSoftInputFromWindow(it.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
 //        }
+
         txt_mm.setOnFocusChangeListener { v, focused ->
-            if (!focused) {
-                 val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(v.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
-            }
+            if (!focused) hideKeyboard(v)
         }
+
+        switch_already_visited.setOnClickListener{
+            hideKeyboard(it)
+            if(switch_already_visited.isChecked) switch_already_visited.text = switch_already_visited.textOn
+            else switch_already_visited.text = switch_already_visited.textOff
+        }
+        lb_your_interests.setOnClickListener {hideKeyboard(it)}
 
         txt_hh.addTextChangedListener(object : TextWatcher{
             override fun afterTextChanged(p0: Editable?) {
@@ -88,6 +93,9 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             }
         else {
             txt_user_age.setText(ApplicationProperties.user?.age.toString())
+            switch_already_visited.isChecked = ApplicationProperties.user!!.alreadyVisited
+            if(switch_already_visited.isChecked) switch_already_visited.text = switch_already_visited.textOn
+            else switch_already_visited.text = switch_already_visited.textOff
             txt_hh.setText((ApplicationProperties.user!!.timeAvailable / 60.0).toInt().toString())
             txt_mm.setText((ApplicationProperties.user!!.timeAvailable % 60).toInt().toString())
         }
@@ -95,6 +103,11 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))
             internetConnectionWarning.show()
 
+    }
+
+    private fun hideKeyboard(v: View){
+        val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(v.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -135,6 +148,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
     }
 
     fun checkInternetAndSave(v : View){
+        hideKeyboard(v)
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))
             internetConnectionWarning.show()
         else saveFeaturePreferences()
@@ -163,10 +177,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         if(ApplicationProperties.userNotDefinedYet())
             saveCurrentUser()
         //username already exists -> update age and keep id
-        else {
-            ApplicationProperties.user!!.age = txt_user_age.text.toString().toInt()
-            ApplicationProperties.user!!.timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
-        }
+        else editUser()
 
         var ratings = ArrayList<Rating>()
         //save ratings
@@ -186,9 +197,16 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         finish()
     }
 
+    private fun editUser() {
+        ApplicationProperties.user!!.age = txt_user_age.text.toString().toInt()
+        ApplicationProperties.user!!.alreadyVisited = switch_already_visited.isChecked
+        ApplicationProperties.user!!.timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
+    }
+
     private fun saveCurrentUser() {
         val timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
-        ApplicationProperties.user = User(UUID.randomUUID().toString(), txt_user_age.text.toString().toInt(), timeAvailable)
+        ApplicationProperties.user = User(UUID.randomUUID().toString(),
+                txt_user_age.text.toString().toInt(), switch_already_visited.isChecked, timeAvailable)
         UserDAO().add(ApplicationProperties.user!!)
     }
 
