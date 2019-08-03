@@ -6,6 +6,7 @@ package flaskoski.rs.smartmuseum.model
  */
 
 open class Item(id: String = "",
+                    var hintText : String = "",
            override var title: String = "",
            override var description: String = "",
            override var photoId: String = "",

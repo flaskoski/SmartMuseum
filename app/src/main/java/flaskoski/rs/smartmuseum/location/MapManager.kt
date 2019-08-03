@@ -61,7 +61,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, destinationMarker?.position?.latitude!!, destinationMarker?.position?.longitude!!, distance)
         if(ApplicationProperties.isDebugOn)
             return distance[0] < 31000
-        else return distance[0] < 11
+        else return distance[0] < 12
     }
 
     interface OnUserArrivedToDestinationListener{

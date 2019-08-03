@@ -152,7 +152,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private val closeToItemIsChangedListener = Observer<Boolean> { isClose : Boolean ->
         if(isClose && journeyManager.showNextItem_okPressed) {
             journeyManager.showNextItem_okPressed = false
-            view_next_item.lb_info.text = getString(R.string.lb_you_arrived)
+            view_next_item.lb_info.text =
+                    "${journeyManager.itemsList[0].hintText?.let{it+" "}}${getString(R.string.lb_you_arrived)}"
             view_next_item.visibility = View.VISIBLE
             bt_ok.visibility = View.GONE
             view_next_item.setOnClickListener { this.shareOnItemClicked(0, true) }

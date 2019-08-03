@@ -49,6 +49,8 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         featureList.add(Feature("Astronomia", "O diâmetro do Sol é mais de 100 vezes maior que o da terra"))
         featureList.add(Feature("Geologia", "O granito é um tipo de rocha que se origina de magma como o expelido por vulcões"))
         featureList.add(Feature("Biologia", "A bactéria é um tipo de célula e está presente em quase todos os lugares da terra"))
+        featureList.add(Feature("História", "Segundo a mitologia grega, Atena é a deusa da sabedoria"))
+        featureList.add(Feature("Natureza", "Andar à beira da praia ou próximo da natureza"))
 
         val adapter = FeaturesListAdapter(true, featureList, applicationContext, this)
         list_features.layoutManager = LinearLayoutManager(applicationContext)
