@@ -1,11 +1,10 @@
-package flaskoski.rs.smartmuseum.model
+package flaskoski.rs.smartmuseum.location
 
 import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
@@ -20,8 +19,6 @@ import com.google.android.gms.tasks.Task
  * UserLocationManager
  * You have to override the activity's onPause, onResume and onRequestPermissionsResult.
  *
- * @param activity: current activity
- * @param onUserLocationUpdateCallback: function that handles the user location returned
  *
  */
 class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : LocationCallback() {
@@ -33,6 +30,8 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
     private var locationRequest: LocationRequest? = null
 
     private val TAG: String = "UserLocationManager"
+
+    //function that handles the user location returned
     var onUserLocationUpdateCallback: ((LatLng) -> Unit)? = null
 
     var activity: Activity? = null
@@ -51,7 +50,7 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
     val userLastKnownLocation : LatLng?
         get() {
             activity?.let {activity->
-                if (ActivityCompat.checkSelfPermission(activity.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(activity.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
                     return null
                 }
@@ -112,7 +111,7 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
                         .addLocationRequest(it)
                 val client: SettingsClient = LocationServices.getSettingsClient(activity.applicationContext)
                 val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
-                task.addOnSuccessListener { locationSettingsResponse ->
+                task.addOnSuccessListener {
                     locationSettingsCorrect = true
                     startLocationUpdates()
                 }

@@ -32,7 +32,7 @@ class SharedPreferencesDAO(activity : Activity){
         var userAge = db.getInt(USER_AGE, -1)
         var alreadyVisited = db.getBoolean(ALREADY_VISITED, false)
         var userTimeAvailable = db.getFloat(TIME_AVAILABLE, -1f).toDouble()
-        if(userId.isNotBlank() && userTimeAvailable > 0)
+        if(userId!!.isNotBlank() && userTimeAvailable > 0)
             return User(userId, userAge, alreadyVisited, userTimeAvailable)
         return null
     }
@@ -47,7 +47,7 @@ class SharedPreferencesDAO(activity : Activity){
     fun getStartTime(): Date? {
         val startTime = db.getString(START_TIME, "")
         if(startTime != "")
-            return ParseTime.parse(startTime)
+            return ParseTime.parse(startTime!!)
         return null
     }
     fun saveTimeAvailable(){

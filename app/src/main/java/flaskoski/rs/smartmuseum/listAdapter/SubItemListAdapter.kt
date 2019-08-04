@@ -9,6 +9,7 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.model.SubItem
+import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_item_detail.*
 import kotlinx.android.synthetic.main.sub_item.view.*
 
@@ -37,10 +38,9 @@ class SubItemListAdapter(private val subItemList: List<SubItem>,
             p0.itemView.subitem_icon_visited.setBackgroundResource(android.R.drawable.checkbox_on_background)
         }else p0.itemView.subitem_icon_visited.visibility = View.GONE
 
-        val rating = subItemList[p1].recommedationRating
-        if(rating != null)
-            p0.itemView.subitem_ratingBar.rating = rating
-        else p0.itemView.subitem_ratingBar.rating = 0F
+        if(!ApplicationProperties.userNotDefinedYet())
+            p0.itemView.subitem_ratingBar.rating = subItemList[p1].recommedationRating
+        else p0.itemView.subitem_ratingBar.rating = 0f
 
         p0.itemView.setOnClickListener{(activity as OnShareSubItemClickListener).shareOnItemClicked(subItemList[p1])}
     }

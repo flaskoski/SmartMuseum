@@ -52,15 +52,17 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         //<--GroupItem
         vm = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(GroupItemActivityViewModel::class.java)
         vm.arrived = extras.getBooleanExtra(ApplicationProperties.TAG_ARRIVED, false)
-        vm.subItemListChangedListener = {
-            @Suppress("UNNECESSARY_SAFE_CALL")
-            recommendedSubItemsAdapter?.notifyDataSetChanged()
-            otherSubItemsAdapter?.notifyDataSetChanged()
-        }
+
         list_recommended_items.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         list_other_items.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         recommendedSubItemsAdapter = SubItemListAdapter(vm.recommendedSubItemList, this)
         otherSubItemsAdapter = SubItemListAdapter(vm.otherSubItemList, this)
+        vm.subItemListChangedListener = {
+            @Suppress("UNNECESSARY_SAFE_CALL")
+            recommendedSubItemsAdapter?.notifyDataSetChanged()
+            otherSubItemsAdapter.notifyDataSetChanged()
+        }
+
         list_recommended_items.adapter = recommendedSubItemsAdapter
         list_other_items.adapter = otherSubItemsAdapter
 
@@ -83,6 +85,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
             if(it.photoId.isNotBlank())
                 ItemRepository.loadImage(applicationContext, imageView, it.photoId)
             else imageView.visibility = View.GONE
+            @Suppress("DEPRECATION")
             item_description.text = Html.fromHtml( it.description)
         }
     }
@@ -162,7 +165,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         finish()
     }
 
-    fun goToNextItem(v: View){
+    fun goToNextItem(@Suppress("UNUSED_PARAMETER") v: View){
         goBack(true)
     }
 
@@ -195,7 +198,7 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
         if (resultCode == RESULT_OK) {
             when (requestCode) {
                 REQUEST_SUBITEM_PAGE-> {
-                    vm.subItemVisitedResult(this, data)
+                    vm.subItemVisitedResult(data)
                 }
             }
         }

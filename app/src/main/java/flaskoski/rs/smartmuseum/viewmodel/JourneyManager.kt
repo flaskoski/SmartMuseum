@@ -7,9 +7,10 @@ import androidx.databinding.Observable
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import flaskoski.rs.rs_cf_test.recommender.RecommenderBuilder
+import flaskoski.rs.smartmuseum.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 import flaskoski.rs.smartmuseum.location.MapManager
+import flaskoski.rs.smartmuseum.location.UserLocationManager
 import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.routeBuilder.RecommendedRouteBuilder
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
@@ -144,7 +145,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     private fun sortItemList() {
         var i = 0
         itemsList.sortedWith(compareBy<Itemizable>{it.isVisited}.thenBy{ (it as RoutableItem).recommendedOrder}).forEach{
-            (itemsList as ArrayList<Item>)[i++] = it
+            itemsList[i++] = it
         }
         itemListChangedListener?.invoke()
     }
@@ -300,7 +301,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         val ratingChangedItemId : String? = data.getStringExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID)
         val goToNextItem : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, false)
         val arrived : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_ARRIVED, false)
-        val visitedSubItems : List<String>? =  data.getSerializableExtra(ApplicationProperties.TAG_VISITED_SUBITEMS)?.let { it as List<String> }
+        @Suppress("UNCHECKED_CAST") val visitedSubItems : List<String>? =  data.getSerializableExtra(ApplicationProperties.TAG_VISITED_SUBITEMS)?.let { it as List<String> }
         if(arrived)
             visitedSubItems?.let { sharedPreferences?.setVisitedSubItems(it) }
         if(ratingChangedItemId != null) {

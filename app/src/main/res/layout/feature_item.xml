@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
@@ -11,8 +10,8 @@
         android:id="@+id/txt_featureName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="12dp"
-        android:text="TextView"
+        android:layout_marginStart="12dp"
+        android:textColor="@color/colorText"
         android:textSize="16sp" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -49,8 +48,6 @@
             android:onClick="rate"
             android:scaleType="fitCenter"
             android:visibility="visible"
-            app:layout_constraintEnd_toStartOf="@+id/img_star3"
-            app:layout_constraintStart_toEndOf="@+id/linearLayout"
             app:srcCompat="@android:drawable/btn_star_big_off" />
 
         <ImageView
@@ -96,4 +93,5 @@
             app:srcCompat="@android:drawable/btn_star_big_off" />
 
     </LinearLayout>
+
 </LinearLayout>

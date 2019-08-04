@@ -1,18 +1,6 @@
 package flaskoski.rs.smartmuseum
 
-import android.content.Intent
-import flaskoski.rs.smartmuseum.model.Item
-import flaskoski.rs.smartmuseum.model.Rating
-import flaskoski.rs.smartmuseum.model.User
-import flaskoski.rs.smartmuseum.util.ApplicationProperties
-import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
-import org.junit.Assert
-import org.junit.BeforeClass
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.spy
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)

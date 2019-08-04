@@ -7,4 +7,5 @@
     <color name="colorRecommendedItem">#FFD1DADE</color>
     <color name="colorBackgroundSheet">#f2f2f2</color>
     <color name="colorBackgroundLabel">#CCEBEBEB</color>
+    <color name="colorText">#737373</color>
 </resources>

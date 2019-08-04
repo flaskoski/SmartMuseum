@@ -8,18 +8,18 @@ class UserDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
     private val TAG = "RatingDAO"
     private var age : String = ""
 
-    fun add(user: User) {
+    fun add(userToBeAdded: User) {
         db.collection("users")
-                .whereEqualTo("id", user.id)
-                .whereEqualTo(User.FIELD_AGE, user.getAgeGroup())
+                .whereEqualTo("id", userToBeAdded.id)
+                .whereEqualTo(User.FIELD_AGE, userToBeAdded.getAgeGroup())
                 .get().addOnSuccessListener { userList ->
                     if (userList.isEmpty) {
-                        db.collection("users").add(user)
-                        Log.i(TAG, "User id added on db: $user")
+                        db.collection("users").add(userToBeAdded)
+                        Log.i(TAG, "User id added on db: $userToBeAdded")
                     } else
                         for (user in userList) {
-                            user.reference.set(user)
-                            Log.i(TAG, "User info changed on db: $user")
+                            user.reference.set(userToBeAdded)
+                            Log.i(TAG, "User info changed on db: $userToBeAdded")
                         }
                 }
                 .addOnFailureListener { e ->

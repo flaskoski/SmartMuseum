@@ -24,8 +24,6 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
     private var routePolyline = RoutePolyline()
 
     override fun onMapReady(p0: GoogleMap?) {
-        val locationListener : Int
-
         mMap = p0
         mMap?.mapType = GoogleMap.MAP_TYPE_SATELLITE
         mMap?.setMinZoomPreference(14f)
@@ -88,7 +86,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         setVisitedItems()
 
         val itemPathCoordinates = item.getPathCoordinates()
-        itemPathCoordinates?.let{itemPath ->
+        itemPathCoordinates.let{itemPath ->
             if(mCurrLocationMarker != null) {
                 mMap?.let { map -> routePolyline.addRouteToMap(map, itemPath, mCurrLocationMarker?.position) }
             }else if(lastKnownUserLocation != null)

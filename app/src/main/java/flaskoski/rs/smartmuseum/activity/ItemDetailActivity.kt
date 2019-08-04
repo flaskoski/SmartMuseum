@@ -67,6 +67,7 @@ class ItemDetailActivity  : AppCompatActivity() {
             if(it.photoId.isNotBlank())
                 ItemRepository.loadImage(applicationContext, imageView, it.photoId)
             else imageView.visibility = View.GONE
+            @Suppress("DEPRECATION")
             item_description.text = Html.fromHtml( it.description)
         }
     }
@@ -138,6 +139,7 @@ class ItemDetailActivity  : AppCompatActivity() {
                         .show()
             else if(goToNextItem)
                 Snackbar.make(stars, getString(R.string.review_item_request), Snackbar.LENGTH_LONG).show()
+            else goBack(goToNextItem)
         }else
             goBack(goToNextItem)
     }
@@ -157,7 +159,7 @@ class ItemDetailActivity  : AppCompatActivity() {
         finish()
     }
 
-    fun goToNextItem(v: View){
+    fun goToNextItem(@Suppress("UNUSED_PARAMETER") v: View){
         checkIfCanGoBackAndGo(true)
     }
 }

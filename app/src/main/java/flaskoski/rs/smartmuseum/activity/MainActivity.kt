@@ -1,5 +1,6 @@
 package flaskoski.rs.smartmuseum.activity
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModelProvider
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -149,11 +150,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     //Show next item card on screen
+    @SuppressLint("SetTextI18n")
     private val closeToItemIsChangedListener = Observer<Boolean> { isClose : Boolean ->
         if(isClose && journeyManager.showNextItem_okPressed) {
             journeyManager.showNextItem_okPressed = false
             view_next_item.lb_info.text =
-                    "${journeyManager.itemsList[0].hintText?.let{it+" "}}${getString(R.string.lb_you_arrived)}"
+                    "${journeyManager.itemsList[0].hintText.let{it+" "}}${getString(R.string.lb_you_arrived)}"
             view_next_item.visibility = View.VISIBLE
             bt_ok.visibility = View.GONE
             view_next_item.setOnClickListener { this.shareOnItemClicked(0, true) }
@@ -180,8 +182,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
-    private val isJourneyBeganListener = Observer<Boolean> { isJourneyBegan: Boolean ->
-    }
+    private val isJourneyBeganListener = Observer<Boolean> {}
 
     private val isJourneyFinishedListener = Observer<Boolean> { isJourneyFinished: Boolean ->
         if(isJourneyFinished){
@@ -204,7 +205,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         startDialog.setTitle(getString(R.string.welcome_title))
                 .setMessage(getString(R.string.welcome_message))
                 .setNeutralButton(android.R.string.ok) { _, _ -> }
-                .setOnDismissListener { beginJourney() }
+                .setOnDismissListener { beginJourney(bt_begin_route) }
         startDialog.show()
     }
 
@@ -235,7 +236,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         ItemRepository.loadImage(applicationContext, view_next_item.next_item_img_itemThumb, journeyManager.itemsList[0].photoId)
     }
 
-    fun onClickNextItemOk(v : View){
+    fun onClickNextItemOk(@Suppress("UNUSED_PARAMETER") v : View){
         journeyManager.showNextItem_okPressed = true
         view_next_item.visibility = View.GONE
         if(isFirstItem) {
@@ -246,7 +247,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         closeToItemIsChangedListener.onChanged(journeyManager.isCloseToItem.value)
     }
 
-    fun beginJourney(){
+    fun beginJourney(@Suppress("UNUSED_PARAMETER") v: View){
         try {
             journeyManager.beginJourney()
         }
@@ -336,7 +337,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setMessage("Tem certeza que deseja remover essa atração da sua rota recomendada?")
                 .setPositiveButton(android.R.string.yes) { _, _ ->
-                    journeyManager?.removeItemFromRoute(journeyManager.itemsList[p1]){
+                    journeyManager.removeItemFromRoute(journeyManager.itemsList[p1]){
                         Snackbar.make(sheet_next_items, getString(R.string.item_removed), Snackbar.LENGTH_SHORT).show()
                     }
                    // view_next_item.visibility = View.GONE
@@ -411,10 +412,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 journeyManager.completeJourney()
                 true
             }
-            R.id.option_debug->{
-                ApplicationProperties.isDebugOn = !ApplicationProperties.isDebugOn
-                true
-            }
+//            R.id.option_debug->{
+//                ApplicationProperties.isDebugOn = !ApplicationProperties.isDebugOn
+//                true
+//            }
             else -> super.onOptionsItemSelected(item)
         }
     }

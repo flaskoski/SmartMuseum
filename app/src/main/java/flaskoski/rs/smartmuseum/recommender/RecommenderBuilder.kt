@@ -1,16 +1,13 @@
-package flaskoski.rs.rs_cf_test.recommender
+package flaskoski.rs.smartmuseum.recommender
 
-import android.content.Context
+import android.util.Log
 import flaskoski.rs.smartmuseum.model.Rating
 import net.librec.conf.Configuration
 import flaskoski.rs.smartmuseum.recommender.RSCustomConvertor.NioFreeTextDataModel
 import net.librec.recommender.AbstractRecommender
-import net.librec.recommender.Recommender
 import net.librec.recommender.RecommenderContext
-import net.librec.recommender.cf.ItemKNNRecommender
 import net.librec.recommender.cf.UserKNNRecommender
 import net.librec.similarity.CosineSimilarity
-import java.util.HashSet
 
 class RecommenderBuilder{
 
@@ -21,12 +18,18 @@ class RecommenderBuilder{
 
     fun buildKNNRecommender(ratings: Set<Rating>,
                             knn: Int =  4,
-                            useRanking: Boolean = false) : AbstractRecommender{
+                            useRanking: Boolean = false) : AbstractRecommender? {
+        if(ratings.isEmpty()){
+            Log.e(TAG, "buildKNNRecommender called but ratingList is empty!")
+            return null
+        }
+
+
         this.knn = knn.toString()
         this.useRanking = useRanking
 
-        var conf = setConfiguration();
-        var dataModel = NioFreeTextDataModel(conf, ratings.toMutableList())
+        val conf = setConfiguration()
+        val dataModel = NioFreeTextDataModel(conf, ratings.toMutableList())
         dataModel.buildDataModel()
 
 
@@ -52,10 +55,10 @@ class RecommenderBuilder{
         conf.set("data.splitter.cv.index", "1")
         conf.set("rec.recommenderManager.similarities", "user")
 
-        conf.set("rec.neighbors.knn.number", knn.toString())
+        conf.set("rec.neighbors.knn.number", knn)
         conf.set("rec.recommenderManager.isranking", useRanking.toString())
 
-        return conf;
+        return conf
     }
 
 }

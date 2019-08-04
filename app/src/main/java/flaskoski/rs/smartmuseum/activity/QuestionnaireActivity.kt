@@ -75,7 +75,7 @@ class QuestionnaireActivity : AppCompatActivity(), FeaturesListAdapter.OnShareCl
         return true
     }
 
-    fun checkInternetAndSave(v : View){
+    fun checkInternetAndSave(@Suppress("UNUSED_PARAMETER") v : View){
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))
             internetConnectionWarning.show()
         else saveFeaturePreferences()

@@ -19,11 +19,11 @@ class RecommendedRouteBuilder(elements: Set<Element>){
 
 
     fun getAllEntrances(): Set<Point>? {
-        return museumGraph?.entrances
+        return museumGraph.entrances
     }
 
     fun getRecommendedRouteFrom(start : Point, timeAvailable : Double, initialCost : Double): LinkedList<Itemizable> {
-        var startPoint : Point = start
+        val startPoint : Point = start
         itemsRemaining.clear()
         allRemainingSubItemsSetRecommendedFalse()
         var totalCost = initialCost
@@ -55,12 +55,13 @@ class RecommendedRouteBuilder(elements: Set<Element>){
             var enoughTime = true
             for(j in 1 .. i) {
                 //TODO MEMORIZE ITEMS ROUTE COST
-                @Suppress("UNCHECKED_CAST")
+
                 //time between routableItems only
                 var nextPoint : Point? = null
                 try {
-                    nextPoint = museumGraph?.getNextClosestItemFromList(currentStartPoint,
-                            (itemsRemaining.filter { it is RoutableItem }.toSet() as Set<Point>))!!
+                    @Suppress("UNCHECKED_CAST")
+                    nextPoint = museumGraph.getNextClosestItemFromList(currentStartPoint,
+                            (itemsRemaining.filter { it is RoutableItem && it is Point }.toSet() as Set<Point>))!!
                 }
                 catch(e: Exception){
                     //startPoint = null
@@ -100,11 +101,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
 
 
     fun findAndSetShortestPath(to: Point, from: Point): Point? {
-        return museumGraph?.getNextClosestItemFromList(from, setOf(to))
-    }
-
-    private fun isGraphBuilt() : Boolean{
-        return museumGraph != null
+        return museumGraph.getNextClosestItemFromList(from, setOf(to))
     }
 
     fun findAndSetShortestPathFromUserLocation(item: Item, userPosition: Point): Point? {

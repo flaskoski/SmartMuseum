@@ -52,10 +52,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
             p0.itemView.bt_remove_item.visibility = View.GONE
         }
         if(!ApplicationProperties.userNotDefinedYet()) {
-            val rating = itemsList[p1].recommedationRating
-            if(rating != null)
-                p0.itemView.ratingBar.rating = rating
-            else p0.itemView.ratingBar.rating = 0F
+            p0.itemView.ratingBar.rating = itemsList[p1].recommedationRating
         }else p0.itemView.ratingBar.rating = 0F
 
         p0.itemView.setOnClickListener{
