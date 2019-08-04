@@ -303,7 +303,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             Toast.makeText(applicationContext, "Usário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG).show()
             return
         }
-        var viewItemDetails : Intent
+        val viewItemDetails : Intent
         //var subItems : ArrayList<Itemizable>? = null
         if(journeyManager.itemsList[p1] is GroupItem) {
             viewItemDetails = Intent(applicationContext, GroupItemDetailActivity::class.java)
@@ -311,7 +311,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
         else viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
         val itemId = journeyManager.itemsList[p1].id
-        var itemRating : Float = 0F
+        var itemRating = 0F
         journeyManager.ratingsList.find { it.user == ApplicationProperties.user?.id
                 && it.item == itemId }?.let {
             itemRating = it.rating

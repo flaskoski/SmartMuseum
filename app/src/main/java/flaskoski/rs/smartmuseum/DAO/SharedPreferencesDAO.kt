@@ -28,10 +28,10 @@ class SharedPreferencesDAO(activity : Activity){
     }
 
     fun getUser(): User? {
-        var userId = db.getString(USER_ID, "")
-        var userAge = db.getInt(USER_AGE, -1)
-        var alreadyVisited = db.getBoolean(ALREADY_VISITED, false)
-        var userTimeAvailable = db.getFloat(TIME_AVAILABLE, -1f).toDouble()
+        val userId = db.getString(USER_ID, "")
+        val userAge = db.getInt(USER_AGE, -1)
+        val alreadyVisited = db.getBoolean(ALREADY_VISITED, false)
+        val userTimeAvailable = db.getFloat(TIME_AVAILABLE, -1f).toDouble()
         if(userId!!.isNotBlank() && userTimeAvailable > 0)
             return User(userId, userAge, alreadyVisited, userTimeAvailable)
         return null
@@ -110,7 +110,7 @@ class SharedPreferencesDAO(activity : Activity){
                 remove(it)
             }
             remove(START_TIME)
-            commit()
+            apply()
         }
     }
 

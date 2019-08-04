@@ -28,7 +28,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         mMap?.mapType = GoogleMap.MAP_TYPE_SATELLITE
         mMap?.setMinZoomPreference(14f)
         mMap?.moveCamera(CameraUpdateFactory.zoomTo(19.5f))
-        mMap?.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)));
+        mMap?.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)))
 
         //map ready ->  callback
         onMapConfiguredCallback?.invoke()

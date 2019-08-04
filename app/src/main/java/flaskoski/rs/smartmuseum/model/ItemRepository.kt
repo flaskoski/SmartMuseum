@@ -100,7 +100,7 @@ object ItemRepository //@Inject constructor
         }
     }
     private fun getInputStreamImage(context : Context, photoId : String) : InputStream? {
-        var extensions = listOf("jpg", "jpeg")
+        val extensions = listOf("jpg", "jpeg")
         for(e in extensions)
             try { return context.assets.open("${photoId}.${e}")
             } catch (_: IOException) {}
