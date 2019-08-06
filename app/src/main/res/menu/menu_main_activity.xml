@@ -17,9 +17,9 @@
         android:id="@+id/option_finish"
         android:title="@string/finishJourney"
         />
-    <!--<item-->
-        <!--android:id="@+id/option_debug"-->
-        <!--android:title="Debug"-->
-        <!--/>-->
+    <item
+        android:id="@+id/option_debug"
+        android:title="Debug"
+        />
 
 </menu>

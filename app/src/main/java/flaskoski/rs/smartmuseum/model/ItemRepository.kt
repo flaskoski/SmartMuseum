@@ -2,6 +2,7 @@ package flaskoski.rs.smartmuseum.model
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import androidx.databinding.ObservableBoolean
@@ -23,7 +24,6 @@ import java.io.InputStream
 //@Singleton
 object ItemRepository //@Inject constructor
 {
-
     var isItemListLoaded = ObservableBoolean(false)
     var isRatingListLoaded = ObservableBoolean(false)
     var itemList = ArrayList<Item>()
@@ -31,13 +31,26 @@ object ItemRepository //@Inject constructor
     var ratingList = HashSet<Rating>()
     var allElements = HashSet<Element>()
     val itemDAO = ItemDAO()
+    val ratingDAO = RatingDAO()
     val recommenderManager = RecommenderManager()
 
     init{
+        loadItemsAndRatings()
+    }
+
+    fun loadItemsAndRatings(){
+        if(itemList.isEmpty())
+            loadItems()
+        if(ratingList.isEmpty())
+            loadRatings()
+    }
+    fun loadItems(){
         itemDAO.getAllPoints { elements ->
-//            recommendedRouteBuilder = RecommendedRouteBuilder(elements)
+            //            recommendedRouteBuilder = RecommendedRouteBuilder(elements)
 //            lastItem = recommendedRouteBuilder?.getAllEntrances()?.first()
 //            @Suppress("UNCHECKED_CAST")
+            if(elements.isEmpty())
+                Log.e(TAG, "Blank itemlist returned from database!")
             allElements = elements as HashSet<Element>
             @Suppress("UNCHECKED_CAST")itemList.addAll(elements.filter { (it is Item || it is GroupItem)
                     && !(it as Itemizable).isClosed }.let {list -> list  as List<Item>})
@@ -45,8 +58,20 @@ object ItemRepository //@Inject constructor
                     .let { list -> list as List<SubItem> } )
             isItemListLoaded.set(true)
         }
-        val ratingDAO = RatingDAO()
+    }
+    fun isErrorOnLoadingItems(): Boolean {
+        return (isItemListLoaded.get() && itemList.isEmpty())
+    }
+    fun isErrorOnLoadingRatings(): Boolean {
+        return (isRatingListLoaded.get() && ratingList.isEmpty())
+    }
+
+    private const val TAG: String = "ItemRepository"
+
+    fun loadRatings(){
         ratingDAO.getAllItems {
+            if(it.isEmpty())
+                Log.e(TAG, "Blank ratingList returned from database!")
             ratingList.addAll(it)
             isRatingListLoaded.set(true)
         }

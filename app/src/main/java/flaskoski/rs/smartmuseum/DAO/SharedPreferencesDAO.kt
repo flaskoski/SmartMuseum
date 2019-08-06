@@ -16,6 +16,7 @@ class SharedPreferencesDAO(activity : Activity){
     private val ITEM_PREFIX = "item_"
 
     private var db: SharedPreferences = activity.getPreferences(Context.MODE_PRIVATE)
+    var isSavedItemsSynchronized: Boolean = false
 
     fun saveUser(user : User){
         with(db.edit()){
@@ -63,6 +64,7 @@ class SharedPreferencesDAO(activity : Activity){
             else
                 allRecommendedItems.add(Item(values[1], recommendedOrder = values[2].toInt(), isVisited =  it.value as Boolean))
         }
+        isSavedItemsSynchronized = true
         return allRecommendedItems
     }
 
@@ -81,6 +83,7 @@ class SharedPreferencesDAO(activity : Activity){
                 else putBoolean("${ITEM_PREFIX}${it.id}_0", it.isVisited)
             }
             apply()
+            isSavedItemsSynchronized = true
         }
     }
 
@@ -95,6 +98,7 @@ class SharedPreferencesDAO(activity : Activity){
                 putBoolean("${ITEM_PREFIX}${it.id}_${it.recommendedOrder}", it.isVisited)
             else putBoolean("${ITEM_PREFIX}${it.id}_0", it.isVisited)
             apply()
+            isSavedItemsSynchronized = false
         }
     }
 
@@ -102,6 +106,7 @@ class SharedPreferencesDAO(activity : Activity){
         with(db.edit()){
             clear()
             apply()
+            isSavedItemsSynchronized = false
         }
     }
     fun resetJourney(){
@@ -111,6 +116,7 @@ class SharedPreferencesDAO(activity : Activity){
             }
             remove(START_TIME)
             apply()
+            isSavedItemsSynchronized = false
         }
     }
 
@@ -120,6 +126,7 @@ class SharedPreferencesDAO(activity : Activity){
                 putBoolean("${ITEM_PREFIX}${it}_0", true)
             }
             apply()
+            isSavedItemsSynchronized = false
         }
     }
 
@@ -127,6 +134,7 @@ class SharedPreferencesDAO(activity : Activity){
         with(db.edit()){
             remove("${ITEM_PREFIX}${itemToBeRemoved.id}_${itemToBeRemoved.recommendedOrder}")
             apply()
+            isSavedItemsSynchronized = false
         }
     }
 }

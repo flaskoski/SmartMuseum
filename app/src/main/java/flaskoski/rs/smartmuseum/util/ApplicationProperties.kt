@@ -70,9 +70,10 @@ object ApplicationProperties {
         return currentVersionCode
     }
 
-    fun checkForUpdates(currentVersion: Long, callback: (isThereUpdates : Boolean) -> Unit){
+    fun checkForUpdates(currentVersion: Long, callback: (isThereUpdates : Boolean?) -> Unit){
         if(updateConfigurations == null)
             ConfigurationsDAO().getUpdates(){
+                if(it == null) callback(null)
                 updateConfigurations = it
                 callback(updateConfigurations?.latestVersion?:-1 > currentVersion)
             }

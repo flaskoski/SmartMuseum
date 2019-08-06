@@ -20,7 +20,7 @@ class ConfigurationsDAO /*@Inject constructor*/(val db: FirebaseFirestore = Fire
                 }
                 .addOnFailureListener { _ ->
                    // Log.w(TAG, "Error getting documents.", exception)
-                    throw Exception("Error getting items")
+                    Log.e(TAG, "Error getting configutations from db!")
                 }
     }
 }

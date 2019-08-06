@@ -42,7 +42,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Preferências"
 
-        internetConnectionWarning = Snackbar.make(bt_confirm, "Conexão com a internet não encontrada. Por favor verifique sua conexão!", Snackbar.LENGTH_LONG)
+        internetConnectionWarning = AlertBuilder().buildNetworkUnavailableWarning(bt_confirm, false, false)
 
         featureList.add(Feature("Física", "O que é eletricidade e como ela funciona"))
         featureList.add(Feature("Química", "A água é composta de dois átomos de hidrogênio e um de oxigênio"))
@@ -82,7 +82,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 
         if(ApplicationProperties.userNotDefinedYet())
             ApplicationProperties.checkForUpdates(ApplicationProperties.getCurrentVersionCode(applicationContext)){isThereUpdates ->
-                if(isThereUpdates)
+                if(isThereUpdates == true)
                     if(ApplicationProperties.checkIfForceUpdateIsOn() == true)
                         AlertBuilder().showUpdateRequired(this@FeaturePreferencesActivity){
                             finish()

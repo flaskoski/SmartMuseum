@@ -52,7 +52,6 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                         db.collection("ratings").add(rating)
                         Log.i(TAG, "Rating added on db: $rating")
                     }
-
                     else
                         for(ratingItem in ratingsList){
                             ratingItem.reference.set(rating)

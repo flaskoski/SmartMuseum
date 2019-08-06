@@ -32,7 +32,7 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
     private val TAG: String = "UserLocationManager"
 
     //function that handles the user location returned
-    var onUserLocationUpdateCallback: ((LatLng) -> Unit)? = null
+    var onUserLocationUpdateCallbacks = HashSet<((LatLng)->Unit)?>()
 
     var activity: Activity? = null
 
@@ -67,7 +67,7 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
         locationResult ?: return
         for (location in locationResult.locations) {
             userLatLng = LatLng(location.latitude, location.longitude)
-            onUserLocationUpdateCallback?.invoke(userLatLng!!)
+            onUserLocationUpdateCallbacks.forEach {it?.invoke(userLatLng!!)}
         }
     }
 
@@ -80,13 +80,13 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
             if( ActivityCompat.checkSelfPermission(it, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 //Toast.makeText(activity.applicationContext, "Erro: O aplicativo precisa de permissão para acessar sua localização para funcionar.", Toast.LENGTH_SHORT).show()
                 Log.w(TAG,"No location permission.")
-                createLocationRequest()
+//                createLocationRequest()
                 return
             }
             if(!locationSettingsCorrect){
                 //Toast.makeText(activity.applicationContext, "GPS desligado", Toast.LENGTH_SHORT).show()
                 Log.w(TAG,"Wrong phone location settings.")
-                createLocationRequest()
+//                createLocationRequest()
                 return
             }
             mFusedLocationClient!!.requestLocationUpdates(locationRequest,
@@ -103,7 +103,7 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
 
             locationRequest = LocationRequest.create()?.apply {
                 interval = 1000
-                fastestInterval = 1000
+                fastestInterval = 800
                 priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             }
             locationRequest?.let {
@@ -115,18 +115,17 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
                     locationSettingsCorrect = true
                     startLocationUpdates()
                 }
-
-                task.addOnFailureListener { exception ->
-                    if (exception is ResolvableApiException) {
-                        // Location settings are not satisfied. Show to the user a dialog.
-                        try {
-                            // then check the result in onActivityResult().
-                            exception.startResolutionForResult(activity,
-                                    REQUEST_CHANGE_LOCATION_SETTINGS)
-                        } catch (sendEx: IntentSender.SendIntentException) {
-                            // Ignore the error.
-                        }
+            task.addOnFailureListener { exception ->
+                if (exception is ResolvableApiException) {
+                    // Location settings are not satisfied. Show to the user a dialog.
+                    try {
+                        // then check the result in onActivityResult().
+                        exception.startResolutionForResult(activity,
+                                REQUEST_CHANGE_LOCATION_SETTINGS)
+                    } catch (sendEx: IntentSender.SendIntentException) {
+                        // Ignore the error.
                     }
+                }
                 }
             }
         }

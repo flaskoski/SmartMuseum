@@ -38,7 +38,7 @@ class QuestionnaireActivity : AppCompatActivity(), FeaturesListAdapter.OnShareCl
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Questionário"
 
-        internetConnectionWarning = Snackbar.make(bt_confirm_questionnaire, "Conexão com a internet não encontrada. Por favor verifique sua conexão!", Snackbar.LENGTH_LONG)
+        internetConnectionWarning = AlertBuilder().buildNetworkUnavailableWarning(bt_confirm_questionnaire, false, false)
 
         questionList.add(Feature("visit", "Qual seu nível de satisfação com a visita?"))
         questionList.add(Feature("app", "Qual seu nível de satisfação com o aplicativo do parque?"))

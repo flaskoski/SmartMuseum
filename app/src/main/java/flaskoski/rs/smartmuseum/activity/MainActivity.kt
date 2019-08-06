@@ -1,6 +1,7 @@
 package flaskoski.rs.smartmuseum.activity
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import androidx.lifecycle.ViewModelProvider
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -39,9 +40,13 @@ import java.lang.IllegalStateException
 
 class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
 
-    private val requestGetPreferences: Int = 1
-    private val requestItemRatingChange: Int = 2
-    private val requestQuestionnaire: Int = 4
+    companion object {
+        private const val requestGetPreferences: Int = 1
+        private const val requestItemRatingChange: Int = 2
+        const val REQUEST_CHANGE_LOCATION_SETTINGS = 3
+        private const val requestQuestionnaire: Int = 4
+
+    }
     var isFirstItem: Boolean = true
 
     private val TAG = "MainActivity"
@@ -65,6 +70,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
     private lateinit var journeyManager : JourneyManager
 
+    private lateinit var networkWarning: Snackbar
+    private lateinit var networkVerifier: NetworkVerifier
+
     override fun onCreate(savedInstanceState: Bundle?) {
         //------------Standard Side Menu Screen---------------------------
         super.onCreate(savedInstanceState)
@@ -76,6 +84,23 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
 
         loading_view.visibility = View.VISIBLE
+
+        networkWarning = AlertBuilder().buildNetworkUnavailableWarning(bt_begin_route, true, true)
+        //NetworkVerifier
+        networkVerifier = NetworkVerifier()
+                .setOnAvailableCallback {
+                    if(ItemRepository.isErrorOnLoadingItems())
+                        ItemRepository.loadItems()
+                    if(ItemRepository.isErrorOnLoadingRatings())
+                        ItemRepository.loadRatings()
+                    if(!journeyManager.checkedForUpdates)
+                        checkForUpdates()
+                    networkWarning.dismiss()
+                }
+                .setOnUnavailableCallback {
+                    if(journeyManager.ratingsList.isEmpty() || journeyManager.itemsList.isEmpty())
+                        networkWarning.show()
+                }
 
         //attach view model to activity
         journeyManager = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application)).get(JourneyManager::class.java)
@@ -96,7 +121,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             adapter?.notifyDataSetChanged()
             if(view_next_item.visibility == View.VISIBLE)
                 updateNextItemCard()
-            loading_view.visibility = View.GONE
+//            loading_view.visibility = View.GONE
         }
 
         //bottomsheet setup and bring views to front
@@ -132,12 +157,16 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
 
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))
-            AlertBuilder().showNetworkDisconnected(this@MainActivity)
+            networkWarning.show()
+            //AlertBuilder().showNetworkDisconnected(this@MainActivity)
+        else if(!journeyManager.checkedForUpdates)
+            checkForUpdates()
+    }
 
-        if(!journeyManager.checkedForUpdates) {
-            journeyManager.checkedForUpdates = true
-            ApplicationProperties.checkForUpdates(ApplicationProperties.getCurrentVersionCode(applicationContext)) { isThereUpdates ->
-                if (isThereUpdates)
+    private fun checkForUpdates(){
+        ApplicationProperties.checkForUpdates(ApplicationProperties.getCurrentVersionCode(applicationContext)) { isThereUpdates ->
+            isThereUpdates?.let {
+                if (isThereUpdates == true)
                     if (ApplicationProperties.checkIfForceUpdateIsOn() == true)
                         AlertBuilder().showUpdateRequired(this@MainActivity) {
                             finish()
@@ -145,6 +174,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     else {
                         AlertBuilder().showUpdateAvailable(this@MainActivity)
                     }
+                journeyManager.checkedForUpdates = true
             }
         }
     }
@@ -164,7 +194,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private val preferencesSetListener = Observer<Boolean>{ preferencesSet : Boolean ->
         if(preferencesSet && !journeyManager.isJourneyBegan.value!!){
-            showStartMessage()
+            showStartMessageAndBegin()
         }
     }
 
@@ -174,12 +204,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     private val isItemsAndRatingsLoadedListener = Observer<Boolean>{ loaded : Boolean ->
-        if(loaded && journeyManager.isJourneyBegan.value!!) {
+        if(loaded && journeyManager.isJourneyBegan.value!!)
             journeyManager.recoverCurrentState()
-            loading_view.visibility = View.GONE
-            //DEBUG
-            //shareOnItemClicked(journeyManager.itemsList.indexOf(journeyManager.itemsList.find{ it.id == "7I7lVxSXOjvYWE2e5i72"}),false)
-        }
     }
 
     private val isJourneyBeganListener = Observer<Boolean> {}
@@ -200,12 +226,14 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
-    private fun showStartMessage() {
+    private fun showStartMessageAndBegin() {
         val startDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
         startDialog.setTitle(getString(R.string.welcome_title))
                 .setMessage(getString(R.string.welcome_message))
                 .setNeutralButton(android.R.string.ok) { _, _ -> }
-                .setOnDismissListener { beginJourney(bt_begin_route) }
+                .setOnDismissListener {
+                    if(journeyManager.isItemsAndRatingsLoaded.value == true)
+                        beginJourney() }
         startDialog.show()
     }
 
@@ -222,6 +250,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         ItemRepository.loadImage(applicationContext, view_next_item.next_item_img_itemThumb, journeyManager.itemsList[0].photoId)
         view_next_item.visibility = View.VISIBLE
         view_next_item.setOnClickListener{}
+
+        loading_view.visibility = View.GONE
     }
     private val isGoToNextItemListener = Observer<Boolean> { isCurrentItemVisited: Boolean ->
         if(isCurrentItemVisited && journeyManager.isJourneyBegan.value!!){
@@ -247,9 +277,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         closeToItemIsChangedListener.onChanged(journeyManager.isCloseToItem.value)
     }
 
-    fun beginJourney(@Suppress("UNUSED_PARAMETER") v: View){
+    fun beginJourney(){
         try {
-            journeyManager.beginJourney()
+            if(!journeyManager.isJourneyBegan.value!!)
+                journeyManager.recoverCurrentState()
         }
         catch (e: IllegalStateException){
             Log.e(TAG, e.message)
@@ -266,8 +297,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             loading_view.visibility = View.VISIBLE
 
             when (requestCode) {
-                journeyManager.REQUEST_CHANGE_LOCATION_SETTINGS -> {
-                    journeyManager.changeLocationSettingsResult()
+                REQUEST_CHANGE_LOCATION_SETTINGS -> {
+                    journeyManager.createLocationRequest()
+                    journeyManager.recoverCurrentState()
                 }
                 requestGetPreferences ->{
                     journeyManager.getPreferencesResult(data)
@@ -276,7 +308,9 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     journeyManager.itemRatingChangeResult(data)
                 }
             }
-            loading_view.visibility = View.GONE
+            //if still downloading data, shouldn't dismiss loading view
+            if(journeyManager.isItemsAndRatingsLoaded.value == true)
+                loading_view.visibility = View.GONE
 
         }else if(resultCode == RESULT_OK && requestCode == requestQuestionnaire){
             if(journeyManager.isJourneyFinishedFlag.value!!) {
@@ -293,7 +327,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         .show()
                 view_next_item.visibility = View.GONE
             }
-        }
+        }else if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_CHANGE_LOCATION_SETTINGS)
+            journeyManager.createLocationRequest()
     }
 
     //-----------onClick --------------
@@ -351,11 +386,15 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     override fun onResume() {
         super.onResume()
         journeyManager.userLocationManager?.startLocationUpdates()
+
+        networkVerifier.registerNetworkCallbackV21(applicationContext)
     }
 
     override fun onPause() {
         super.onPause()
         journeyManager.userLocationManager?.stopLocationUpdates()
+
+        networkVerifier.unRegisterNetworkCallbackV21()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -364,6 +403,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.checkSelfPermission(applicationContext, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 journeyManager.userLocationManager?.createLocationRequest()
+                if(journeyManager.isJourneyBegan.value!!)
+                    journeyManager.recoverCurrentState()
             }
 
         }
@@ -403,7 +444,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         .setPositiveButton(android.R.string.yes) { _, _ ->
                             journeyManager.restartJourney()
                             view_next_item.visibility = View.GONE
-                            showStartMessage()
+                            showStartMessageAndBegin()
                         }.setNegativeButton(android.R.string.no){ _, _ -> }
                 confirmationDialog.show()
                 true
@@ -412,10 +453,10 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 journeyManager.completeJourney()
                 true
             }
-//            R.id.option_debug->{
-//                ApplicationProperties.isDebugOn = !ApplicationProperties.isDebugOn
-//                true
-//            }
+            R.id.option_debug->{
+                ApplicationProperties.isDebugOn = !ApplicationProperties.isDebugOn
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
