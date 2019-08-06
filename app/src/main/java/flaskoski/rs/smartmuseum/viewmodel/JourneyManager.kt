@@ -75,7 +75,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     private fun initializeListsAndBuildRecommendations(){
         //if items and ratings were downloaded, preferences are set and lists weren't initialized yet
         if(ItemRepository.isItemListLoaded.get() && ItemRepository.isRatingListLoaded.get()
-                && ItemRepository.itemList.isNotEmpty() && ItemRepository.ratingList.isNotEmpty()
+                && ItemRepository.itemList.isNotEmpty() && ItemRepository.ratingList.any { it.user != ApplicationProperties.user?.id }
                 && isPreferencesSet.value!! && !isItemsAndRatingsLoaded.value!!){
             itemsList.addAll(ItemRepository.itemList)
 

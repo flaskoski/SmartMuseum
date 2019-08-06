@@ -63,7 +63,7 @@ object ItemRepository //@Inject constructor
         return (isItemListLoaded.get() && itemList.isEmpty())
     }
     fun isErrorOnLoadingRatings(): Boolean {
-        return (isRatingListLoaded.get() && ratingList.isEmpty())
+        return (isRatingListLoaded.get() && ratingList.none { it.user != ApplicationProperties.user?.id })
     }
 
     private const val TAG: String = "ItemRepository"
@@ -130,6 +130,17 @@ object ItemRepository //@Inject constructor
             try { return context.assets.open("${photoId}.${e}")
             } catch (_: IOException) {}
         return null
+    }
+
+    fun retryToDownloadData() {
+        if(isErrorOnLoadingItems()) {
+            isItemListLoaded.set(false)
+            loadItems()
+        }
+        if(isErrorOnLoadingRatings()) {
+            isRatingListLoaded.set(false)
+            loadRatings()
+        }
     }
 
 }

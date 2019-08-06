@@ -35,7 +35,6 @@ import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.next_item.*
 import kotlinx.android.synthetic.main.next_item.view.*
-import java.lang.IllegalStateException
 
 
 class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
@@ -89,10 +88,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         //NetworkVerifier
         networkVerifier = NetworkVerifier()
                 .setOnAvailableCallback {
-                    if(ItemRepository.isErrorOnLoadingItems())
-                        ItemRepository.loadItems()
-                    if(ItemRepository.isErrorOnLoadingRatings())
-                        ItemRepository.loadRatings()
+                    ItemRepository.retryToDownloadData()
                     if(!journeyManager.checkedForUpdates)
                         checkForUpdates()
                     networkWarning.dismiss()
@@ -194,7 +190,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private val preferencesSetListener = Observer<Boolean>{ preferencesSet : Boolean ->
         if(preferencesSet && !journeyManager.isJourneyBegan.value!!){
-            showStartMessageAndBegin()
+            beginAndShowStartMessage()
         }
     }
 
@@ -204,7 +200,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     private val isItemsAndRatingsLoadedListener = Observer<Boolean>{ loaded : Boolean ->
-        if(loaded && journeyManager.isJourneyBegan.value!!)
+        if(loaded)
             journeyManager.recoverCurrentState()
     }
 
@@ -226,14 +222,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         }
     }
 
-    private fun showStartMessageAndBegin() {
+    private fun beginAndShowStartMessage() {
+        journeyManager.recoverCurrentState()
         val startDialog = AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
         startDialog.setTitle(getString(R.string.welcome_title))
                 .setMessage(getString(R.string.welcome_message))
                 .setNeutralButton(android.R.string.ok) { _, _ -> }
-                .setOnDismissListener {
-                    if(journeyManager.isItemsAndRatingsLoaded.value == true)
-                        beginJourney() }
         startDialog.show()
     }
 
@@ -277,16 +271,16 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         closeToItemIsChangedListener.onChanged(journeyManager.isCloseToItem.value)
     }
 
-    fun beginJourney(){
-        try {
-            if(!journeyManager.isJourneyBegan.value!!)
-                journeyManager.recoverCurrentState()
-        }
-        catch (e: IllegalStateException){
-            Log.e(TAG, e.message)
-            e.printStackTrace()
-        }
-    }
+//    fun beginJourney(){
+//        try {
+//            if(!journeyManager.isJourneyBegan.value!!)
+//                journeyManager.recoverCurrentState()
+//        }
+//        catch (e: IllegalStateException){
+//            Log.e(TAG, e.message)
+//            e.printStackTrace()
+//        }
+//    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -444,7 +438,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         .setPositiveButton(android.R.string.yes) { _, _ ->
                             journeyManager.restartJourney()
                             view_next_item.visibility = View.GONE
-                            showStartMessageAndBegin()
+                            beginAndShowStartMessage()
                         }.setNegativeButton(android.R.string.no){ _, _ -> }
                 confirmationDialog.show()
                 true
