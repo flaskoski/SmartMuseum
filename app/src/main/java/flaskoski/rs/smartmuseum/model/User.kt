@@ -1,11 +1,19 @@
 package flaskoski.rs.smartmuseum.model
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.provider.Settings
 import com.google.android.gms.maps.model.LatLng
 
 class User(val id: String, var age: Int,
            var alreadyVisited: Boolean = false,
-           var timeAvailable: Double, var location : LatLng? = null) {
+           var timeAvailable: Double, var location: LatLng? = null,
+           context: Context? = null, androidId : String? = "") {
 
+    @SuppressLint("HardwareIds")
+    val android_id : String = context?.let {
+        Settings.Secure.getString(it.contentResolver, Settings.Secure.ANDROID_ID);
+    }?: androidId?.let { it }?: ""
 
     companion object {
         const val FIELD_AGE = "userAge"

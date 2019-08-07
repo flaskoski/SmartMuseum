@@ -90,8 +90,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
         return userLocationManager?.userLatLng?.let {recommendedRouteBuilder?.getNearestPointFromUser(Point(it))}
                 ?: userLocationManager?.userLastKnownLocation?.let{
-                    recommendedRouteBuilder?.getNearestPointFromUser(Point(it))
-                            ?: recommendedRouteBuilder?.getAllEntrances()?.first()}
+                    recommendedRouteBuilder?.getNearestPointFromUser(Point(it))}
+//                            ?: recommendedRouteBuilder?.getAllEntrances()?.first()}
     }
 
     init {
@@ -120,7 +120,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             }
                 //mapManager?.setDestination()
         }
-        userLocationManager?.onUserLocationUpdateCallbacks = hashSetOf(mapManager?.updateUserLocationCallback,{
+        userLocationManager?.onUserLocationUpdateCallbacks = arrayListOf(mapManager?.updateUserLocationCallback,{
             if(lastItem == null) {
                 recoverCurrentState()
             }
@@ -284,8 +284,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                     else recommendedRouteBuilder?.findAndSetShortestPath(nextItem!!, lastItem!!)
 
                     try {
-                        mapManager?.setDestination(nextItem!!, lastItem,
-                                LatLng(userLocationManager?.userLastKnownLocation?.latitude!!, userLocationManager?.userLastKnownLocation?.longitude!!))
+                        mapManager?.setDestination(nextItem!!, lastItem, userLocationManager?.userLastKnownLocation?.let {
+                                LatLng(it.latitude, it.longitude) })
                         isGoToNextItem.value = true
                     } catch (e: java.lang.Exception) {
                         e.printStackTrace()

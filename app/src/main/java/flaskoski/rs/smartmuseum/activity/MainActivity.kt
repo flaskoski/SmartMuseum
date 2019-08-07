@@ -244,12 +244,11 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         ItemRepository.loadImage(applicationContext, view_next_item.next_item_img_itemThumb, journeyManager.itemsList[0].photoId)
         view_next_item.visibility = View.VISIBLE
         view_next_item.setOnClickListener{}
-
-        loading_view.visibility = View.GONE
     }
-    private val isGoToNextItemListener = Observer<Boolean> { isCurrentItemVisited: Boolean ->
-        if(isCurrentItemVisited && journeyManager.isJourneyBegan.value!!){
+    private val isGoToNextItemListener = Observer<Boolean> { isGoToNextItem: Boolean ->
+        if(isGoToNextItem && journeyManager.isJourneyBegan.value!!){
             showNextItemCard()
+            loading_view.visibility = View.GONE
         }
     }
 
@@ -288,8 +287,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             AlertBuilder().showNetworkDisconnected(this@MainActivity)
 
         if (resultCode == RESULT_OK && data != null) {
-            loading_view.visibility = View.VISIBLE
-
             when (requestCode) {
                 REQUEST_CHANGE_LOCATION_SETTINGS -> {
                     journeyManager.createLocationRequest()
@@ -302,10 +299,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     journeyManager.itemRatingChangeResult(data)
                 }
             }
-            //if still downloading data, shouldn't dismiss loading view
-            if(journeyManager.isItemsAndRatingsLoaded.value == true)
-                loading_view.visibility = View.GONE
-
         }else if(resultCode == RESULT_OK && requestCode == requestQuestionnaire){
             if(journeyManager.isJourneyFinishedFlag.value!!) {
                 AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)

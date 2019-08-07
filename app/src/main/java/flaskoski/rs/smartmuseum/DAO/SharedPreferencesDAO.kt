@@ -13,6 +13,7 @@ class SharedPreferencesDAO(activity : Activity){
     private val START_TIME = "startTime"
     private val TIME_AVAILABLE = "timeAvailable"
     private val ALREADY_VISITED: String = ""
+    private val ANDROID_ID: String = "androidId"
     private val ITEM_PREFIX = "item_"
 
     private var db: SharedPreferences = activity.getPreferences(Context.MODE_PRIVATE)
@@ -21,6 +22,7 @@ class SharedPreferencesDAO(activity : Activity){
     fun saveUser(user : User){
         with(db.edit()){
             putString(USER_ID, user.id)
+            putString(ANDROID_ID, user.android_id)
             putInt(USER_AGE, user.age)
             putBoolean(ALREADY_VISITED, user.alreadyVisited)
             putFloat(TIME_AVAILABLE, user.timeAvailable.toFloat())
@@ -30,11 +32,12 @@ class SharedPreferencesDAO(activity : Activity){
 
     fun getUser(): User? {
         val userId = db.getString(USER_ID, "")
+        val androidID = db.getString(ANDROID_ID, "")
         val userAge = db.getInt(USER_AGE, -1)
         val alreadyVisited = db.getBoolean(ALREADY_VISITED, false)
         val userTimeAvailable = db.getFloat(TIME_AVAILABLE, -1f).toDouble()
         if(userId!!.isNotBlank() && userTimeAvailable > 0)
-            return User(userId, userAge, alreadyVisited, userTimeAvailable)
+            return User(userId, userAge, alreadyVisited, userTimeAvailable, androidId = androidID)
         return null
     }
 

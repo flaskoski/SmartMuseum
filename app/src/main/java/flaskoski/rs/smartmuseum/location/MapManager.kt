@@ -82,7 +82,9 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
     }
 
     fun setDestination(item: Item, previousItem: Point?, lastKnownUserLocation : LatLng? = null) : MapManager{
+        val latLng = mCurrLocationMarker?.position
         clearMap()
+        latLng?.let { updateUserLocationCallback.invoke(it) }
         setVisitedItems()
 
         val itemPathCoordinates = item.getPathCoordinates()

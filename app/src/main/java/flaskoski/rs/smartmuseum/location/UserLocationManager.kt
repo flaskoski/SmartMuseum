@@ -32,7 +32,7 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
     private val TAG: String = "UserLocationManager"
 
     //function that handles the user location returned
-    var onUserLocationUpdateCallbacks = HashSet<((LatLng)->Unit)?>()
+    var onUserLocationUpdateCallbacks = ArrayList<((LatLng)->Unit)?>()
 
     var activity: Activity? = null
 
@@ -66,8 +66,9 @@ class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : L
     override fun onLocationResult(locationResult: LocationResult?) {
         locationResult ?: return
         for (location in locationResult.locations) {
-            userLatLng = LatLng(location.latitude, location.longitude)
-            onUserLocationUpdateCallbacks.forEach {it?.invoke(userLatLng!!)}
+            val latlng = LatLng(location.latitude, location.longitude)
+            onUserLocationUpdateCallbacks.forEach {it?.invoke(latlng)}
+            userLatLng = latlng
         }
     }
 

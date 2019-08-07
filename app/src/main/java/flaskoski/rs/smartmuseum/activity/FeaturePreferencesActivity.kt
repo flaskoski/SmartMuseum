@@ -206,7 +206,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
     private fun saveCurrentUser() {
         val timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
         ApplicationProperties.user = User(UUID.randomUUID().toString(),
-                txt_user_age.text.toString().toInt(), switch_already_visited.isChecked, timeAvailable)
+                txt_user_age.text.toString().toInt(), switch_already_visited.isChecked, timeAvailable, context = applicationContext)
         UserDAO().add(ApplicationProperties.user!!)
     }
 

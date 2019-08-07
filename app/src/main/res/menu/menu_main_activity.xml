@@ -19,7 +19,7 @@
         />
     <item
         android:id="@+id/option_debug"
-        android:title="Debug"
+        android:title="Já cheguei!"
         />
 
 </menu>
