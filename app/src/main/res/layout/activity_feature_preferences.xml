@@ -93,6 +93,7 @@
         android:id="@+id/lb_your_interests"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
         android:text="Informe seu interesse pelos assuntos abordados nas frases abaixo, colocando bastante estrelas para o tema que você gosta muito e poucas para o tema que gosta menos."
         android:textSize="16sp"
         android:textStyle="bold"
