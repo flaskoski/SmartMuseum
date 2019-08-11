@@ -87,8 +87,7 @@ object ItemRepository //@Inject constructor
             (it as Itemizable).isVisited = false
             if(it is RoutableItem) it.recommendedOrder = Int.MAX_VALUE
         }
-
-        ratingList.removeAll( ratingList.filter { it.user == ApplicationProperties.user?.id && it.type != Rating.TYPE_FEATURE} )
+//        ratingList.removeAll( ratingList.filter { it.user == ApplicationProperties.user?.id && it.type != Rating.TYPE_FEATURE} )
     }
 
     fun setRecommendationRatingOnSubItemsOf(groupItem : GroupItem) : List<SubItem>{

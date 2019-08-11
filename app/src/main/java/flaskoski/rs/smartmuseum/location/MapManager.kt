@@ -58,8 +58,8 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         val distance = FloatArray(3)
         Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, destinationMarker?.position?.latitude!!, destinationMarker?.position?.longitude!!, distance)
         if(ApplicationProperties.isDebugOn)
-            return distance[0] < 31000
-        else return distance[0] < 12
+            return true
+        else return distance[0] < 15
     }
 
     interface OnUserArrivedToDestinationListener{

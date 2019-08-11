@@ -21,6 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:layout_weight="7"
+            android:textColor="@color/colorText"
             android:text="@string/lb_you_arrived"
             android:textSize="12sp"
             android:visibility="visible" />
@@ -46,7 +47,8 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="4dp"
                 android:layout_weight="1"
-                android:text="Título"
+                android:textColor="@color/colorText"
+                android:text=""
                 android:textSize="12sp"
                 card_view:layout_constraintStart_toStartOf="parent"
                 card_view:layout_constraintTop_toTopOf="parent" />
