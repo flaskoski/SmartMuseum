@@ -293,8 +293,11 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                     }
 
 
-                } else
+                } else {
+                    if(isJourneyFinished())
+                        completeJourney()
                     Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
+                }
 ////            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_LONG).show()
             }
             else

@@ -57,8 +57,10 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
     private fun isVeryCloseToDestination(userLatLng: LatLng): Boolean {
         val distance = FloatArray(3)
         Location.distanceBetween(userLatLng.latitude, userLatLng.longitude, destinationMarker?.position?.latitude!!, destinationMarker?.position?.longitude!!, distance)
-        if(ApplicationProperties.isDebugOn)
+        if(ApplicationProperties.isArrivedIsSet) {
+            ApplicationProperties.isArrivedIsSet = false
             return true
+        }
         else return distance[0] < 15
     }
 

@@ -441,7 +441,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 true
             }
             R.id.option_debug->{
-                ApplicationProperties.isDebugOn = !ApplicationProperties.isDebugOn
+                ApplicationProperties.isArrivedIsSet = !ApplicationProperties.isArrivedIsSet
                 true
             }
             else -> super.onOptionsItemSelected(item)
