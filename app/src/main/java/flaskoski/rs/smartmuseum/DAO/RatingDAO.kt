@@ -31,7 +31,7 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
     fun getAllItems(callback : (ratingList : List<Rating>) -> Unit) {
         //add items to grid from DB
         db.collection("ratings")
-                .get()
+                .limit(2500).get()
                 .addOnSuccessListener { result ->
                     val ratingsList : ArrayList<Rating> = ArrayList()
                     for (document in result) {

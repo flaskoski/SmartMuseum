@@ -409,6 +409,14 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         userLocationManager?.userLastKnownLocation?.let {
             mapManager?.goToLocation(it)
 //            mapManager?.setDestination(nextItem!!, lastItem, LatLng(userLastKnowLocation.latitude, userLastKnowLocation.longitude))
+            try {
+                mapManager?.setDestination(nextItem!!, lastItem, userLocationManager?.userLastKnownLocation?.let {
+                    LatLng(it.latitude, it.longitude) })
+                isGoToNextItem.value = true
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+                //                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)
+            }
         }
 
     }

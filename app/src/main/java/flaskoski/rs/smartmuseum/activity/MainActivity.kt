@@ -17,6 +17,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
@@ -37,7 +38,13 @@ import kotlinx.android.synthetic.main.next_item.*
 import kotlinx.android.synthetic.main.next_item.view.*
 
 
-class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener {
+class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener, ViewTreeObserver.OnGlobalLayoutListener{
+    override fun onGlobalLayout() {
+        container.viewTreeObserver.removeOnGlobalLayoutListener(this)
+        val twentyPercent = (container.height / 5);
+        bottomSheetBehavior.halfExpandedRatio = 0.8f
+    }
+
 
     companion object {
         private const val requestGetPreferences: Int = 1
@@ -126,6 +133,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         ApplicationProperties.bringToFront(sheet_next_items, 40f)
         ApplicationProperties.bringToFront(view_next_item, 30f)
 
+        container.viewTreeObserver.addOnGlobalLayoutListener(this)
    //     navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
         //GridItems setup
@@ -449,8 +457,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     }
 
     fun toggleSheet(@Suppress("UNUSED_PARAMETER") v: View){
-        if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED)
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_HALF_EXPANDED)
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
          else
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
