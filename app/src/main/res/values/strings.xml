@@ -39,4 +39,6 @@
     <string name="confirmar">Confirmar</string>
     <string name="option_questionario">Questionário</string>
     <string name="yes">Sim</string>
+    <string name="voltar">Voltar</string>
+    <string name="continuar">Continuar</string>
 </resources>

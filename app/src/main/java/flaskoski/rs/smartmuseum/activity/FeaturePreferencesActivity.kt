@@ -22,8 +22,10 @@ import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
 import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.DAO.UserDAO
+import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import flaskoski.rs.smartmuseum.util.ParseTime
+import kotlinx.android.synthetic.main.activity_feature_preferences.view.*
 
 
 class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
@@ -147,6 +149,38 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         return true
     }
 
+    var txt_user_ageHeight = 0
+    fun continueForm(v : View){
+        if(lb_userage.visibility == View.VISIBLE){
+            lb_userage.visibility = View.GONE
+            txt_user_ageHeight = txt_user_age.height
+            txt_user_age.height = 0
+            txt_user_age.visibility = View.INVISIBLE
+            lb_time_available.visibility = View.GONE
+            txt_hh.visibility = View.GONE
+            txt_mm.visibility = View.GONE
+            lb_colon.visibility = View.GONE
+            lb_already_visited.visibility = View.GONE
+            switch_already_visited.visibility = View.GONE
+            group_second_part.visibility = View.VISIBLE
+            bt_continue.text = getString(R.string.voltar)
+            hideKeyboard(v)
+        }
+        else{
+            lb_userage.visibility = View.VISIBLE
+            txt_user_age.visibility = View.VISIBLE
+            txt_user_age.height = txt_user_ageHeight
+            lb_time_available.visibility = View.VISIBLE
+            txt_hh.visibility = View.VISIBLE
+            txt_mm.visibility = View.VISIBLE
+            lb_colon.visibility = View.VISIBLE
+            lb_already_visited.visibility = View.VISIBLE
+            switch_already_visited.visibility = View.VISIBLE
+            group_second_part.visibility = View.GONE
+            bt_continue.text = getString(R.string.continuar)
+        }
+
+    }
     fun checkInternetAndSave(v : View){
         hideKeyboard(v)
         if(!NetworkVerifier().isNetworkAvailable(applicationContext))

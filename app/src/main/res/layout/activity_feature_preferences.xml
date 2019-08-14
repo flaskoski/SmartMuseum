@@ -6,72 +6,17 @@
     android:layout_height="match_parent"
     tools:context=".activity.FeaturePreferencesActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/list_features"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/bt_confirm"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lb_your_interests"
-        tools:listitem="@layout/feature_item" />
-
-    <Button
-        android:id="@+id/bt_confirm"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:onClick="checkInternetAndSave"
-        android:text="Confirmar"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
     <TextView
-        android:id="@+id/lb_username"
+        android:id="@+id/lb_userage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:text="Sua Idade"
         android:textSize="16sp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="@+id/txt_user_age"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/txt_user_age" />
-
-    <TextView
-        android:id="@+id/lb_time_available"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:text="Tempo Disponível para a Visita"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/txt_hh"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txt_hh" />
-
-    <TextView
-        android:id="@+id/lb_username4"
-        android:layout_width="193dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="4dp"
-        android:text="Você ja visitou o parque CienTec antes?"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/switch_already_visited"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/switch_already_visited" />
-
-    <TextView
-        android:id="@+id/lb_username3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        android:text=":"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/txt_hh"
-        app:layout_constraintEnd_toStartOf="@+id/txt_mm"
-        app:layout_constraintTop_toTopOf="@+id/txt_hh" />
 
     <EditText
         android:id="@+id/txt_user_age"
@@ -83,6 +28,7 @@
         android:hint="Digite aqui sua idade"
         android:inputType="number"
         android:maxLength="3"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -90,16 +36,16 @@
     </EditText>
 
     <TextView
-        android:id="@+id/lb_your_interests"
-        android:layout_width="0dp"
+        android:id="@+id/lb_time_available"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
-        android:text="Informe seu interesse pelos assuntos abordados nas frases abaixo, colocando bastante estrelas para o tema que você gosta muito e poucas para o tema que gosta menos."
+        android:text="Tempo Disponível para a Visita"
         android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/txt_hh"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lb_username4" />
+        app:layout_constraintTop_toTopOf="@+id/txt_hh" />
 
     <EditText
         android:id="@+id/txt_hh"
@@ -110,8 +56,21 @@
         android:hint="H"
         android:inputType="number"
         android:maxLength="1"
-        app:layout_constraintEnd_toStartOf="@+id/lb_username3"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@+id/lb_colon"
         app:layout_constraintTop_toBottomOf="@+id/txt_user_age" />
+
+    <TextView
+        android:id="@+id/lb_colon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:text=":"
+        android:textSize="18sp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/txt_hh"
+        app:layout_constraintEnd_toStartOf="@+id/txt_mm"
+        app:layout_constraintTop_toTopOf="@+id/txt_hh" />
 
     <EditText
         android:id="@+id/txt_mm"
@@ -122,8 +81,21 @@
         android:hint="MM"
         android:inputType="number"
         android:maxLength="2"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txt_user_age" />
+
+    <TextView
+        android:id="@+id/lb_already_visited"
+        android:layout_width="193dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="4dp"
+        android:text="Você ja visitou o parque CienTec antes?"
+        android:textSize="16sp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/switch_already_visited"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/switch_already_visited" />
 
     <Switch
         android:id="@+id/switch_already_visited"
@@ -135,7 +107,72 @@
         android:text="Não"
         android:textOff="Não"
         android:textOn="Sim"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txt_mm" />
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/group_second_part"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_continue">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list_features"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:nestedScrollingEnabled="true"
+            app:layout_constraintBottom_toTopOf="@+id/bt_confirm"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/lb_your_interests"
+            app:layout_constraintVertical_bias="0.0"
+            tools:listitem="@layout/feature_item" />
+
+
+        <TextView
+            android:id="@+id/lb_your_interests"
+            android:layout_width="0dp"
+            android:layout_height="84dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:text="Informe seu interesse pelos assuntos abordados nas frases abaixo, colocando bastante estrelas para o tema que você gosta muito e poucas para o tema que gosta menos."
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/bt_confirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:onClick="checkInternetAndSave"
+            android:text="Confirmar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <Button
+        android:id="@+id/bt_continue"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:onClick="continueForm"
+        android:text="Continuar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lb_already_visited" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

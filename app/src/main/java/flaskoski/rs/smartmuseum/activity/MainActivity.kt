@@ -41,7 +41,6 @@ import kotlinx.android.synthetic.main.next_item.view.*
 class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener, ViewTreeObserver.OnGlobalLayoutListener{
     override fun onGlobalLayout() {
         container.viewTreeObserver.removeOnGlobalLayoutListener(this)
-        val twentyPercent = (container.height / 5);
         bottomSheetBehavior.halfExpandedRatio = 0.8f
     }
 
