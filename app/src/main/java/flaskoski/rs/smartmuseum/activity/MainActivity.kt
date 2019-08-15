@@ -218,8 +218,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
                     .setTitle("Atenção")
                     .setIcon(R.drawable.baseline_done_black_24)
-                    .setMessage("""Você já visitou todas as atrações recomendadas para você dentro do seu tempo disponível.
-                        |Por favor nos informe agora o que achou da visita com essa rápida pesquisa.""".trimMargin())
+                    .setMessage(journeyManager.finishMessage)
                     .setNeutralButton(R.string.ok){_,_ ->}
                     .setOnDismissListener {
                         val goToQuestionnaire = Intent(applicationContext, QuestionnaireActivity::class.java)
@@ -444,7 +443,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 true
             }
             R.id.option_finish -> {
-                journeyManager.completeJourney()
+                journeyManager.completeJourney("""${getString(R.string.thank_you_for_visiting)}
+                    |${getString(R.string.answer_survey)}""".trimMargin())
                 true
             }
             R.id.option_debug->{

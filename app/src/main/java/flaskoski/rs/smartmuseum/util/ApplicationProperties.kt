@@ -7,8 +7,8 @@ import android.content.pm.PackageManager
 import android.content.Context
 import androidx.core.content.pm.PackageInfoCompat
 import flaskoski.rs.smartmuseum.DAO.ConfigurationsDAO
-import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Configurations
+import java.util.*
 
 
 object ApplicationProperties {
@@ -84,5 +84,13 @@ object ApplicationProperties {
         return updateConfigurations?.forceUpdate
     }
 
+
+    fun isThereTimeAvailableYet(startTime: Date): Boolean {
+        user?.timeAvailable?.let {timeAvailable ->
+            if(timeAvailable > ParseTime.differenceInMinutesUntilNow(startTime))
+                return true
+        }
+        return false
+    }
 
 }

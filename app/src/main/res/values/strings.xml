@@ -41,4 +41,6 @@
     <string name="yes">Sim</string>
     <string name="voltar">Voltar</string>
     <string name="continuar">Continuar</string>
+    <string name="thank_you_for_visiting">Obrigado por visitar o Parque CienTec!</string>
+    <string name="answer_survey">Agora, por favor, responda a rápida pesquisa de satisfação a seguir.</string>
 </resources>

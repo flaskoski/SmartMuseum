@@ -43,6 +43,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     var isGoToNextItem = MutableLiveData<Boolean>()
     var isJourneyFinishedFlag = MutableLiveData<Boolean>()
     var isJourneyBegan = MutableLiveData<Boolean>()
+    var finishMessage: String = """Você já visitou todas as atrações recomendadas para você dentro do seu tempo disponível.
+                        |Por favor nos informe agora o que achou da visita com essa rápida pesquisa.""".trimMargin()
 
     var showNextItem_okPressed = false
     var isCloseToItem = MutableLiveData<Boolean>()
@@ -215,15 +217,19 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     fun recoverSavedPreferences(): User? {
         if(ApplicationProperties.userNotDefinedYet() || startTime == null) {
             ApplicationProperties.user = sharedPreferences.getUser()
-            this.startTime = sharedPreferences.getStartTime()
+            startTime = sharedPreferences.getStartTime()
             if (!ApplicationProperties.userNotDefinedYet()) {
-                isPreferencesSetTrue()
-                if (startTime != null)
+                if (startTime != null){
                     isJourneyBegan.value = true
+                    if(!ApplicationProperties.isThereTimeAvailableYet(startTime!!))
+                        completeJourney("Acabou o tempo da visita que você começou anteriormente. Para começar uma nova visita, primeiro, " +
+                                "por favor, responda a rápida pesquisa de satisfação a seguir e então vá na opção \"Recomeçar\" no menu.")
+                }
+                isPreferencesSetTrue()
             }
         }else{
-            isPreferencesSetTrue()
             isJourneyBegan.value = true
+            isPreferencesSetTrue()
         }
         return ApplicationProperties.user
     }
@@ -368,7 +374,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     }
 
     //to go to satisfaction survey
-    fun completeJourney() {
+    fun completeJourney(customMessage : String? = null) {
+        customMessage?.let {  finishMessage = it }
         isJourneyFinishedFlag.value = true
     }
 
@@ -390,6 +397,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         mapManager?.clearMap()
 
         isJourneyBegan.value = false
+        isJourneyFinishedFlag.value = false
         isGoToNextItem.value = false
         isCloseToItem.value = false
         showNextItem_okPressed = false
