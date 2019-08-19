@@ -25,7 +25,6 @@ import flaskoski.rs.smartmuseum.DAO.UserDAO
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import flaskoski.rs.smartmuseum.util.ParseTime
-import kotlinx.android.synthetic.main.activity_feature_preferences.view.*
 
 
 class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
@@ -125,7 +124,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
        saveFeaturePreferences()
     }
 
-    private fun areFieldsCorrect(): Boolean {
+    private fun areFirstFieldsCorrect(): Boolean {
         //No username
         if(txt_user_age.text.isBlank() || txt_hh.text.isBlank() || txt_mm.text.isBlank()){
             Snackbar.make(bt_confirm, "Campo em branco! Por favor, complete todos os campos.", Snackbar.LENGTH_LONG).show()
@@ -142,6 +141,10 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             txt_mm.error = "O tempo mínimo de visita pelo aplicativo é de 30 minutos."
             return false
         }
+        return true
+    }
+
+    private fun areSecondFieldsCorrect() :Boolean {
         if(!allFeaturesRated){
             Snackbar.make(bt_confirm, "Por favor, informe seu nível de interesse para cada frase antes de avançar.", Snackbar.LENGTH_LONG).show()
             return false
@@ -149,9 +152,11 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         return true
     }
 
-    var txt_user_ageHeight = 0
-    fun continueForm(v : View){
+    private var txt_user_ageHeight = 0
+    fun toggleForm(v : View){
         if(lb_userage.visibility == View.VISIBLE){
+            if(!areFirstFieldsCorrect()) return
+
             lb_userage.visibility = View.GONE
             txt_user_ageHeight = txt_user_age.height
             txt_user_age.height = 0
@@ -204,8 +209,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
     }
 
     private fun saveFeaturePreferences() {
-
-        if(!areFieldsCorrect()) return
+        if(!areSecondFieldsCorrect()) return
 
         //username informed
         if(ApplicationProperties.userNotDefinedYet())
