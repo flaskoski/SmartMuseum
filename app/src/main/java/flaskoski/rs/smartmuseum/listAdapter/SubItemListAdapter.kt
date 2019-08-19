@@ -31,6 +31,7 @@ class SubItemListAdapter(private val subItemList: List<SubItem>,
 //        p0.itemView.txt_featureName.text = recommendedSubItemList[p1].description
 //        p0.itemView.img_itemThumb.setImageResource(context.resources.getIdentifier(recommendedSubItemList?.get(p1)?.photoId, "drawable", context.packageName))
 //        p0.itemView.setBackgroundResource(context.resources.getIdentifier(recommendedSubItemList?.get(p1)?.photoId, "drawable", context.packageName))
+        p0.itemView.lb_subitem.text = subItemList[p1].title
         if(subItemList[p1].photoId.isNotBlank())
             ItemRepository.loadBackgroundPhoto(activity.applicationContext, p0.itemView.layout_subitem, subItemList[p1].photoId)
         if(subItemList[p1].isVisited){

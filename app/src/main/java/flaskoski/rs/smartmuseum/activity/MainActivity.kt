@@ -51,6 +51,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         const val REQUEST_CHANGE_LOCATION_SETTINGS = 3
         private const val requestQuestionnaire: Int = 4
 
+        val MESSAGE_FINISH: String = """Você já visitou todas as atrações recomendadas para você dentro do seu tempo disponível.
+                        |Por favor nos informe agora o que achou da visita com essa rápida pesquisa.""".trimMargin()
     }
     var isFirstItem: Boolean = true
 
@@ -319,6 +321,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                         }
                         .show()
                 view_next_item.visibility = View.GONE
+                loading_view.visibility = View.GONE
             }
         }else if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_CHANGE_LOCATION_SETTINGS)
             journeyManager.createLocationRequest()

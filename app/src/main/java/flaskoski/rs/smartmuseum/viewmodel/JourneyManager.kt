@@ -43,8 +43,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     var isGoToNextItem = MutableLiveData<Boolean>()
     var isJourneyFinishedFlag = MutableLiveData<Boolean>()
     var isJourneyBegan = MutableLiveData<Boolean>()
-    var finishMessage: String = """Você já visitou todas as atrações recomendadas para você dentro do seu tempo disponível.
-                        |Por favor nos informe agora o que achou da visita com essa rápida pesquisa.""".trimMargin()
+    var finishMessage = MainActivity.MESSAGE_FINISH
 
     var showNextItem_okPressed = false
     var isCloseToItem = MutableLiveData<Boolean>()
@@ -186,7 +185,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         sharedPreferences.saveStartTime(startTime!!)
         isJourneyFinishedFlag.value = false
         if (!getRecommendedRoute()) {
-            completeJourney()
+            completeJourney(MainActivity.MESSAGE_FINISH)
             return
         }
         sortItemList()
@@ -204,7 +203,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                         recoverSavedRecommendedItems()
                     }
                     sortItemList()
-                    setNextRecommendedDestination()
+                    if(!isJourneyFinishedFlag.value!!)
+                        setNextRecommendedDestination()
                 } else
                     beginJourney()
         }
@@ -301,7 +301,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
                 } else {
                     if(isJourneyFinished())
-                        completeJourney()
+                        completeJourney(MainActivity.MESSAGE_FINISH)
                     Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
                 }
 ////            Toast.makeText(applicationContext, "Todos os itens já foram visitados.", Toast.LENGTH_LONG).show()
@@ -349,11 +349,11 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             sharedPreferences.setRecommendedItem(lastItem as Item)
 
             if(isJourneyFinished())
-                completeJourney()
+                completeJourney(MainActivity.MESSAGE_FINISH)
             else {
                 if (ratingChangedItemId != null)
                     if(!getRecommendedRoute()){
-                        completeJourney()
+                        completeJourney(MainActivity.MESSAGE_FINISH)
                         return
                     }
                 sortItemList()
@@ -364,7 +364,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             if(ratingChangedItemId != null) {
                 if(isJourneyBegan.value!! && ratingChangedItemId != nextItem?.id){//rating changed from an item that is not the destination item
                     if(!getRecommendedRoute()){
-                        completeJourney()
+                        completeJourney(MainActivity.MESSAGE_FINISH)
                         return
                     }
                     sortItemList()
