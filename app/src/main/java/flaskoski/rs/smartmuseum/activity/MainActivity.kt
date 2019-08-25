@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 this, R.layout.activity_main)
 
         //draw toolbar
-        setSupportActionBar(findViewById(R.id.toolbar))
+//        setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#FF0099CC")))
 
         loading_view.visibility = View.VISIBLE
