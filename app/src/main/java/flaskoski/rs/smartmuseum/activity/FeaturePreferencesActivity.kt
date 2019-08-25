@@ -22,9 +22,11 @@ import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
 import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.DAO.UserDAO
-import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import flaskoski.rs.smartmuseum.util.ParseTime
+import android.text.method.LinkMovementMethod
+import android.widget.TextView
+import flaskoski.rs.smartmuseum.R
 
 
 class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
@@ -53,6 +55,8 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         featureList.add(Feature("História", "Segundo a mitologia grega, Atena é a deusa da sabedoria"))
         featureList.add(Feature("Natureza", "Gosto de andar próximo da natureza"))
 
+        check_terms_acceptance.movementMethod = LinkMovementMethod.getInstance()
+
         val adapter = FeaturesListAdapter(true, featureList, applicationContext, this)
         list_features.layoutManager = LinearLayoutManager(applicationContext)
         list_features.adapter = adapter
@@ -64,6 +68,11 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
 
         txt_mm.setOnFocusChangeListener { v, focused ->
             if (!focused) hideKeyboard(v)
+        }
+
+        check_terms_acceptance.setOnCheckedChangeListener { compoundButton, _ ->
+            hideKeyboard(compoundButton)
+            compoundButton.error = null
         }
 
         switch_already_visited.setOnClickListener{
@@ -94,6 +103,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             }
         else {
             txt_user_age.setText(ApplicationProperties.user?.age.toString())
+            check_terms_acceptance.isChecked = ApplicationProperties.user!!.termsAccepted
             switch_already_visited.isChecked = ApplicationProperties.user!!.alreadyVisited
             if(switch_already_visited.isChecked) switch_already_visited.text = switch_already_visited.textOn
             else switch_already_visited.text = switch_already_visited.textOff
@@ -141,6 +151,10 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             txt_mm.error = "O tempo mínimo de visita pelo aplicativo é de 30 minutos."
             return false
         }
+        if(!check_terms_acceptance.isChecked){
+            check_terms_acceptance.error = "Você deve aceitar os termos de uso para continuar!"
+            return false
+        }
         return true
     }
 
@@ -167,6 +181,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             lb_colon.visibility = View.GONE
             lb_already_visited.visibility = View.GONE
             switch_already_visited.visibility = View.GONE
+            check_terms_acceptance.visibility = View.GONE
             group_second_part.visibility = View.VISIBLE
             bt_continue.text = getString(R.string.voltar)
             hideKeyboard(v)
@@ -181,6 +196,7 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
             lb_colon.visibility = View.VISIBLE
             lb_already_visited.visibility = View.VISIBLE
             switch_already_visited.visibility = View.VISIBLE
+            check_terms_acceptance.visibility = View.VISIBLE
             group_second_part.visibility = View.GONE
             bt_continue.text = getString(R.string.continuar)
         }
@@ -238,13 +254,15 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
     private fun editUser() {
         ApplicationProperties.user!!.age = txt_user_age.text.toString().toInt()
         ApplicationProperties.user!!.alreadyVisited = switch_already_visited.isChecked
+        ApplicationProperties.user!!.termsAccepted = check_terms_acceptance.isChecked
         ApplicationProperties.user!!.timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
     }
 
     private fun saveCurrentUser() {
         val timeAvailable = txt_hh.text.toString().toDouble() * 60 + txt_mm.text.toString().toDouble()
         ApplicationProperties.user = User(UUID.randomUUID().toString(),
-                txt_user_age.text.toString().toInt(), switch_already_visited.isChecked, timeAvailable, context = applicationContext)
+                txt_user_age.text.toString().toInt(), switch_already_visited.isChecked, timeAvailable, context = applicationContext,
+                termsAccepted = check_terms_acceptance.isChecked)
         UserDAO().add(ApplicationProperties.user!!)
     }
 

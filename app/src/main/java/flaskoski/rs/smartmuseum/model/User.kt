@@ -8,7 +8,8 @@ import com.google.android.gms.maps.model.LatLng
 class User(val id: String, var age: Int,
            var alreadyVisited: Boolean = false,
            var timeAvailable: Double, var location: LatLng? = null,
-           context: Context? = null, androidId : String? = "") {
+           context: Context? = null, androidId : String? = "",
+           var termsAccepted : Boolean = false) {
 
     @SuppressLint("HardwareIds")
     val android_id : String = context?.let {

@@ -309,19 +309,23 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             }
         }else if(resultCode == RESULT_OK && requestCode == requestQuestionnaire){
             if(journeyManager.isJourneyFinishedFlag.value!!) {
-                AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
-                        .setTitle("Atenção")
-                        .setIcon(R.drawable.baseline_done_black_24)
-                        .setMessage("""Obrigado pela visita! Deseja continuar a usar o aplicativo para ver detalhes de mais itens?""".trimMargin())
-                        .setPositiveButton(R.string.yes) { _, _ -> }
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            journeyManager.finishUserSession()
-                            val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-                            startActivityForResult(getPreferencesIntent, requestGetPreferences)
-                        }
-                        .show()
                 view_next_item.visibility = View.GONE
                 loading_view.visibility = View.GONE
+                if(journeyManager.finishButtonClicked){
+                    journeyManager.finishButtonClicked = false
+                    AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
+                            .setTitle("Atenção")
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setMessage("""Para começar com um novo perfil, todas as avaliações feitas e preferências serão removidas.
+                            |Deseja continuar?""".trimMargin())
+                            .setPositiveButton(R.string.yes) { _, _ ->
+                                journeyManager.finishUserSession()
+                                val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+                                startActivityForResult(getPreferencesIntent, requestGetPreferences)
+                            }
+                            .setNegativeButton(R.string.no) { _, _ -> }
+                            .show()
+                }
             }
         }else if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_CHANGE_LOCATION_SETTINGS)
             journeyManager.createLocationRequest()
@@ -446,6 +450,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                 true
             }
             R.id.option_finish -> {
+                journeyManager.finishButtonClicked = true
                 journeyManager.completeJourney("""${getString(R.string.thank_you_for_visiting)}
                     |${getString(R.string.answer_survey)}""".trimMargin())
                 true

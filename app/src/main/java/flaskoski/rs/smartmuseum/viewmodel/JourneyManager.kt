@@ -52,6 +52,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     private var whenMapLoadedSetDestination: Boolean = false
     //tell activity if the route was reconfigured due to the new ratings given
     var isRatingChanged: Boolean = false
+    var finishButtonClicked: Boolean = false
     //--
 
     private var startTime: Date? = null
@@ -271,7 +272,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         recommendedRouteBuilder?.removeItemFromRoute(itemToBeRemoved)
                 ?: Log.e(TAG, "removeItemFromRoute - recommendedRouteBuilder is null")
         sharedPreferences.removeItem(itemToBeRemoved)
-                ?: Log.e(TAG, "removeItemFromRoute - sharedPreferences is null")
+//                ?: Log.e(TAG, "removeItemFromRoute - sharedPreferences is null")
         sortItemList()
         setNextRecommendedDestination()
         callback.invoke()
@@ -401,16 +402,6 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         isGoToNextItem.value = false
         isCloseToItem.value = false
         showNextItem_okPressed = false
-    }
-
-    //TODO move to GroupItem class
-    fun getSubItemsOf(group: GroupItem): List<Itemizable> {
-        val subItems = ArrayList<Itemizable>()
-        group.subItems.forEach { subItemId ->
-            val item = recommendedRouteBuilder?.allItems?.find { subItemId == it.id }
-            if(item != null) subItems.add(item)
-        }
-        return subItems
     }
 
     fun focusOnUserPosition() {

@@ -94,7 +94,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
                 itemsRemaining.filter { it is SubItem }.forEach { (it as SubItem).isRecommended = true }
                 break
             }
-            itemsCost -= (itemsRemaining.last() as Itemizable).timeNeeded
+            itemsCost -= itemsRemaining.last().timeNeeded
             totalCost = itemsCost
             itemsRemaining.remove(itemsRemaining.last())
         }
