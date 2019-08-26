@@ -16,6 +16,7 @@ class SharedPreferencesDAO(activity : Activity){
     private val ANDROID_ID: String = "androidId"
     private val ITEM_PREFIX = "item_"
     private val TERMS_ACCEPTED = "termsAccepted"
+    private val IS_QUESTIONNAIRE_ANSWERED = "isQuesAnswered"
 
     private var db: SharedPreferences = activity.getPreferences(Context.MODE_PRIVATE)
     var isSavedItemsSynchronized: Boolean = false
@@ -141,6 +142,17 @@ class SharedPreferencesDAO(activity : Activity){
             remove("${ITEM_PREFIX}${itemToBeRemoved.id}_${itemToBeRemoved.recommendedOrder}")
             apply()
             isSavedItemsSynchronized = false
+        }
+    }
+
+    fun getIsQuestionnaireAnswered(): Boolean {
+        return db.getBoolean(IS_QUESTIONNAIRE_ANSWERED, false)
+    }
+
+    fun setIsQuestionnaireAnswered(flag : Boolean){
+        with(db.edit()) {
+            putBoolean(IS_QUESTIONNAIRE_ANSWERED, flag)
+            apply()
         }
     }
 }

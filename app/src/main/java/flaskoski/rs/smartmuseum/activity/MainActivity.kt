@@ -50,9 +50,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
         private const val requestItemRatingChange: Int = 2
         const val REQUEST_CHANGE_LOCATION_SETTINGS = 3
         private const val requestQuestionnaire: Int = 4
-
-        val MESSAGE_FINISH: String = """Você já visitou todas as atrações recomendadas para você dentro do seu tempo disponível.
-                        |Por favor nos informe agora o que achou da visita com essa rápida pesquisa.""".trimMargin()
     }
     var isFirstItem: Boolean = true
 
@@ -223,8 +220,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     .setMessage(journeyManager.finishMessage)
                     .setNeutralButton(R.string.ok){_,_ ->}
                     .setOnDismissListener {
-                        val goToQuestionnaire = Intent(applicationContext, QuestionnaireActivity::class.java)
-                        startActivityForResult(goToQuestionnaire, requestQuestionnaire)}
+                        if (!journeyManager.isQuestionnaireAnswered) {
+                            val goToQuestionnaire = Intent(applicationContext, QuestionnaireActivity::class.java)
+                            startActivityForResult(goToQuestionnaire, requestQuestionnaire)
+                        }else
+                            finishedAndQuestionnaireAnswered()
+                    }
                     .show()
 
         }
@@ -309,26 +310,31 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             }
         }else if(resultCode == RESULT_OK && requestCode == requestQuestionnaire){
             if(journeyManager.isJourneyFinishedFlag.value!!) {
-                view_next_item.visibility = View.GONE
-                loading_view.visibility = View.GONE
-                if(journeyManager.finishButtonClicked){
-                    journeyManager.finishButtonClicked = false
-                    AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
-                            .setTitle("Atenção")
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setMessage("""Para começar com um novo perfil, todas as avaliações feitas e preferências serão removidas.
-                            |Deseja continuar?""".trimMargin())
-                            .setPositiveButton(R.string.yes) { _, _ ->
-                                journeyManager.finishUserSession()
-                                val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-                                startActivityForResult(getPreferencesIntent, requestGetPreferences)
-                            }
-                            .setNegativeButton(R.string.no) { _, _ -> }
-                            .show()
-                }
+                finishedAndQuestionnaireAnswered()
             }
         }else if(resultCode == Activity.RESULT_CANCELED && requestCode == REQUEST_CHANGE_LOCATION_SETTINGS)
             journeyManager.createLocationRequest()
+    }
+
+    private fun finishedAndQuestionnaireAnswered() {
+        view_next_item.visibility = View.GONE
+        loading_view.visibility = View.GONE
+        if (journeyManager.finishButtonClicked) {
+            journeyManager.finishButtonClicked = false
+            AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
+                    .setTitle("Atenção")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setMessage("""Para começar com um novo perfil, todas as avaliações feitas e preferências serão removidas.
+                                |Deseja continuar?""".trimMargin())
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        journeyManager.finishUserSession()
+                        val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+                        startActivityForResult(getPreferencesIntent, requestGetPreferences)
+                    }
+                    .setNegativeButton(R.string.no) { _, _ -> }
+                    .show()
+        } else if (!journeyManager.isQuestionnaireAnswered)
+            journeyManager.setQuestionnaireAnswered()
     }
 
     //-----------onClick --------------
