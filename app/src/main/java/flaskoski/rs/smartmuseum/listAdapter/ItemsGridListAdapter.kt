@@ -40,7 +40,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
             p0.itemView.icon_visited.visibility = View.VISIBLE
             p0.itemView.bt_remove_item.visibility = View.GONE
         }
-        else if(itemsList[p1].recommendedOrder != Int.MAX_VALUE){
+        else if(itemsList[p1].isRecommended()){
             p0.itemView.setBackgroundResource(R.color.colorRecommendedItem)
             p0.itemView.icon_visited.visibility = View.GONE
             p0.itemView.bt_remove_item.visibility = View.VISIBLE

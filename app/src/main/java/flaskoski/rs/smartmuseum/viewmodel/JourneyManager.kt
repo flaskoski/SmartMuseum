@@ -179,7 +179,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         isCloseToItem.value = true
     }
 
-    fun isJourneyFinished(): Boolean {
+    private fun isJourneyFinished(): Boolean {
         if(itemsList.isEmpty()) throw Exception("Manager was not built yet!")
         return itemsList.none { it.isRecommended() && !it.isVisited }
     }
@@ -387,6 +387,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         finishMessage = customMessage
         if(!isQuestionnaireAnswered && customMessage == MESSAGE_FINISH)
             finishMessage += MESSAGE_QUESTIONNAIRE
+        itemsList.filter { it.isRecommended() }.forEach { it.setNotRecommended() }
         isJourneyFinishedFlag.value = true
     }
 

@@ -25,7 +25,7 @@ class SharedPreferencesDAO(activity : Activity){
         with(db.edit()){
             putString(USER_ID, user.id)
             putString(ANDROID_ID, user.android_id)
-            putInt(USER_AGE, user.age)
+            user.age?.let{putInt(USER_AGE, it) }
             putBoolean(ALREADY_VISITED, user.alreadyVisited)
             putBoolean(TERMS_ACCEPTED, user.termsAccepted)
             putFloat(TIME_AVAILABLE, user.timeAvailable.toFloat())
@@ -41,7 +41,7 @@ class SharedPreferencesDAO(activity : Activity){
         val termsAccepted = db.getBoolean(TERMS_ACCEPTED, false)
         val userTimeAvailable = db.getFloat(TIME_AVAILABLE, -1f).toDouble()
         if(userId!!.isNotBlank() && userTimeAvailable > 0)
-            return User(userId, userAge, alreadyVisited, userTimeAvailable, androidId = androidID, termsAccepted = termsAccepted)
+            return User(userId, if(userAge > -1) userAge else null, alreadyVisited, userTimeAvailable, androidId = androidID, termsAccepted = termsAccepted)
         return null
     }
 

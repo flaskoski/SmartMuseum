@@ -208,12 +208,14 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private val isItemsAndRatingsLoadedListener = Observer<Boolean>{ loaded : Boolean ->
         if(loaded)
             journeyManager.recoverCurrentState()
+        loading_view.visibility = View.GONE
     }
 
     private val isJourneyBeganListener = Observer<Boolean> {}
 
     private val isJourneyFinishedListener = Observer<Boolean> { isJourneyFinished: Boolean ->
         if(isJourneyFinished){
+            adapter.notifyDataSetChanged()
             AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
                     .setTitle("Atenção")
                     .setIcon(R.drawable.baseline_done_black_24)
@@ -318,7 +320,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     private fun finishedAndQuestionnaireAnswered() {
         view_next_item.visibility = View.GONE
-        loading_view.visibility = View.GONE
+        if(journeyManager.isItemsAndRatingsLoaded.value!!)
+            loading_view.visibility = View.GONE
         if (journeyManager.finishButtonClicked) {
             journeyManager.finishButtonClicked = false
             AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)

@@ -13,4 +13,8 @@ interface RoutableItem : Routable, Itemizable {
     fun isRecommended() : Boolean{
         return recommendedOrder != Int.MAX_VALUE
     }
+
+    fun setNotRecommended(){
+        recommendedOrder = Int.MAX_VALUE
+    }
 }
