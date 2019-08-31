@@ -208,7 +208,8 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
     private val isItemsAndRatingsLoadedListener = Observer<Boolean>{ loaded : Boolean ->
         if(loaded)
             journeyManager.recoverCurrentState()
-        loading_view.visibility = View.GONE
+        if(journeyManager.isJourneyFinishedFlag.value!!)
+            loading_view.visibility = View.GONE
     }
 
     private val isJourneyBeganListener = Observer<Boolean> {}
@@ -231,6 +232,28 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     .show()
 
         }
+    }
+
+    private fun finishedAndQuestionnaireAnswered() {
+        view_next_item.visibility = View.GONE
+        if(journeyManager.isItemsAndRatingsLoaded.value!!)
+            loading_view.visibility = View.GONE
+        if (journeyManager.finishButtonClicked) {
+            journeyManager.finishButtonClicked = false
+            AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
+                    .setTitle("Atenção")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setMessage("""Para começar com um novo perfil, todas as avaliações feitas e preferências serão removidas.
+                                |Deseja continuar?""".trimMargin())
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        journeyManager.finishUserSession()
+                        val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
+                        startActivityForResult(getPreferencesIntent, requestGetPreferences)
+                    }
+                    .setNegativeButton(R.string.no) { _, _ -> }
+                    .show()
+        } else if (!journeyManager.isQuestionnaireAnswered)
+            journeyManager.setQuestionnaireAnswered()
     }
 
     private fun beginAndShowStartMessage() {
@@ -318,27 +341,6 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             journeyManager.createLocationRequest()
     }
 
-    private fun finishedAndQuestionnaireAnswered() {
-        view_next_item.visibility = View.GONE
-        if(journeyManager.isItemsAndRatingsLoaded.value!!)
-            loading_view.visibility = View.GONE
-        if (journeyManager.finishButtonClicked) {
-            journeyManager.finishButtonClicked = false
-            AlertDialog.Builder(this@MainActivity, R.style.Theme_AppCompat_Dialog_Alert)
-                    .setTitle("Atenção")
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setMessage("""Para começar com um novo perfil, todas as avaliações feitas e preferências serão removidas.
-                                |Deseja continuar?""".trimMargin())
-                    .setPositiveButton(R.string.yes) { _, _ ->
-                        journeyManager.finishUserSession()
-                        val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-                        startActivityForResult(getPreferencesIntent, requestGetPreferences)
-                    }
-                    .setNegativeButton(R.string.no) { _, _ -> }
-                    .show()
-        } else if (!journeyManager.isQuestionnaireAnswered)
-            journeyManager.setQuestionnaireAnswered()
-    }
 
     //-----------onClick --------------
 
