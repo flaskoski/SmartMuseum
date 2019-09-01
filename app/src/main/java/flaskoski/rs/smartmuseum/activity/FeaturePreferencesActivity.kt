@@ -23,9 +23,7 @@ import android.view.inputmethod.InputMethodManager
 import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.DAO.UserDAO
 import flaskoski.rs.smartmuseum.util.NetworkVerifier
-import flaskoski.rs.smartmuseum.util.ParseTime
 import android.text.method.LinkMovementMethod
-import android.widget.TextView
 import flaskoski.rs.smartmuseum.R
 
 
@@ -207,19 +205,11 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         else saveFeaturePreferences()
     }
 
-    private fun addFeatureRatingsToDB(userId : String, featureId : String, featureRating : Float): Rating {
-        //var ratings = ArrayList<Rating>()
-        var rating = Rating(userId, featureId, featureRating, 0F, ApplicationProperties.recommendationSystem,
-                ApplicationProperties.getCurrentVersion(applicationContext)?.let { it}?:"", type = Rating.TYPE_FEATURE)
-
+    private fun addFeatureRatingsToDB(ratings: ArrayList<Rating>) {
         if((list_features.adapter as FeaturesListAdapter).ratingsChanged) {
-            rating.date = ParseTime.getCurrentTime()
-            db.add(rating) //needs an addAll function
+            db.addAll(ratings) //needs an addAll function
         }
-
-       // ratings.add(rating)
-        Log.i(TAG, "$rating added to ratings!")
-        return rating
+        Log.i(TAG, "$ratings added to ratings!")
     }
 
     private fun saveFeaturePreferences() {
@@ -235,11 +225,15 @@ class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnSh
         //save ratings
         ApplicationProperties.user?.id?.let {
             for(feature in featureList) {
-                ratings.add(addFeatureRatingsToDB(it, feature.id, feature.rating))
+                ratings.add(Rating(it, feature.id, feature.rating, 0F, ApplicationProperties.recommendationSystem,
+                        ApplicationProperties.getCurrentVersion(applicationContext)?.let { it}?:"", type = Rating.TYPE_FEATURE) )
             }
             ApplicationProperties.user!!.getAgeGroup()?.let{ageGroup ->
-                ratings.add(addFeatureRatingsToDB(it, User.FIELD_AGE, ageGroup))
+                ratings.add(Rating(it, User.FIELD_AGE, ageGroup, 0F, ApplicationProperties.recommendationSystem,
+                        ApplicationProperties.getCurrentVersion(applicationContext)?.let { it}?:"", type = Rating.TYPE_FEATURE))
+
             }
+            addFeatureRatingsToDB(ratings)
         }
 
         //TODO check if correctly saved on db
