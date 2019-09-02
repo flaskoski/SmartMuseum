@@ -4,7 +4,9 @@ import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.model.UserRatings
+import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
+import kotlin.collections.HashMap
 
 class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
     private val TAG = "RatingDAO"
@@ -73,8 +75,9 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                     //user's first rating
                     if(!document.exists() || document[COLLECTION_RATINGS_OF_USER] == null){
                         //user's first rating
+                        val userRatings = UserRatings(mapOf(Pair(UUID.randomUUID().toString(), rating)) as HashMap<String, Rating>)
                         db.collection(COLLECTION_ALL_RATINGS).document(rating.user)
-                                .set(mapOf(Pair(COLLECTION_RATINGS_OF_USER,mapOf(Pair(UUID.randomUUID().toString(), rating)))))
+                                .set(userRatings)
                         Log.i(TAG, "Rating added on db: $rating")
                     }else{
                         //user has already rated an item
@@ -87,6 +90,7 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                                 val key = ratingToBeModified.keys.first()
                                 ratingsMap[key] = rating
                             }
+                            ratingsOfUser.updatedAt = ParseTime.getCurrentTime()
                             document.reference.set(ratingsOfUser)
                                     .addOnSuccessListener {
                                         Log.i(TAG, "Rating added/updated on db: $rating")
@@ -135,8 +139,9 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                     //user's first rating
                     if(!document.exists() || document[COLLECTION_RATINGS_OF_USER] == null){
                         //user's first rating
-                        db.collection(COLLECTION_ALL_RATINGS).document(userId)
-                                .set(mapOf(Pair(COLLECTION_RATINGS_OF_USER, ratings.map{UUID.randomUUID().toString() to it}.toMap() )))
+                        val userRatings = UserRatings(ratings.map{UUID.randomUUID().toString() to it}.toMap() as HashMap<String, Rating>)
+                        db.collection(COLLECTION_ALL_RATINGS).document(userId).set(userRatings)
+
                         Log.i(TAG, "${ratings.size} ratings added on db for user $userId")
                     }else{
                         //user has already rated an item
@@ -151,7 +156,8 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                                     ratingsMap[key] = rating
                                 }
                             }
-                        document.reference.set(ratingsOfUser)
+                            ratingsOfUser.updatedAt = ParseTime.getCurrentTime()
+                            document.reference.set(ratingsOfUser)
                                 .addOnSuccessListener {
                                     Log.i(TAG, "${ratings.size} ratings added/modified on db for user $userId")
                                 }.addOnFailureListener { e ->
