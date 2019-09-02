@@ -136,7 +136,7 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                     if(!document.exists() || document[COLLECTION_RATINGS_OF_USER] == null){
                         //user's first rating
                         db.collection(COLLECTION_ALL_RATINGS).document(userId)
-                                .set(mapOf(Pair(COLLECTION_RATINGS_OF_USER,ratings.map{UUID.randomUUID().toString() to it})))
+                                .set(mapOf(Pair(COLLECTION_RATINGS_OF_USER, ratings.map{UUID.randomUUID().toString() to it}.toMap() )))
                         Log.i(TAG, "${ratings.size} ratings added on db for user $userId")
                     }else{
                         //user has already rated an item
