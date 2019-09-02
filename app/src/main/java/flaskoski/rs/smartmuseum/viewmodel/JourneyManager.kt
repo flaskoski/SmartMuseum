@@ -161,7 +161,13 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                 val rating = ItemRepository.recommenderManager.getPrediction(ApplicationProperties.user!!.id, item.id)
                 if (rating != null)
                     item.recommedationRating = rating
-                else item.recommedationRating = 0F
+                else item.recommedationRating = 3F
+            }
+            for(item in subItemList){
+                val rating = ItemRepository.recommenderManager.getPrediction(ApplicationProperties.user!!.id, item.id)
+                if (rating != null)
+                    item.recommedationRating = rating
+                else item.recommedationRating = 3F
             }
         }
         itemListChangedListener?.invoke()
