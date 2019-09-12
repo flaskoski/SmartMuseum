@@ -8,6 +8,7 @@ import net.librec.recommender.AbstractRecommender
 import net.librec.recommender.RecommenderContext
 import net.librec.recommender.cf.UserKNNRecommender
 import net.librec.similarity.CosineSimilarity
+import net.librec.similarity.PCCSimilarity
 
 class RecommenderBuilder{
 
@@ -16,9 +17,14 @@ class RecommenderBuilder{
     private var useRanking: Boolean = false
     private val TAG = "RecommenderBuilder"
 
+    companion object {
+        const val SIMILARITY_PCC = "PCC"
+    }
+
     fun buildKNNRecommender(ratings: Set<Rating>,
                             knn: Int =  4,
-                            useRanking: Boolean = false) : AbstractRecommender? {
+                            useRanking: Boolean = false,
+                            similarityMethod: String = SIMILARITY_PCC) : AbstractRecommender? {
         if(ratings.isEmpty()){
             Log.e(TAG, "buildKNNRecommender called but ratingList is empty!")
             return null
@@ -32,8 +38,11 @@ class RecommenderBuilder{
         val dataModel = NioFreeTextDataModel(conf, ratings.toMutableList())
         dataModel.buildDataModel()
 
-
-        val similarity = CosineSimilarity()
+        val similarity =
+                if(similarityMethod == SIMILARITY_PCC)
+                    PCCSimilarity()
+                else
+                    CosineSimilarity()
         similarity.buildSimilarityMatrix(dataModel)
 
 

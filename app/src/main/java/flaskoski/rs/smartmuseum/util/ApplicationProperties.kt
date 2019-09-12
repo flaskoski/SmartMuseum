@@ -26,11 +26,12 @@ object ApplicationProperties {
     const val TAG_VISITED_SUBITEMS = "visitedSubItems"
     const val TAG_ARRIVED: String = "arrived"
     const val USER_LOCATION_ITEM_ID: String = "userLocation"
-    const val SYSTEM_USER_BASED = "user_based"
+    const val RECOMMENDATION_ALGORITHM = "user_based"
+    const val COMPARISION_METHOD = "PCC"
 
     var updateConfigurations : Configurations? = null
     var user : User? = null
-    val recommendationSystem: String = SYSTEM_USER_BASED
+    val recommendationSystem: String = COMPARISION_METHOD
 
     fun userNotDefinedYet(): Boolean {
         return user == null

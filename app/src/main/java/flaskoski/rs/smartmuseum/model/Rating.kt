@@ -1,6 +1,5 @@
 package flaskoski.rs.smartmuseum.model
 
-import com.google.android.gms.maps.model.LatLng
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import flaskoski.rs.smartmuseum.util.ParseTime
 import java.io.Serializable
@@ -11,7 +10,7 @@ class Rating(val user: String = "",
              val item: String = "",
              var rating: Float = 0F,
              var recommendationRating: Float = 0F,
-             var recommendationSystem: String = ApplicationProperties.SYSTEM_USER_BASED,
+             var recommendationSystem: String = "${ApplicationProperties.RECOMMENDATION_ALGORITHM}-${ApplicationProperties.COMPARISION_METHOD}",
              var appVersion : String = "",
              var userLat : Double? = null,
              var userLng : Double? = null,
