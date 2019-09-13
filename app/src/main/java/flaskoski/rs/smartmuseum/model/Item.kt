@@ -26,6 +26,6 @@ open class Item(id: String = "",
 
 
     override fun toString(): String {
-        return super.toString() + " ${this.title}"
+        return super.toString() + " ${this.title} ${this.recommedationRating}"
     }
 }

@@ -28,7 +28,7 @@ open class Point(
     }
 
     override fun toString(): String {
-        return super.toString() + " ${this.id}"
+        return this.id
     }
 
     fun getPathCoordinates(): LinkedList<LatLng> {
