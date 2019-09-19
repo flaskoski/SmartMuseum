@@ -55,17 +55,22 @@ class ItemDetailActivity  : AppCompatActivity() {
         list_other_items.visibility = View.GONE
         separator_lists.visibility = View.GONE
 
+        //-->
+
         val isRouteToThisEnabled = extras.getBooleanExtra(MainActivity.TAG_ROUTE_TO_THIS_ENABLED, false)
-        if(isRouteToThisEnabled){
+        if(currentItem is Item && (currentItem as Item).hasSpecificHours() ){
             var timetable :String = txt_timetable.text as String
             (currentItem as Item).timeHours?.forEach {
                 timetable += ParseTime.toHourString(it) + "  "
             }
             txt_timetable.text = timetable
-            txt_timetable.visibility = View.VISIBLE
-            bt_route_to_this.visibility = View.VISIBLE
+            if(!isRouteToThisEnabled)
+                bt_route_to_this.visibility = View.GONE
         }
-        //-->
+        else{
+            txt_timetable.visibility = View.GONE
+            bt_route_to_this.visibility = View.GONE
+        }
 
         if(!arrived || isSubitem) bt_next_item.visibility = View.GONE
         setStars(rating)

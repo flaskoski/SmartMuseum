@@ -49,7 +49,7 @@
                 android:layout_marginStart="8dp"
                 android:text="Horários de Hoje: "
                 android:textSize="15sp"
-                tools:visibility="gone" />
+                tools:visibility="visible" />
 
             <Button
                 android:id="@+id/bt_route_to_this"
@@ -59,7 +59,7 @@
                 android:layout_marginRight="16dp"
                 android:onClick="routeToThis"
                 android:text="Ir para esta Atração"
-                tools:visibility="gone" />
+                tools:visibility="visible" />
 
             <TextView
                 android:id="@+id/lb_recommended_items"

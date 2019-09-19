@@ -31,6 +31,10 @@ class RecommendedRouteBuilder(elements: Set<Element>){
         allRemainingSubItemsSetRecommendedFalse()
         var totalCost = initialCost
         var count = 0
+
+        allItems.filter { it is RoutableItem && it.recommendedOrder < Int.MAX_VALUE }.forEach {
+            (it as RoutableItem).recommendedOrder = Int.MAX_VALUE
+        }
         //add most recommended Points (items or subItems' parents) that have not been visited yet (plus a min. time between items) until it reaches total available time
         allItems.filter {!it.isVisited && !it.isRemoved && !(it is Item && it.hasSpecificHours()) }.sortedByDescending { it.recommedationRating }.forEach{ item ->
             if(totalCost + item.timeNeeded + MIN_TIME_BETWEEN_ITEMS < timeAvailable){
@@ -39,8 +43,9 @@ class RecommendedRouteBuilder(elements: Set<Element>){
 //                    if(itemsRemaining.none{ it.id == item.groupItem })
 //                        allItems.find { it.id == item.groupItem }?.let{ parent -> itemsRemaining.add(parent)}
                 itemsRemaining.add(item)
-                if(!(item is SubItem) )
+                if(!(item is SubItem) ) {
                     count++ //used next to subtract the time between Points only since it will get the cost from the db
+                }
             }
             else return@forEach
         }
@@ -96,7 +101,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
             if(enoughTime) {
                 itemsRemaining.filter { it is SubItem }.forEach { (it as SubItem).isRecommended = true }
                 break
-            }
+            } 
             itemsCost -= itemsRemaining.last().timeNeeded
             totalCost = itemsCost
             itemsRemaining.remove(itemsRemaining.last())

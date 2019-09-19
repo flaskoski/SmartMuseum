@@ -73,6 +73,9 @@ class GroupItemDetailActivity  : AppCompatActivity(), SubItemListAdapter.OnShare
             return
         }
 
+        txt_timetable.visibility = View.GONE
+        bt_route_to_this.visibility = View.GONE
+
         if(!vm.arrived) bt_next_item.visibility = View.GONE
         setStars(rating)
         vm.currentItem?.let {

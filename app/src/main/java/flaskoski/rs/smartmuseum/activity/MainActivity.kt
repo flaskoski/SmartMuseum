@@ -367,9 +367,10 @@ class MainActivity : AppCompatActivity(),
         val itemSelected = ItemRepository.itemList.find { it.getCoordinates() == p0.position }
                 ?: return
         val viewItemDetails : Intent = setupItemDetailsIntent(itemSelected) ?: return
-        if(itemSelected.hasSpecificHours() && itemSelected != journeyManager.itemsList[0])
+        if(itemSelected.hasSpecificHours() && itemSelected != journeyManager.itemsList[0]) {
             viewItemDetails.putExtra(TAG_ROUTE_TO_THIS_ENABLED, true)
-        startActivityForResult(viewItemDetails, REQUEST_GO_TO_SCHEDULED_ITEM)
+            startActivityForResult(viewItemDetails, REQUEST_GO_TO_SCHEDULED_ITEM)
+        }else startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
     }
 
     override fun shareOnItemClicked(p1: Int, isArrived : Boolean) {
