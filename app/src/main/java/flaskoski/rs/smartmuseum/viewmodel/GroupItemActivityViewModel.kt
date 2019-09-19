@@ -22,7 +22,11 @@ class GroupItemActivityViewModel : ViewModel(){
         set(value){
         field = value
         field?.let{ item ->
-            val subitems : List<SubItem> = ItemRepository.setRecommendationRatingOnSubItemsOf(item)
+            val subitems : ArrayList<SubItem> = ItemRepository.setRecommendationRatingOnSubItemsOf(item) as ArrayList<SubItem>
+            var i=0
+            subitems.sortedWith(compareBy<Itemizable>{it.title}).forEach{
+                subitems[i++] = it
+            }
             for(subitem in subitems)
                 if(subitem.isRecommended)
                     recommendedSubItemList.add(subitem)

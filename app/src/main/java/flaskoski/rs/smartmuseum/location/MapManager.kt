@@ -1,5 +1,6 @@
 package flaskoski.rs.smartmuseum.location
 
+import android.app.Activity
 import android.location.Location
 import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -15,13 +16,20 @@ import java.lang.IllegalStateException
 
 
 class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedToDestinationListener? = null,
-                 private val onMapConfiguredCallback: (() -> Unit)? = null): OnMapReadyCallback {
+                 private val onMapConfiguredCallback: (() -> Unit)? = null):
+        OnMapReadyCallback {
 
     var mMap : GoogleMap? = null
     private val TAG = "MapManager"
     private var mCurrLocationMarker: Marker? = null
     private var destinationMarker: Marker? = null
     private var routePolyline = RoutePolyline()
+    private val scheduledItems: ArrayList<ScheduledItemMarker> = ArrayList()
+    var mainActivity: GoogleMap.OnInfoWindowClickListener? = null
+    set(value) {
+        field = value
+        mMap?.setOnInfoWindowClickListener(value)
+    }
 
     override fun onMapReady(p0: GoogleMap?) {
         mMap = p0
@@ -29,7 +37,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         mMap?.setMinZoomPreference(14f)
         mMap?.moveCamera(CameraUpdateFactory.zoomTo(19.5f))
         mMap?.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)))
-
+        mMap?.setOnInfoWindowClickListener(mainActivity)
         //map ready ->  callback
         onMapConfiguredCallback?.invoke()
     }
@@ -88,7 +96,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         clearMap()
         latLng?.let { updateUserLocationCallback.invoke(it) }
         setVisitedItems()
-
+        setScheduledItems()
         val itemPathCoordinates = item.getPathCoordinates()
         itemPathCoordinates.let{itemPath ->
             if(mCurrLocationMarker != null) {
@@ -104,6 +112,23 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
 
         }
         return this
+    }
+//
+//    override fun onInfoWindowClick(p0: Marker?) {
+//        p0?.let{marker ->
+//            val scheduledMarker = scheduledItems.find { it.marker == marker }
+//            if(scheduledMarker != null) {
+//                scheduledMarker.isNextItem = !scheduledMarker.isNextItem
+////                onScheduledItemWindowClicked(scheduledMarker.item)
+//            }
+//        }
+//    }
+
+    //TODO Reset scheduled items after item is visited or journey is completed/restarted/canceled
+    private fun setScheduledItems() {
+        ItemRepository.itemList.filter { it.hasSpecificHours() }.forEach {
+            mMap?.let { map -> scheduledItems.add(ScheduledItemMarker(map, it)) }
+        }
     }
 
     private fun setVisitedItems() {

@@ -29,8 +29,8 @@ class ItemDAO /*@Inject constructor*/(val db: FirebaseFirestore = FirebaseFirest
                     }
                     callback(itemsList)
                 }
-                .addOnFailureListener { _ ->
-                   // Log.w(TAG, "Error getting documents.", exception)
+                .addOnFailureListener {
+                    // Log.w(TAG, "Error getting documents.", exception)
                     throw Exception("Error getting items")
                 }
     }

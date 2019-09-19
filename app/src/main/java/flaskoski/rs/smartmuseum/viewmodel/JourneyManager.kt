@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import android.util.Log
 import androidx.databinding.Observable
 import androidx.lifecycle.MutableLiveData
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import flaskoski.rs.smartmuseum.recommender.RecommenderBuilder
@@ -103,6 +104,17 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 //                            ?: recommendedRouteBuilder?.getAllEntrances()?.first()}
     }
 
+//    private val seeScheduledItemDetails: (item : Item) -> Unit = { item : Item ->
+//        Log.w(TAG, "colocar como primeiro o item ${item.id}")
+//        recommendedRouteBuilder?.addItemToRouteAsFirst(item)
+//                ?: Log.e(TAG, "removeItemFromRoute - recommendedRouteBuilder is null")
+//        sharedPreferences.removeItem(itemToBeRemoved)
+////                ?: Log.e(TAG, "removeItemFromRoute - sharedPreferences is null")
+//        sortItemList()
+//        setNextRecommendedDestination()
+//        itemRemovedConfirmationCallback.invoke()
+//    }
+
     init {
         //live data vars initialization
         isCloseToItem.value = false
@@ -145,6 +157,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         this.activity = activity
         userLocationManager?.updateActivity(activity)
         sharedPreferences = SharedPreferencesDAO(activity)
+        mapManager?.mainActivity = activity as GoogleMap.OnInfoWindowClickListener
     }
 
     private fun updateRecommender() {
@@ -175,7 +188,9 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
     private fun sortItemList() {
         var i = 0
-        itemsList.sortedWith(compareBy<Itemizable>{it.isVisited}.thenBy{ (it as RoutableItem).recommendedOrder}).forEach{
+        itemsList.sortedWith(compareBy<Itemizable>{it.isVisited}
+                .thenBy{ (it as RoutableItem).recommendedOrder}
+                .thenBy{it.title}).forEach{
             itemsList[i++] = it
         }
         itemListChangedListener?.invoke()
@@ -282,14 +297,14 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         return true
     }
 
-    fun removeItemFromRoute(itemToBeRemoved: Item, callback: () -> Unit) {
+    fun removeItemFromRoute(itemToBeRemoved: Item, itemRemovedConfirmationCallback: () -> Unit) {
         recommendedRouteBuilder?.removeItemFromRoute(itemToBeRemoved)
                 ?: Log.e(TAG, "removeItemFromRoute - recommendedRouteBuilder is null")
         sharedPreferences.removeItem(itemToBeRemoved)
 //                ?: Log.e(TAG, "removeItemFromRoute - sharedPreferences is null")
         sortItemList()
         setNextRecommendedDestination()
-        callback.invoke()
+        itemRemovedConfirmationCallback.invoke()
     }
 
     fun setNextRecommendedDestination() {
@@ -386,6 +401,20 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                     setNextRecommendedDestination()
                 }
             }
+    }
+
+    fun routeToItem(data: Intent) {
+        //true when clicked on "Ir para esta atração" on scheduled item details
+        val goToThis : Boolean = data.getBooleanExtra(MainActivity.TAG_GO_TO_THIS, false)
+        val itemId : String? = data.getStringExtra(MainActivity.TAG_ITEM_ID)
+        if(goToThis){
+            itemsList.find {it.id == itemId}?.let {
+                itemsList.remove(it)
+                itemsList.add(0, it)
+                it.recommendedOrder = RecommendedRouteBuilder.FIRST_ITEM_FROM_RECOMMENDED_ROUTE-1
+                setNextRecommendedDestination()
+            }
+        }
     }
 
     //to go to satisfaction survey

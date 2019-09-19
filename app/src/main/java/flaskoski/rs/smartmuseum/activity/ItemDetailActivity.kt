@@ -12,6 +12,7 @@ import android.widget.ImageView
 import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
 import flaskoski.rs.smartmuseum.R
+import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.model.Itemizable
 import flaskoski.rs.smartmuseum.model.Rating
@@ -53,6 +54,17 @@ class ItemDetailActivity  : AppCompatActivity() {
         lb_other_items.visibility = View.GONE
         list_other_items.visibility = View.GONE
         separator_lists.visibility = View.GONE
+
+        val isRouteToThisEnabled = extras.getBooleanExtra(MainActivity.TAG_ROUTE_TO_THIS_ENABLED, false)
+        if(isRouteToThisEnabled){
+            var timetable :String = txt_timetable.text as String
+            (currentItem as Item).timeHours?.forEach {
+                timetable += ParseTime.toHourString(it) + "  "
+            }
+            txt_timetable.text = timetable
+            txt_timetable.visibility = View.VISIBLE
+            bt_route_to_this.visibility = View.VISIBLE
+        }
         //-->
 
         if(!arrived || isSubitem) bt_next_item.visibility = View.GONE
@@ -146,6 +158,7 @@ class ItemDetailActivity  : AppCompatActivity() {
 
     private fun goBack(goToNextItem : Boolean = false) {
         val returnRatingIntent = Intent()
+
         if(isRatingChanged){
             ItemRepository.saveRating(itemRating!!)
             returnRatingIntent.putExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID, itemRating?.item)
@@ -161,5 +174,13 @@ class ItemDetailActivity  : AppCompatActivity() {
 
     fun goToNextItem(@Suppress("UNUSED_PARAMETER") v: View){
         checkIfCanGoBackAndGo(true)
+    }
+
+    fun routeToThis(@Suppress("UNUSED_PARAMETER") v : View){
+        val returnRatingIntent = Intent()
+        returnRatingIntent.putExtra(MainActivity.TAG_GO_TO_THIS, true)
+        returnRatingIntent.putExtra(MainActivity.TAG_ITEM_ID, currentItem?.id)
+        setResult(Activity.RESULT_OK, returnRatingIntent)
+        finish()
     }
 }

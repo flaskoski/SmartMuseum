@@ -9,6 +9,9 @@ import java.lang.NullPointerException
 import java.util.*
 
 class RecommendedRouteBuilder(elements: Set<Element>){
+    companion object {
+        const val FIRST_ITEM_FROM_RECOMMENDED_ROUTE = 200
+    }
     private var museumGraph = MuseumGraph(elements)
     private var itemsRemaining = ArrayList<Itemizable>()
 
@@ -29,7 +32,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
         var totalCost = initialCost
         var count = 0
         //add most recommended Points (items or subItems' parents) that have not been visited yet (plus a min. time between items) until it reaches total available time
-        allItems.filter {!it.isVisited && !it.isRemoved}.sortedByDescending { it.recommedationRating }.forEach{ item ->
+        allItems.filter {!it.isVisited && !it.isRemoved && !(it is Item && it.hasSpecificHours()) }.sortedByDescending { it.recommedationRating }.forEach{ item ->
             if(totalCost + item.timeNeeded + MIN_TIME_BETWEEN_ITEMS < timeAvailable){
                 totalCost += item.timeNeeded + MIN_TIME_BETWEEN_ITEMS
 //                 if(item is SubItem)
@@ -78,7 +81,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
                     if (totalCost + currentStartPoint.cost <= timeAvailable) {
                         totalCost += currentStartPoint.cost
                         (currentStartPoint as Item).isVisited = true
-                        currentStartPoint.recommendedOrder = j
+                        currentStartPoint.recommendedOrder = j + FIRST_ITEM_FROM_RECOMMENDED_ROUTE
                     }
                     else{
                         enoughTime = false

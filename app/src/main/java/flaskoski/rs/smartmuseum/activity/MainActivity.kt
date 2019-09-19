@@ -22,7 +22,9 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.Marker
 import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.listAdapter.ItemsGridListAdapter
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
@@ -30,6 +32,7 @@ import kotlinx.android.synthetic.main.activity_main_bottom_sheet.*
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.databinding.ActivityMainBinding
 import flaskoski.rs.smartmuseum.model.GroupItem
+import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
@@ -38,7 +41,11 @@ import kotlinx.android.synthetic.main.next_item.*
 import kotlinx.android.synthetic.main.next_item.view.*
 
 
-class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListener, ViewTreeObserver.OnGlobalLayoutListener{
+class MainActivity : AppCompatActivity(),
+        ItemsGridListAdapter.OnShareClickListener,
+        ViewTreeObserver.OnGlobalLayoutListener,
+        GoogleMap.OnInfoWindowClickListener{
+
     override fun onGlobalLayout() {
         container.viewTreeObserver.removeOnGlobalLayoutListener(this)
         bottomSheetBehavior.halfExpandedRatio = 0.8f
@@ -46,11 +53,18 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
 
     companion object {
-        private const val requestGetPreferences: Int = 1
-        private const val requestItemRatingChange: Int = 2
+        private const val REQUEST_GET_PREFERENCES: Int = 1
+        private const val REQUEST_ITEM_RATING_CHANGE: Int = 2
         const val REQUEST_CHANGE_LOCATION_SETTINGS = 3
-        private const val requestQuestionnaire: Int = 4
+        private const val REQUEST_QUESTIONNAIRE: Int = 4
+        private const val REQUEST_GO_TO_SCHEDULED_ITEM: Int = 5
+
+        //intent extras
+        const val TAG_ROUTE_TO_THIS_ENABLED: String = "RouteToThis"
+        const val TAG_GO_TO_THIS: String = "goToThis"
+        const val TAG_ITEM_ID: String = "itemId"
     }
+
     var isFirstItem: Boolean = true
 
     private val TAG = "MainActivity"
@@ -153,7 +167,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 //                //--DEBUG
 //                else {
             val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-            startActivityForResult(getPreferencesIntent, requestGetPreferences)
+            startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
 //                }
         }
 
@@ -225,7 +239,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     .setOnDismissListener {
                         if (!journeyManager.isQuestionnaireAnswered) {
                             val goToQuestionnaire = Intent(applicationContext, QuestionnaireActivity::class.java)
-                            startActivityForResult(goToQuestionnaire, requestQuestionnaire)
+                            startActivityForResult(goToQuestionnaire, REQUEST_QUESTIONNAIRE)
                         }else
                             finishedAndQuestionnaireAnswered()
                     }
@@ -248,7 +262,7 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     .setPositiveButton(R.string.yes) { _, _ ->
                         journeyManager.finishUserSession()
                         val getPreferencesIntent = Intent(applicationContext, FeaturePreferencesActivity::class.java)
-                        startActivityForResult(getPreferencesIntent, requestGetPreferences)
+                        startActivityForResult(getPreferencesIntent, REQUEST_GET_PREFERENCES)
                     }
                     .setNegativeButton(R.string.no) { _, _ -> }
                     .show()
@@ -326,14 +340,18 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
                     journeyManager.createLocationRequest()
                     journeyManager.recoverCurrentState()
                 }
-                requestGetPreferences ->{
+                REQUEST_GET_PREFERENCES ->{
                     journeyManager.getPreferencesResult(data)
                 }
-                requestItemRatingChange-> {
+                REQUEST_ITEM_RATING_CHANGE-> {
                     journeyManager.itemRatingChangeResult(data)
                 }
+                REQUEST_GO_TO_SCHEDULED_ITEM->{
+                    journeyManager.routeToItem(data)
+                    adapter.notifyDataSetChanged()
+                }
             }
-        }else if(resultCode == RESULT_OK && requestCode == requestQuestionnaire){
+        }else if(resultCode == RESULT_OK && requestCode == REQUEST_QUESTIONNAIRE){
             if(journeyManager.isJourneyFinishedFlag.value!!) {
                 finishedAndQuestionnaireAnswered()
             }
@@ -344,37 +362,48 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
 
     //-----------onClick --------------
 
+    override fun onInfoWindowClick(p0: Marker?) {
+        if(p0 == null) return
+        val itemSelected = ItemRepository.itemList.find { it.getCoordinates() == p0.position }
+                ?: return
+        val viewItemDetails : Intent = setupItemDetailsIntent(itemSelected) ?: return
+        if(itemSelected.hasSpecificHours() && itemSelected != journeyManager.itemsList[0])
+            viewItemDetails.putExtra(TAG_ROUTE_TO_THIS_ENABLED, true)
+        startActivityForResult(viewItemDetails, REQUEST_GO_TO_SCHEDULED_ITEM)
+    }
+
     override fun shareOnItemClicked(p1: Int, isArrived : Boolean) {
+        val viewItemDetails : Intent = setupItemDetailsIntent(journeyManager.itemsList[p1])
+                ?: return
+        if(p1 == 0 && journeyManager.isCloseToItem.value!!)
+            viewItemDetails.putExtra(ApplicationProperties.TAG_ARRIVED, true)
+        else viewItemDetails.putExtra(ApplicationProperties.TAG_ARRIVED, isArrived)
+        startActivityForResult(viewItemDetails, REQUEST_ITEM_RATING_CHANGE)
+    }
+
+    private fun setupItemDetailsIntent(item : Item): Intent? {
         if(ApplicationProperties.user == null) {
-            Toast.makeText(applicationContext, "Usário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG).show()
-            return
+            Toast.makeText(applicationContext, "Usuário não definido! Primeiro informe seu nome na página de preferências.", Toast.LENGTH_LONG).show()
+            return null
         }
-        val viewItemDetails : Intent
-        //var subItems : ArrayList<Itemizable>? = null
-        if(journeyManager.itemsList[p1] is GroupItem) {
-            viewItemDetails = Intent(applicationContext, GroupItemDetailActivity::class.java)
-//            subItems = journeyManager.getSubItemsOf(journeyManager.itemsList[p1] as GroupItem) as ArrayList<Itemizable>
+        val viewItemDetails : Intent = if(item is GroupItem) {
+            Intent(applicationContext, GroupItemDetailActivity::class.java)
         }
-        else viewItemDetails = Intent(applicationContext, ItemDetailActivity::class.java)
-        val itemId = journeyManager.itemsList[p1].id
+        else Intent(applicationContext, ItemDetailActivity::class.java)
         var itemRating = 0F
         journeyManager.ratingsList.find { it.user == ApplicationProperties.user?.id
-                && it.item == itemId }?.let {
+                && it.item == item.id }?.let {
             itemRating = it.rating
         }
 
-        viewItemDetails.putExtra("itemClicked",  journeyManager.itemsList[p1])
+        viewItemDetails.putExtra("itemClicked",  item)
         //viewItemDetails.putExtra("subItems",  subItems)
         viewItemDetails.putExtra(ApplicationProperties.TAG_ITEM_RATING_VALUE,  itemRating)
 
         ApplicationProperties.user?.let {
             it.location = journeyManager.userLocationManager?.userLatLng
-        }?: Log.e(TAG, "gridItem(${p1})OnClick - user not defined!")
-
-        if(p1 == 0 && journeyManager.isCloseToItem.value!!)
-            viewItemDetails.putExtra(ApplicationProperties.TAG_ARRIVED, true)
-        else viewItemDetails.putExtra(ApplicationProperties.TAG_ARRIVED, isArrived)
-        startActivityForResult(viewItemDetails, requestItemRatingChange)
+        }?: Log.e(TAG, "gridItem(${item.id})OnClick - user not defined!")
+        return viewItemDetails
     }
 
     override fun shareOnRemoveItemClicked(p1: Int) {
@@ -439,12 +468,12 @@ class MainActivity : AppCompatActivity(), ItemsGridListAdapter.OnShareClickListe
             R.id.option_features -> {
                 val goToFeaturePreferences = Intent(applicationContext, FeaturePreferencesActivity::class.java)
                 // goToPlayerProfileIntent.putExtra("uid", uid)
-                startActivityForResult(goToFeaturePreferences, requestGetPreferences)
+                startActivityForResult(goToFeaturePreferences, REQUEST_GET_PREFERENCES)
                 true
             }
             R.id.option_questionnaire->{
                 val goToQuestionnaire = Intent(applicationContext, QuestionnaireActivity::class.java)
-                startActivityForResult(goToQuestionnaire, requestQuestionnaire)
+                startActivityForResult(goToQuestionnaire, REQUEST_QUESTIONNAIRE)
                 true
             }
             R.id.option_restart -> {
