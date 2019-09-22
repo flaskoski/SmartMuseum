@@ -11,16 +11,17 @@ android {
         minSdkVersion 21
         targetSdkVersion 28
         multiDexEnabled true
-        versionCode 14
-        versionName "0.5.1"
+        versionCode 15
+        versionName "0.5.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
             minifyEnabled false
-            shrinkResources false
-            useProguard false
+//            shrinkResources true
+//            shrinkResources false
+//            useProguard false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

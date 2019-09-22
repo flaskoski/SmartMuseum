@@ -10,19 +10,19 @@
         android:id="@+id/lb_userage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
         android:text="Sua Idade"
         android:textSize="16sp"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@+id/txt_user_age"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txt_user_age" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/txt_user_age"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
         android:layout_marginEnd="8dp"
         android:ems="10"
         android:hint="Digite aqui sua idade"
@@ -30,7 +30,9 @@
         android:maxLength="3"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lb_userage">
 
         <requestFocus />
     </EditText>
@@ -39,13 +41,13 @@
         android:id="@+id/lb_time_available"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
         android:text="Tempo Disponível para a Visita*"
         android:textSize="16sp"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@+id/txt_hh"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txt_hh" />
+        app:layout_constraintTop_toBottomOf="@+id/txt_user_age" />
 
     <EditText
         android:id="@+id/txt_hh"
@@ -58,7 +60,7 @@
         android:maxLength="1"
         android:visibility="visible"
         app:layout_constraintEnd_toStartOf="@+id/lb_colon"
-        app:layout_constraintTop_toBottomOf="@+id/txt_user_age" />
+        app:layout_constraintTop_toBottomOf="@+id/lb_time_available" />
 
     <TextView
         android:id="@+id/lb_colon"
@@ -83,13 +85,13 @@
         android:maxLength="2"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txt_user_age" />
+        app:layout_constraintTop_toBottomOf="@+id/lb_time_available" />
 
     <TextView
         android:id="@+id/lb_already_visited"
         android:layout_width="193dp"
         android:layout_height="48dp"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="8dp"
         android:text="Você ja visitou o parque CienTec antes?*"
         android:textSize="16sp"
         android:visibility="visible"
@@ -184,7 +186,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:paddingLeft="14dp"
+        android:paddingLeft="8dp"
         android:text="@string/terms_acceptance"
         android:textAlignment="viewStart"
         app:layout_constraintEnd_toEndOf="parent"

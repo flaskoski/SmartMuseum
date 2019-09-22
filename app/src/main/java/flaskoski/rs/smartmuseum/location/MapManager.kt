@@ -11,6 +11,7 @@ import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.model.ItemRepository
 import flaskoski.rs.smartmuseum.model.Point
+import flaskoski.rs.smartmuseum.util.AnimationUtil
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import java.lang.IllegalStateException
 
@@ -51,7 +52,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
             val markerOptions = MarkerOptions().position(userLatLng).title("Sua posição")
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.blue_circle))
             mCurrLocationMarker = mMap?.addMarker(markerOptions)
-        } else mCurrLocationMarker?.position = userLatLng
+        } else AnimationUtil().animateMarkerTo(mCurrLocationMarker!!, userLatLng)
 
         if(isDestinationSet())
             if(!alreadyInformed && isVeryCloseToDestination(userLatLng)) { // < 10 meters

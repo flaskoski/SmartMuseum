@@ -43,6 +43,6 @@
     <string name="continuar">Continuar</string>
     <string name="thank_you_for_visiting">Obrigado por visitar o Parque CienTec!</string>
     <string name="answer_survey">Agora, por favor, responda a rápida pesquisa de satisfação a seguir, caso já não a tenha feito.</string>
-    <string name="terms_acceptance">Eu declaro que li e aceito os <a href="https://firebasestorage.googleapis.com/v0/b/smartmuseum-usp.appspot.com/o/terms%20and%20conditions%2Fterms%20and%20conditions.html?alt=media">termos de uso</a> e <a href="https://firebasestorage.googleapis.com/v0/b/smartmuseum-usp.appspot.com/o/terms%20and%20conditions%2Fprivacy%20policy.html?alt=media">política de privacidade</a> deste aplicativo.*</string>
+    <string name="terms_acceptance">Eu declaro que li e aceito os <a href="https://firebasestorage.googleapis.com/v0/b/smartmuseum-usp.appspot.com/o/terms%20and%20conditions%2Fterms%20and%20conditions.html?alt=media">termos de uso</a>\n e <a href="https://firebasestorage.googleapis.com/v0/b/smartmuseum-usp.appspot.com/o/terms%20and%20conditions%2Fprivacy%20policy.html?alt=media">política de privacidade</a> deste aplicativo.*</string>
     <string name="informe_interesse">Informe seu interesse pelos assuntos abordados nas 7 frases abaixo, colocando bastante estrelas para o tema que você gosta muito e poucas para o tema que gosta menos.*</string>
 </resources>
