@@ -19,4 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
--ignorewarnings
+-keep class org.apache.commons.logging.**
+-keep interface org.apache.** { *; }
+-keep enum org.apache.** { *; }
+-keep class org.apache.** { *; }
+-keep @interface org.apache.** { *; }
+-keep class net.librec.** { *; }
+-keep interface net.librec.** { *; }
+-keep enum net.librec.** { *; }
+-keep @interface net.librec.** { *; }
+#-ignorewarnings

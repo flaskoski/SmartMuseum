@@ -27,8 +27,8 @@ import net.librec.math.structure.SparseMatrix;
 import net.librec.util.StringUtil;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+//import org.apache.commons.logging.Log;
+//import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,7 +45,7 @@ import flaskoski.rs.smartmuseum.model.Rating;
 public class NioFreeTextDataConvertor extends AbstractDataConvertor {
 
     /** Log */
-    private static final Log LOG = LogFactory.getLog(net.librec.data.convertor.TextDataConvertor.class);
+//    private static final Log LOG = LogFactory.getLog(net.librec.data.convertor.TextDataConvertor.class);
 
     /** The size of the buffer */
     private static final int BSIZE = 1024 * 1024;
@@ -178,7 +178,7 @@ public class NioFreeTextDataConvertor extends AbstractDataConvertor {
      *            if the <code>inputDataPath</code> is not valid.
      */
     private void readData(final String dataColumnFormat, String inputDataPath, final double binThold) throws IOException {
-        LOG.info(String.format("Dataset: %s", StringUtil.last(inputDataPath, 38)));
+//        LOG.info(String.format("Dataset: %s", StringUtil.last(inputDataPath, 38)));
         // Table {row-id, col-id, rate}
         final Table<Integer, Integer, Double> dataTable = HashBasedTable.create();
         // Table {row-id, col-id, timestamp}

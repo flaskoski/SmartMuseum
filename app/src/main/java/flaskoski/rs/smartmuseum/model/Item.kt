@@ -31,7 +31,6 @@ open class Item(id: String = "",
                 override var isClosed: Boolean = false,
                 val onlyIfRecommended : Boolean = false,
                 val item : String = "",
-                //CAMPO HOURS NAO TA FUNCIONANDO
                 hours: List<String>? = null,
                 var timeHours : List<Date>? = null): RoutableItem, Point(id, lat, lng, isEntrance, isExit){
 

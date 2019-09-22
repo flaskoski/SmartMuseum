@@ -29,8 +29,8 @@ import net.librec.util.DriverClassUtil;
 import net.librec.util.ReflectionUtil;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+//import org.apache.commons.logging.Log;
+//import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 
@@ -45,7 +45,7 @@ public abstract class NioFreeAbstractDataModel extends Configured implements Dat
     /**
      * LOG
      */
-    protected final Log LOG = LogFactory.getLog(this.getClass());
+//    protected final Log LOG = LogFactory.getLog(this.getClass());
 
     protected  Context applicationContex;
 
@@ -146,18 +146,18 @@ public abstract class NioFreeAbstractDataModel extends Configured implements Dat
         context = new DataContext(conf);
         if (!conf.getBoolean("data.convert.read.ready")) {
             buildConvert();
-            LOG.info("Transform data to Convertor successfully!");
+//            LOG.info("Transform data to Convertor successfully!");
             conf.setBoolean("data.convert.read.ready", true);
         }
         buildSplitter();
-        LOG.info("Split data to train Set and test Set successfully!");
+//        LOG.info("Split data to train Set and test Set successfully!");
         if (trainDataSet != null && trainDataSet.size() > 0 && testDataSet != null && testDataSet.size() > 0) {
-            LOG.info("Data size of training is " + trainDataSet.size());
-            LOG.info("Data size of testing is " + testDataSet.size());
+//            LOG.info("Data size of training is " + trainDataSet.size());
+//            LOG.info("Data size of testing is " + testDataSet.size());
         }
         if (StringUtils.isNotBlank(conf.get("data.appender.class")) && !conf.getBoolean("data.appender.read.ready")) {
             buildFeature();
-            LOG.info("Transform data to Feature successfully!");
+//            LOG.info("Transform data to Feature successfully!");
             conf.setBoolean("data.appender.read.ready", true);
         }
     }
