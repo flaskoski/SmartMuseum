@@ -1,6 +1,5 @@
 package flaskoski.rs.smartmuseum.location
 
-import android.app.Activity
 import android.location.Location
 import android.util.Log
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -14,6 +13,10 @@ import flaskoski.rs.smartmuseum.model.Point
 import flaskoski.rs.smartmuseum.util.AnimationUtil
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import java.lang.IllegalStateException
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.GroundOverlayOptions
+
+
 
 
 class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedToDestinationListener? = null,
@@ -32,13 +35,23 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         mMap?.setOnInfoWindowClickListener(value)
     }
 
+    var museumMap : GroundOverlay? = null
+    private fun showMuseumMap(){
+        val museumDetailsMap = GroundOverlayOptions()
+                .image(BitmapDescriptorFactory.fromResource(R.drawable.museum_map3))
+                .position(LatLng(-23.65134, -46.62258),  504f, 514.909f)
+        museumMap = mMap?.addGroundOverlay(museumDetailsMap)
+    }
+
     override fun onMapReady(p0: GoogleMap?) {
         mMap = p0
-        mMap?.mapType = GoogleMap.MAP_TYPE_SATELLITE
+//        mMap?.mapType = GoogleMap.MAP_TYPE_SATELLITE
         mMap?.setMinZoomPreference(14f)
         mMap?.moveCamera(CameraUpdateFactory.zoomTo(19.5f))
         mMap?.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)))
         mMap?.setOnInfoWindowClickListener(mainActivity)
+
+        showMuseumMap()
         //map ready ->  callback
         onMapConfiguredCallback?.invoke()
     }
@@ -98,6 +111,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         latLng?.let { updateUserLocationCallback.invoke(it) }
         setVisitedItems()
         setScheduledItems()
+        showMuseumMap()
         val itemPathCoordinates = item.getPathCoordinates()
         itemPathCoordinates.let{itemPath ->
             if(mCurrLocationMarker != null) {
@@ -146,6 +160,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         mMap?.clear()
         destinationMarker = null
         mCurrLocationMarker = null
+        museumMap = null
         routePolyline.clear()
         return this
     }
