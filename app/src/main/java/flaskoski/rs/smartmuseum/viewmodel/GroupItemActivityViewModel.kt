@@ -27,6 +27,8 @@ class GroupItemActivityViewModel : ViewModel(){
             subitems.sortedWith(compareBy<Itemizable>{it.title}).forEach{
                 subitems[i++] = it
             }
+            recommendedSubItemList.clear()
+            otherSubItemList.clear()
             for(subitem in subitems)
                 if(subitem.isRecommended)
                     recommendedSubItemList.add(subitem)

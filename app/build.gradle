@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'io.fabric'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 28
@@ -11,8 +12,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 28
         multiDexEnabled true
-        versionCode 15
-        versionName "1.0"
+        versionCode 16
+        versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -82,10 +83,15 @@ dependencies {
     // ViewModel and LiveData
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
 
+    compile 'com.github.bumptech.glide:glide:4.9.0'
+    // Skip this if you don't want to use integration libraries or configure Glide.
+    kapt 'com.github.bumptech.glide:compiler:4.9.0'
+
     //Dagger 2 for dependency injection
 //    implementation 'com.google.dagger:dagger:2.23.2'
 //    annotationProcessor 'com.google.dagger:dagger-compiler:2.23.2'
 }
 repositories {
     mavenCentral()
+    maven { url 'https://maven.google.com' }
 }

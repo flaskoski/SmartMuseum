@@ -15,4 +15,8 @@ interface Itemizable : Element {
     var isVisited: Boolean
     var isRemoved: Boolean
     var isClosed: Boolean
+
+    fun canConsiderForRouteRecommendation() : Boolean{
+        return !isVisited && !isClosed && !isRemoved
+    }
 }

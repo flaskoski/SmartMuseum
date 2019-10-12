@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import android.util.Log
 import androidx.databinding.Observable
 import androidx.lifecycle.MutableLiveData
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import flaskoski.rs.smartmuseum.recommender.RecommenderBuilder
@@ -157,7 +156,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         this.activity = activity
         userLocationManager?.updateActivity(activity)
         sharedPreferences = SharedPreferencesDAO(activity)
-        mapManager?.mainActivity = activity as GoogleMap.OnInfoWindowClickListener
+        mapManager?.mapsActivity = activity
     }
 
     private fun updateRecommender() {
@@ -299,12 +298,24 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
     fun removeItemFromRoute(itemToBeRemoved: Item, itemRemovedConfirmationCallback: () -> Unit) {
         recommendedRouteBuilder?.removeItemFromRoute(itemToBeRemoved)
-                ?: Log.e(TAG, "removeItemFromRoute - recommendedRouteBuilder is null")
+                ?: Log.e(TAG, "removeItemFromRoute - recommendedRouteBuilder is null!")
         sharedPreferences.removeItem(itemToBeRemoved)
 //                ?: Log.e(TAG, "removeItemFromRoute - sharedPreferences is null")
         sortItemList()
         setNextRecommendedDestination()
         itemRemovedConfirmationCallback.invoke()
+    }
+
+
+    fun addItemToRoute(item: Item, itemAddedConfirmationCallback: () -> Unit) {
+        if(recommendedRouteBuilder?.addItemToRoute(item, itemsList.filter { !it.isVisited && it.isRecommended()}) != true)
+            Log.e(TAG, "addItemToRoute - recommendedRouteBuilder is null or function couldn't add item!")
+        else {
+            sharedPreferences.setAllRecommendedItems(itemsList.filter { it.recommendedOrder != Int.MAX_VALUE }, subItemList.filter { it.isRecommended })
+            sortItemList()
+            setNextRecommendedDestination()
+            itemAddedConfirmationCallback.invoke()
+        }
     }
 
     fun setNextRecommendedDestination() {

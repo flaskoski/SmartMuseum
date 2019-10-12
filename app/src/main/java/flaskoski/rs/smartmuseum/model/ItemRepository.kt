@@ -85,7 +85,8 @@ object ItemRepository //@Inject constructor
     fun resetJourney() {
         allElements.filter { it is Itemizable}.forEach {
             (it as Itemizable).isVisited = false
-            if(it is RoutableItem) it.recommendedOrder = Int.MAX_VALUE
+            if(it is RoutableItem)
+                it.recommendedOrder = Int.MAX_VALUE
         }
 //        ratingList.removeAll( ratingList.filter { it.user == ApplicationProperties.user?.id && it.type != Rating.TYPE_FEATURE} )
     }

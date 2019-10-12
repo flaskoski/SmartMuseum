@@ -49,7 +49,8 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
         else{
             p0.itemView.setBackgroundResource(android.R.color.white)
             p0.itemView.icon_visited.visibility = View.GONE
-            p0.itemView.bt_remove_item.visibility = View.GONE
+            p0.itemView.bt_remove_item.visibility = View.VISIBLE
+            p0.itemView.bt_remove_item.setImageResource(android.R.drawable.ic_input_add)
         }
         if(!ApplicationProperties.userNotDefinedYet()) {
             p0.itemView.ratingBar.rating = itemsList[p1].recommedationRating
@@ -63,7 +64,9 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
 //            startActivity(context, viewItemDetails, null)
         }
         p0.itemView.bt_remove_item.setOnClickListener{
-            mainActivityCallback.shareOnRemoveItemClicked(p1)
+            if(itemsList[p1].isRecommended())
+                mainActivityCallback.shareOnRemoveItemClicked(p1)
+            else mainActivityCallback.shareOnAddItemClicked(p1)
         }
     }
 
@@ -81,6 +84,7 @@ class ItemsGridListAdapter(private val itemsList: List<Item>,
     interface OnShareClickListener{
         fun shareOnItemClicked(p1 : Int, isArrived : Boolean = false)
         fun shareOnRemoveItemClicked(p1 : Int)
+        fun shareOnAddItemClicked(p1: Int)
     }
 }
 

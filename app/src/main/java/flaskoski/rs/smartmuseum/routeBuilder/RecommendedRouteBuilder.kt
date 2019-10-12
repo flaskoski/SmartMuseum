@@ -10,7 +10,7 @@ import java.util.*
 
 class RecommendedRouteBuilder(elements: Set<Element>){
     companion object {
-        const val FIRST_ITEM_FROM_RECOMMENDED_ROUTE = 200
+        const val FIRST_ITEM_FROM_RECOMMENDED_ROUTE = 201
     }
     private var museumGraph = MuseumGraph(elements)
     private var itemsRemaining = ArrayList<Itemizable>()
@@ -36,14 +36,15 @@ class RecommendedRouteBuilder(elements: Set<Element>){
             (it as RoutableItem).recommendedOrder = Int.MAX_VALUE
         }
         //add most recommended Points (items or subItems' parents) that have not been visited yet (plus a min. time between items) until it reaches total available time
-        allItems.filter {!it.isVisited && !it.isRemoved && !(it is Item && it.hasSpecificHours()) }.sortedByDescending { it.recommedationRating }.forEach{ item ->
-            if(totalCost + item.timeNeeded + MIN_TIME_BETWEEN_ITEMS < timeAvailable){
+        allItems.filter {it.canConsiderForRouteRecommendation() && !(it is Item && it.hasSpecificHours()) }.sortedByDescending { it.recommedationRating }.forEach{ item ->
+            if(totalCost + item.timeNeeded + MIN_TIME_BETWEEN_ITEMS < timeAvailable
+                    && (item !is SubItem || allItems.find{ it.id == item.groupItem}?.canConsiderForRouteRecommendation() == true) ){
                 totalCost += item.timeNeeded + MIN_TIME_BETWEEN_ITEMS
 //                 if(item is SubItem)
 //                    if(itemsRemaining.none{ it.id == item.groupItem })
 //                        allItems.find { it.id == item.groupItem }?.let{ parent -> itemsRemaining.add(parent)}
                 itemsRemaining.add(item)
-                if(!(item is SubItem) ) {
+                if(item !is SubItem) {
                     count++ //used next to subtract the time between Points only since it will get the cost from the db
                 }
             }
@@ -86,7 +87,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
                     if (totalCost + currentStartPoint.cost <= timeAvailable) {
                         totalCost += currentStartPoint.cost
                         (currentStartPoint as Item).isVisited = true
-                        currentStartPoint.recommendedOrder = j + FIRST_ITEM_FROM_RECOMMENDED_ROUTE
+                        currentStartPoint.recommendedOrder = j + FIRST_ITEM_FROM_RECOMMENDED_ROUTE -1
                     }
                     else{
                         enoughTime = false
@@ -134,7 +135,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
             if(itemsRemainingSet.none{ it.id == (subitem as SubItem).groupItem })
                 //find the parent and add it just before its child on the recommended list
                 allItems.find { it.id == (subitem as SubItem).groupItem }?.let {groupItem ->
-                    itemsRemaining.add( itemsRemaining.indexOf(subitem), groupItem )
+                    itemsRemaining.add(itemsRemaining.indexOf(subitem), groupItem)
                     itemsRemainingSet.add(groupItem)
                 }
         }
@@ -170,5 +171,58 @@ class RecommendedRouteBuilder(elements: Set<Element>){
     fun removeItemFromRoute(itemToBeRemoved: Item) {
         itemToBeRemoved.isRemoved = true
         itemToBeRemoved.recommendedOrder = Int.MAX_VALUE
+    }
+
+    fun addItemToRoute(item: RoutableItem, customItemList: List<Item>): Boolean {
+        if(item.isRecommended()) return false
+        itemsRemaining.clear()
+        itemsRemaining.addAll(customItemList)
+        var lastRecommendedItemOrder : Int
+        var i = 0
+        itemsRemaining.sortedWith(compareBy<Itemizable>{(it as RoutableItem).recommendedOrder}
+                .thenBy{it.title}).forEach{
+            itemsRemaining[i++] = it
+        }
+        //get closest point to the item to be added
+        val closestPoint : RoutableItem? = museumGraph.getNextClosestItemFromList(item as Point,
+                (itemsRemaining.toSet() as Set<Point>))?.let { it as RoutableItem } ?: return false
+
+        //in order to define if the item should be added before or after the closest item
+        val itemIndex = itemsRemaining.indexOf(closestPoint as RoutableItem)
+        var itemBefore : RoutableItem? = null
+        var itemAfter : RoutableItem? = null
+        if(itemIndex > 0)
+            itemBefore = itemsRemaining[itemIndex-1] as RoutableItem
+        if(itemIndex < itemsRemaining.size-1)
+            itemAfter = itemsRemaining[itemIndex+1] as RoutableItem
+//        if(itemAfter == null ||
+//                (closestPoint!!.recommendedOrder == FIRST_ITEM_FROM_RECOMMENDED_ROUTE) && itemBefore == null )
+//            return false
+
+        val putAfter : Boolean =
+                if(closestPoint.recommendedOrder == FIRST_ITEM_FROM_RECOMMENDED_ROUTE)
+                    museumGraph.getNextClosestItemFromList(itemAfter as Point,
+                                setOf(item, closestPoint) as Set<Point>)?.let { it as RoutableItem? == item }
+                            ?: return false
+                else if(itemIndex == itemsRemaining.size-1)
+                    museumGraph.getNextClosestItemFromList(itemBefore as Point,
+                            setOf(item, closestPoint) as Set<Point>)?.let { it as RoutableItem? == closestPoint }
+                            ?: return false
+                else{
+                    museumGraph.getNextClosestItemFromList(item as Point, setOf( itemBefore, itemAfter
+                            ) as Set<Point>)?.let { it as RoutableItem == itemAfter }  ?: return false
+                }
+
+        //set item's order
+        item.recommendedOrder = closestPoint.recommendedOrder
+        if(putAfter)
+            item.recommendedOrder++
+
+        //reorder the rest of the items
+        itemsRemaining.filter { it is RoutableItem && it.recommendedOrder >= item.recommendedOrder  }
+                .forEach {(it as RoutableItem).recommendedOrder++ }
+
+
+        return true
     }
 }

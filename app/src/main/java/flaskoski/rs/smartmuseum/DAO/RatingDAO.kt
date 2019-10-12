@@ -31,8 +31,8 @@ class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                         }
                         callback(ratingList)
                     }.addOnFailureListener { exception ->
-                        Log.w(TAG, "Error getting documents.", exception)
-                        throw Exception("Error getting ratings")
+                        Log.e(TAG, "Error getting documents.", exception)
+                        //throw Exception("Error getting ratings")
                     }
         else
             db.collection(COLLECTION_QUESTIONNAIRE)

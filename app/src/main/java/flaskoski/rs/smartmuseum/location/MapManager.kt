@@ -1,7 +1,13 @@
 package flaskoski.rs.smartmuseum.location
 
+import android.app.Activity
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.location.Location
 import android.util.Log
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -29,16 +35,29 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
     private var destinationMarker: Marker? = null
     private var routePolyline = RoutePolyline()
     private val scheduledItems: ArrayList<ScheduledItemMarker> = ArrayList()
-    var mainActivity: GoogleMap.OnInfoWindowClickListener? = null
+    var resourceMap : Bitmap? = null
+    var mapsActivity: Activity? = null
     set(value) {
         field = value
-        mMap?.setOnInfoWindowClickListener(value)
+        if(value == null) return
+        mMap?.setOnInfoWindowClickListener(value as GoogleMap.OnInfoWindowClickListener)
+
+        Glide.with(value).asBitmap().load(R.drawable.museum_map3).into(object : CustomTarget<Bitmap>(){
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                resourceMap = resource
+                showMuseumMap(resource)
+            }
+            override fun onLoadCleared(placeholder: Drawable?) {
+                // this is called when imageView is cleared on lifecycle call or for some other reason.
+                museumMap = null
+            }
+        })
     }
 
     var museumMap : GroundOverlay? = null
-    private fun showMuseumMap(){
+    private fun showMuseumMap(resource: Bitmap) {
         val museumDetailsMap = GroundOverlayOptions()
-                .image(BitmapDescriptorFactory.fromResource(R.drawable.museum_map3))
+                .image(BitmapDescriptorFactory.fromBitmap(resource))
                 .position(LatLng(-23.65134, -46.62258),  504f, 514.909f)
         museumMap = mMap?.addGroundOverlay(museumDetailsMap)
     }
@@ -49,9 +68,9 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         mMap?.setMinZoomPreference(14f)
         mMap?.moveCamera(CameraUpdateFactory.zoomTo(19.5f))
         mMap?.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)))
-        mMap?.setOnInfoWindowClickListener(mainActivity)
+        mMap?.setOnInfoWindowClickListener(mapsActivity as GoogleMap.OnInfoWindowClickListener)
 
-        showMuseumMap()
+        resourceMap?.let { showMuseumMap(it) }
         //map ready ->  callback
         onMapConfiguredCallback?.invoke()
     }
@@ -111,7 +130,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         latLng?.let { updateUserLocationCallback.invoke(it) }
         setVisitedItems()
         setScheduledItems()
-        showMuseumMap()
+        resourceMap?.let { showMuseumMap(it) }
         val itemPathCoordinates = item.getPathCoordinates()
         itemPathCoordinates.let{itemPath ->
             if(mCurrLocationMarker != null) {

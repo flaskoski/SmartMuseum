@@ -35,6 +35,7 @@
     <string name="question_next_item">Deseja ir à próxima atração da visita?</string>
     <string name="follow_line">Siga a linha azul para chegar em seu próximo destino.</string>
     <string name="item_removed">Atração removida com sucesso!</string>
+    <string name="item_added">Atração adicionada com sucesso!</string>
     <string name="avaliar_app">Por favor, avalie sua experiência no Parque CienTec respondendo as perguntas abaixo:</string>
     <string name="confirmar">Confirmar</string>
     <string name="option_questionario">Questionário</string>
