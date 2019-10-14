@@ -6,15 +6,10 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import androidx.databinding.ObservableBoolean
-import androidx.lifecycle.MutableLiveData
-import com.google.android.gms.common.data.DataBufferObserver
 import flaskoski.rs.smartmuseum.DAO.ItemDAO
 import flaskoski.rs.smartmuseum.DAO.RatingDAO
-import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
-import flaskoski.rs.smartmuseum.util.ParallelRequestsManager
-import kotlinx.android.synthetic.main.grid_item.view.*
 import java.io.IOException
 import java.io.InputStream
 
@@ -85,8 +80,10 @@ object ItemRepository //@Inject constructor
     fun resetJourney() {
         allElements.filter { it is Itemizable}.forEach {
             (it as Itemizable).isVisited = false
-            if(it is RoutableItem)
+            if(it is RoutableItem){
                 it.recommendedOrder = Int.MAX_VALUE
+                it.isAddedToRouteByTheUser = false
+            }
         }
 //        ratingList.removeAll( ratingList.filter { it.user == ApplicationProperties.user?.id && it.type != Rating.TYPE_FEATURE} )
     }

@@ -32,6 +32,13 @@ class RecommendedRouteBuilder(elements: Set<Element>){
         var totalCost = initialCost
         var count = 0
 
+        if(totalCost >= timeAvailable) // if time is up
+            return itemsRemaining
+
+        totalCost += putBackItemsAddedByTheUser()
+        if(totalCost >= timeAvailable) // if time available is already filled
+            return itemsRemaining
+
         allItems.filter { it is RoutableItem && it.recommendedOrder < Int.MAX_VALUE }.forEach {
             (it as RoutableItem).recommendedOrder = Int.MAX_VALUE
         }
@@ -110,6 +117,13 @@ class RecommendedRouteBuilder(elements: Set<Element>){
         return itemsRemaining
     }
 
+    private fun putBackItemsAddedByTheUser(): Double {
+        itemsRemaining.addAll( allItems.filter { it is RoutableItem && !it.isVisited && it.isAddedToRouteByTheUser })
+        var cost = 0.0
+        itemsRemaining.forEach { cost += it.timeNeeded + MIN_TIME_BETWEEN_ITEMS }
+        return cost
+    }
+
     private fun moveUpGroupItemsWithSubitemsWithBetterRecommendations() {
         val itemsRemainingSet = itemsRemaining.toSet()
         //for all recommended subitems:
@@ -171,6 +185,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
     fun removeItemFromRoute(itemToBeRemoved: Item) {
         itemToBeRemoved.isRemoved = true
         itemToBeRemoved.recommendedOrder = Int.MAX_VALUE
+        itemToBeRemoved.isAddedToRouteByTheUser = false
     }
 
     fun addItemToRoute(item: RoutableItem, customItemList: List<Item>): Boolean {
@@ -222,6 +237,8 @@ class RecommendedRouteBuilder(elements: Set<Element>){
         itemsRemaining.filter { it is RoutableItem && it.recommendedOrder >= item.recommendedOrder  }
                 .forEach {(it as RoutableItem).recommendedOrder++ }
 
+        //set item to be kept on route after it is updated
+        item.isAddedToRouteByTheUser = true
 
         return true
     }

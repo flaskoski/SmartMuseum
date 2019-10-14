@@ -32,7 +32,9 @@ open class Item(id: String = "",
                 val onlyIfRecommended : Boolean = false,
                 val item : String = "",
                 hours: List<String>? = null,
-                var timeHours : List<Date>? = null): RoutableItem, Point(id, lat, lng, isEntrance, isExit){
+                var timeHours : List<Date>? = null,
+                override var isAddedToRouteByTheUser: Boolean = false):
+        RoutableItem, Point(id, lat, lng, isEntrance, isExit){
 
     var hours : List<String>? = hours
     set(value) {

@@ -9,6 +9,7 @@ import java.util.*
  */
 interface RoutableItem : Routable, Itemizable {
     var recommendedOrder : Int
+    var isAddedToRouteByTheUser : Boolean
 
     fun isRecommended() : Boolean{
         return recommendedOrder != Int.MAX_VALUE

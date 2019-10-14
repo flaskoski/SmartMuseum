@@ -199,7 +199,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         isCloseToItem.value = true
     }
 
-    private fun isJourneyFinished(): Boolean {
+    private fun isNoItemsOnRoute(): Boolean {
         if(itemsList.isEmpty()) throw Exception("Manager was not built yet!")
         return itemsList.none { it.isRecommended() && !it.isVisited }
     }
@@ -288,7 +288,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         val itemsRemaining = recommendedRouteBuilder?.getRecommendedRouteFrom(lastItem!!,
                 ApplicationProperties.user?.timeAvailable?: 100.0,
                 startTime?.let { ParseTime.differenceInMinutesUntilNow(it) } ?: 0.0)
-        if(itemsRemaining!= null && itemsRemaining.isEmpty()) {
+        if(itemsRemaining == null || itemsRemaining.isEmpty()) {
             Log.w(TAG, "No time available for visiting any item.")
             return false
         }
@@ -341,7 +341,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
 
                 } else {
-                    if(isJourneyFinished())
+                    if(isNoItemsOnRoute())
                         completeJourney()
                     Log.w(TAG, "Todos os itens já foram visitados e setNextRecommendedDestination foi chamado.")
                 }
@@ -369,6 +369,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
         }
     }
 
+    //TODO time is up warning if trying to add new item to visit or just route to it
     fun itemRatingChangeResult(data: Intent) {
         val ratingChangedItemId : String? = data.getStringExtra(ApplicationProperties.TAG_RATING_CHANGED_ITEM_ID)
         val goToNextItem : Boolean = data.getBooleanExtra(ApplicationProperties.TAG_GO_NEXT_ITEM, false)
@@ -389,17 +390,13 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
             sharedPreferences.setRecommendedItem(lastItem as Item)
 
-            if(isJourneyFinished())
-                completeJourney()
-            else {
-                if (ratingChangedItemId != null)
-                    if(!getRecommendedRoute()){
-                        completeJourney()
-                        return
-                    }
-                sortItemList()
-                setNextRecommendedDestination()
-            }
+            if (ratingChangedItemId != null)
+                if(!getRecommendedRoute()){
+                    completeJourney()
+                    return
+                }
+            sortItemList()
+            setNextRecommendedDestination()
         }
         else
             if(ratingChangedItemId != null) {
