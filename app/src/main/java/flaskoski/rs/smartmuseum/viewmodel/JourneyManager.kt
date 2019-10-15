@@ -61,6 +61,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     var finishButtonClicked: Boolean = false
     var isQuestionnaireAnswered : Boolean = false
     //--
+    var isFirstTime : Boolean = true
 
     private var startTime: Date? = null
 
@@ -465,7 +466,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
             try {
                 mapManager?.setDestination(nextItem!!, lastItem, userLocationManager?.userLastKnownLocation?.let {
                     LatLng(it.latitude, it.longitude) })
-                isGoToNextItem.value = true
+                if(isFirstTime) isFirstTime = false
+                else isGoToNextItem.value = true
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
                 //                Toast.makeText(applicationContext, "Erro ao carregar posição.", Toast.LENGTH_SHORT)

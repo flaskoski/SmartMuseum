@@ -65,7 +65,6 @@ class MainActivity : AppCompatActivity(),
         const val TAG_ITEM_ID: String = "itemId"
     }
 
-    var isFirstItem: Boolean = true
 
     private val TAG = "MainActivity"
 //    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
@@ -310,10 +309,10 @@ class MainActivity : AppCompatActivity(),
     fun onClickNextItemOk(@Suppress("UNUSED_PARAMETER") v : View){
         journeyManager.showNextItem_okPressed = true
         view_next_item.visibility = View.GONE
-        if(isFirstItem) {
+        if(journeyManager.isFirstTime) {
             Toast.makeText(applicationContext, getString(R.string.follow_line),
                     Toast.LENGTH_LONG).show()
-            isFirstItem = false
+            goToUserLocation(v)
         }
         closeToItemIsChangedListener.onChanged(journeyManager.isCloseToItem.value)
     }
