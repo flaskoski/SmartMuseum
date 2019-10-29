@@ -22,7 +22,7 @@ class RecommenderBuilder{
     }
 
     fun buildKNNRecommender(ratings: Set<Rating>,
-                            knn: Int =  4,
+                            knn: Int =  5,
                             useRanking: Boolean = false,
                             similarityMethod: String = SIMILARITY_PCC) : AbstractRecommender? {
         if(ratings.isEmpty()){
@@ -44,7 +44,7 @@ class RecommenderBuilder{
                 else
                     CosineSimilarity()
         similarity.buildSimilarityMatrix(dataModel)
-
+//data.splitter.cv.number
 
         recommender = UserKNNRecommender()
         (recommender as UserKNNRecommender).recommend(RecommenderContext(conf, dataModel, similarity))

@@ -100,15 +100,11 @@ public abstract class NioFreeAbstractDataModel extends Configured implements Dat
     protected void buildSplitter() throws LibrecException {
         String splitter = conf.get("data.model.splitter");
 //        try {
-            //comment this if statement to rerun with the same instance
+//            comment this if statement to rerun with the same instance
             if (dataSplitter == null){
-
-
 //---> modified to get all points as train set
-
-                //dataSplitter = (DataSplitter) ReflectionUtil.newInstance(DriverClassUtil.getClass(splitter), conf);
+//                dataSplitter = (DataSplitter) ReflectionUtil.newInstance(DriverClassUtil.getClass(splitter), conf);
                 dataSplitter = new NoSplit();
-
 //---<
             }
             if (dataSplitter != null) {
@@ -116,9 +112,7 @@ public abstract class NioFreeAbstractDataModel extends Configured implements Dat
                 if (dataSplitter instanceof KCVDataSplitter) {
                     ((KCVDataSplitter) dataSplitter).splitFolds();
                 }
-
-                dataSplitter.splitData(); //modified to get all points as train set
-
+                dataSplitter.splitData();
                 trainDataSet = dataSplitter.getTrainData();
                 testDataSet = dataSplitter.getTestData();
             }

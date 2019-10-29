@@ -21,6 +21,9 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import java.lang.IllegalStateException
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.GroundOverlayOptions
+import com.google.android.gms.maps.model.CameraPosition
+
+
 
 
 
@@ -30,6 +33,7 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         OnMapReadyCallback {
 
     var mMap : GoogleMap? = null
+
     private val TAG = "MapManager"
     private var mCurrLocationMarker: Marker? = null
     private var destinationMarker: Marker? = null
@@ -66,8 +70,12 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
         mMap = p0
 //        mMap?.mapType = GoogleMap.MAP_TYPE_SATELLITE
         //mMap?.setMinZoomPreference(14f)
-        mMap?.moveCamera(CameraUpdateFactory.zoomTo(19.5f))
-        mMap?.moveCamera(CameraUpdateFactory.newLatLng(LatLng(-23.651450,-46.622546)))
+        val cameraPosition = CameraPosition.Builder()
+                .target(LatLng(-23.651450,-46.622546))      // Sets the center of the map to Mountain View
+                .zoom(19.5f)                   // Sets the zoom
+                .bearing(180f)                // Sets the orientation of the camera to east
+                .build()                   // Creates a CameraPosition from the builder
+        mMap?.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
         mMap?.setOnInfoWindowClickListener(mapsActivity as GoogleMap.OnInfoWindowClickListener)
 
         resourceMap?.let { showMuseumMap(it) }
@@ -141,6 +149,12 @@ class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedTo
 
             mMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder()
                     .include(mCurrLocationMarker?.position?:lastKnownUserLocation?.let{it}?: previousItem?.getCoordinates()).include(item.getCoordinates()).build(), 130))
+            val cameraPosition = mMap?.cameraPosition?.let {
+                CameraPosition.builder()
+                        .target(it.target)
+                        .zoom(it.zoom).bearing(180f).build()
+            }
+            mMap?.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
             destinationMarker = addItemToMap(item, false)
             alreadyInformed = false
 
