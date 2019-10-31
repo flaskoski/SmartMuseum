@@ -518,10 +518,22 @@ class MainActivity : AppCompatActivity(),
     }
 
     fun toggleSheet(@Suppress("UNUSED_PARAMETER") v: View){
-        if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_HALF_EXPANDED)
+        if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_HALF_EXPANDED) {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
-         else
+            journeyManager.saveRatingsTrainingTimes{string ->
+                Toast.makeText(applicationContext, string, Toast.LENGTH_LONG).show()
+            }
+
+        }
+         else{
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            journeyManager.saveItemsTrainingTimes(true){string ->
+                Toast.makeText(applicationContext, string, Toast.LENGTH_LONG).show()
+            }
+            journeyManager.saveItemsTrainingTimes{string ->
+                Toast.makeText(applicationContext, string, Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }
 

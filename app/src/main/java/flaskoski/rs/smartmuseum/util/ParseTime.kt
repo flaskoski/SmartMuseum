@@ -39,4 +39,10 @@ object ParseTime{
             null
         }
     }
+
+    //---------RATING SAVER ONLY
+    val formatFile = SimpleDateFormat("yyyy.MM.dd-HH_mm")
+    fun toFileName(timeString : Date) : String{
+        return formatFile.format(timeString)
+    }
 }

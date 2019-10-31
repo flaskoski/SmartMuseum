@@ -22,7 +22,7 @@ class RecommenderBuilder{
     }
 
     fun buildKNNRecommender(ratings: Set<Rating>,
-                            knn: Int =  5,
+                            knn: Int =  4,
                             useRanking: Boolean = false,
                             similarityMethod: String = SIMILARITY_PCC) : AbstractRecommender? {
         if(ratings.isEmpty()){

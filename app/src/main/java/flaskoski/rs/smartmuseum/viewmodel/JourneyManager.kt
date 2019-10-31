@@ -1,12 +1,14 @@
 package flaskoski.rs.smartmuseum.viewmodel
 import android.app.Activity
 import android.content.Intent
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import android.util.Log
 import androidx.databinding.Observable
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.storage.FirebaseStorage
 import flaskoski.rs.smartmuseum.recommender.RecommenderBuilder
 import flaskoski.rs.smartmuseum.DAO.SharedPreferencesDAO
 import flaskoski.rs.smartmuseum.activity.MainActivity
@@ -16,9 +18,11 @@ import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.routeBuilder.RecommendedRouteBuilder
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import flaskoski.rs.smartmuseum.util.ParseTime
+import java.lang.StringBuilder
 import java.util.*
 //import javax.inject.Inject
 import kotlin.collections.ArrayList
+import kotlin.math.roundToInt
 
 class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     : ViewModel(), MapManager.OnUserArrivedToDestinationListener {
@@ -287,8 +291,8 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
 
         ItemRepository.resetRecommendedOrder()
         val itemsRemaining = recommendedRouteBuilder?.getRecommendedRouteFrom(lastItem!!,
-                ApplicationProperties.user?.timeAvailable?: 100.0,
-                startTime?.let { ParseTime.differenceInMinutesUntilNow(it) } ?: 0.0)
+                120.0,
+                0.0)
         if(itemsRemaining == null || itemsRemaining.isEmpty()) {
             Log.w(TAG, "No time available for visiting any item.")
             return false
@@ -487,6 +491,171 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     fun setQuestionnaireAnswered(){
         isQuestionnaireAnswered = true
         sharedPreferences.setIsQuestionnaireAnswered(true)
+    }
+
+    fun saveRatingsTrainingTimes(callback: (string : String) -> Unit) {
+        ratingsList.forEach {
+            it.recommendationRating = -1f
+        }
+        var auxRatingList = ArrayList<Rating>()
+        auxRatingList.addAll(ratingsList)
+        auxRatingList= auxRatingList.filter { it.user != "926fa314-8163-4a68-9b02-6cc2d3fad335"
+                && it.user != "8c392241-a621-4080-9fbc-81d7665f4f04" } as ArrayList<Rating>
+        sortRatingListByDate(auxRatingList)
+
+        val originalRatingList = ArrayList<Rating>()
+        originalRatingList.addAll(auxRatingList)
+
+        val fileString = StringBuilder()
+        fileString.append("i;User;Item;Rating;Recommendation System;App Version;User Lat;User Lng;Date;Type;" +
+                                "User PCC 4 Time;Total Time to Execute;" +"\n")
+        var userString = ""
+        for(i in 1 until 400){
+            userString = (i).toString()
+            auxRatingList.add(Rating(userString, "planetaTerra", 3.0f))
+            auxRatingList.add(Rating(userString, "planetaUrano", 3.0f))
+            auxRatingList.add(Rating(userString, "planetaNetuno", 3.0f))
+            auxRatingList.add(Rating(userString, "planetaSaturno", 3.0f))
+            auxRatingList.add(Rating(userString, "planetaMarte", 3.0f))
+            auxRatingList.add(Rating(userString, "planetaJupiter", 3.0f))
+            auxRatingList.add(Rating(userString, "planetaMercurio", 3.0f))
+            auxRatingList.add(Rating(userString, "planetaVenus", 3.0f))
+            auxRatingList.add(Rating(userString, "sol", 3.0f))
+            auxRatingList.add(Rating(userString, "111111", 3.0f))
+            auxRatingList.add(Rating(userString, "222222", 3.0f))
+        }
+
+        for(i in 0 until 15) {
+                ratingsList = auxRatingList.subList(0, i*370 + 2).toHashSet()
+                val rating = ratingsList.last()
+            for(j in 0 until 5) {
+
+                fileString.append("${i*370+2};${rating.user};${rating.item};${rating.rating};${rating.recommendationSystem};" +
+                        "${rating.appVersion};${rating.userLat};${rating.userLng};" +
+                        "${ParseTime.toString(rating.date)};${rating.type};"
+                        +
+                        trainAndGetRoute()
+                        + "\n")
+            }
+        }
+        ratingsList = originalRatingList.toHashSet()
+        saveCSVStringOnStorage("training_route_finding_ratings", fileString)
+    }
+
+    private fun trainAndGetRoute(): String {
+        val start = SystemClock.elapsedRealtime()
+        updateRecommender()
+        val midTime = SystemClock.elapsedRealtime()
+        if(!getRecommendedRoute()){
+            completeJourney()
+            return ";;"
+        }
+        sortItemList()
+        setNextRecommendedDestination()
+        val endTime = SystemClock.elapsedRealtime()
+        return "${(midTime - start)/1000.0};${(endTime - start)/1000.0};"
+     //   return "${rating.recommendationRating};${(1)/1000.0};"
+    }
+
+    private fun saveCSVStringOnStorage(recommenderMethod: String, fileString: StringBuilder) {
+        val storage = FirebaseStorage.getInstance()
+        val storageRef = storage.reference
+
+        val folder = "CSV_TimeNeededForTrainingAndRouting"
+        val fileToBeUploaded = storageRef.child(folder+"/"+ "$recommenderMethod-${ParseTime.toFileName(ParseTime.getCurrentTime())}.csv")
+
+        val uploadTask = fileToBeUploaded.putBytes(fileString.toString().toByteArray())
+        uploadTask.addOnFailureListener {
+            // Handle unsuccessful uploads
+        }.addOnSuccessListener {
+            // taskSnapshot.metadata contains file metadata such as size, content-type, etc.
+            // ...
+            Log.w("INFO", "file with times created!")
+        }
+    }
+
+
+    fun sortRatingListByDate(list : ArrayList<Rating>){
+        var i=0
+        list.sortedWith(compareBy<Rating>{it.date}.thenBy{ it.user}.thenBy{ it.item}).forEach{
+            list[i++] = it
+        }
+    }
+
+    fun saveItemsTrainingTimes(isSubitem : Boolean = false, callback: (string : String) -> Unit) {
+        val originalItemsList = ArrayList<Item>()
+        originalItemsList.addAll(itemsList)
+
+        val originalSubItemsList = ArrayList<SubItem>()
+        originalSubItemsList.addAll(subItemList)
+
+        val originalRatingList = HashSet<Rating>()
+        originalRatingList.addAll(ratingsList)
+
+        val userString = "fulano"
+        val auxItemsList = ArrayList<Itemizable>()
+        var itemString = ""
+        val planeta = originalItemsList.find { it.id == "planetaUrano" }
+        for(i in 1..1000) {
+            itemString = i.toString()
+            val newItem : Itemizable
+            if(isSubitem)
+                newItem = SubItem(itemString,"laboratorioFisica", false, itemString,"")
+            else{
+                newItem = Item(itemString,"", itemString,"","",-23.0,-46.0)
+                (newItem.adjacentPoints as HashMap)[planeta!!.id] = 2.0
+            }
+            auxItemsList.add(newItem)
+        }
+
+        val x = 40
+        val fileString = StringBuilder()
+        fileString.append("i;Item;User PCC 4 Time;Total Time to Execute;" +"\n")
+        for(i in 0 until 15) {
+            itemsList.clear()
+            itemsList.addAll(originalItemsList)
+            if(i>0) {
+                if(!isSubitem) {
+                    for (k in 1 until x+1) {
+                        (planeta!!.adjacentPoints as HashMap)[((i - 1) * x + k).toString()] = 2.0
+                        ratingsList.add(Rating(userString, ((i - 1) * x + k).toString(), 3.0f))
+                    }
+                    recommendedRouteBuilder!!.museumGraph.vertices.addAll(auxItemsList.subList((i-1)*x, i*x).toList() as List<Point>)
+                    recommendedRouteBuilder!!.allItems.addAll(auxItemsList.subList((i-1)*x, i*x).toList())
+                    itemsList.addAll(auxItemsList.subList(0, i * x).toList() as ArrayList<Item>)
+                }
+                else {
+                    for (k in 1 until x+1) {
+                        ratingsList.add(Rating(userString, ((i - 1) * x + k).toString(), 3.0f))
+                    }
+                    subItemList.addAll(auxItemsList.subList((i - 1) * x, i * x).toList() as List<SubItem>)
+                    recommendedRouteBuilder!!.allItems.addAll(auxItemsList.subList((i - 1) * x, i * x).toList())
+                }
+
+            }
+            var item : Itemizable =
+                    if(isSubitem)
+                        subItemList.last()
+                    else itemsList.last()
+
+            for(j in 0 until 5) {
+                fileString.append("${i*20+originalItemsList.size};${item.id};" +
+                        trainAndGetRoute()
+                        + "\n")
+//            if(i%30 == 0) {
+//                val string : String = "Progress:" + "$i / ${auxRatingList.size}"
+//                callback.invoke(string)
+//            }
+            }
+        }
+        itemsList = originalItemsList
+        subItemList = originalSubItemsList
+        ratingsList = originalRatingList
+        recommendedRouteBuilder!!.allItems = ItemRepository.allElements.filter { it is Itemizable }.toHashSet() as HashSet<Itemizable>
+        if(isSubitem)
+            saveCSVStringOnStorage("training_route_finding_subitems", fileString)
+        else
+            saveCSVStringOnStorage("training_route_finding_items", fileString)
     }
 
 }

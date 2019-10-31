@@ -12,7 +12,7 @@ class RecommendedRouteBuilder(elements: Set<Element>){
     companion object {
         const val FIRST_ITEM_FROM_RECOMMENDED_ROUTE = 201
     }
-    private var museumGraph = MuseumGraph(elements)
+    var museumGraph = MuseumGraph(elements)
     private var itemsRemaining = ArrayList<Itemizable>()
 
     private val MIN_TIME_BETWEEN_ITEMS = 0.4
