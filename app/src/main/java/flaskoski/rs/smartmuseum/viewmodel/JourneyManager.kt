@@ -639,7 +639,7 @@ class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
                     else itemsList.last()
 
             for(j in 0 until 5) {
-                fileString.append("${i*20+originalItemsList.size};${item.id};" +
+                fileString.append("${i*x+originalItemsList.size};${item.id};" +
                         trainAndGetRoute()
                         + "\n")
 //            if(i%30 == 0) {
