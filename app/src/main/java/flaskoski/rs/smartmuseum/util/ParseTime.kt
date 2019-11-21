@@ -2,7 +2,10 @@ package flaskoski.rs.smartmuseum.util
 
 import java.util.*
 import java.text.SimpleDateFormat
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 object ParseTime{
     private val format = SimpleDateFormat("dd.MM.yyyy HH:mm")

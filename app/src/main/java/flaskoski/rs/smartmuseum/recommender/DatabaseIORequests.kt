@@ -3,7 +3,10 @@ package flaskoski.rs.smartmuseum.recommender
 import android.content.Context
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class DatabaseIORequests(val context : Context,
                          var ratings : String = "",
                          private val filename : String = "ratings.txt"){

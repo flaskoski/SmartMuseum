@@ -12,7 +12,10 @@ import flaskoski.rs.smartmuseum.model.SubItem
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_item_detail.*
 import kotlinx.android.synthetic.main.sub_item.view.*
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class SubItemListAdapter(private val subItemList: List<SubItem>,
                          private val activity : Activity) : RecyclerView.Adapter<SubItemListAdapter.ItemViewHolder>() {
 

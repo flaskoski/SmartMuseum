@@ -19,7 +19,10 @@ import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import flaskoski.rs.smartmuseum.util.ParseTime
 import kotlinx.android.synthetic.main.activity_item_detail.*
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class ItemDetailActivity  : AppCompatActivity() {
 
     companion object {

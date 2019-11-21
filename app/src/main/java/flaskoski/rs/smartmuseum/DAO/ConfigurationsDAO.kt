@@ -6,7 +6,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import flaskoski.rs.smartmuseum.model.*
 //import javax.inject.Inject
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class ConfigurationsDAO /*@Inject constructor*/(val db: FirebaseFirestore = FirebaseFirestore.getInstance()){
     private val TAG = "ConfigurationsDAO"
     fun getUpdates(callback : (configurations : Configurations?)-> Unit) {

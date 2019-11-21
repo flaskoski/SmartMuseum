@@ -6,7 +6,10 @@ import android.content.SharedPreferences
 import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class SharedPreferencesDAO(activity : Activity){
     private val USER_ID = "userId"
     private val USER_AGE = "userAge"

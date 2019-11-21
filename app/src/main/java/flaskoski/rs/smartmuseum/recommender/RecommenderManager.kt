@@ -7,7 +7,10 @@ import net.librec.recommender.AbstractRecommender
 import net.librec.recommender.Recommender
 import net.librec.recommender.cf.ItemKNNRecommender
 import net.librec.recommender.cf.UserKNNRecommender
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class RecommenderManager(var recommender : AbstractRecommender? = null){
 
     private val TAG: String = "RecommenderManager"

@@ -15,7 +15,10 @@ import flaskoski.rs.smartmuseum.model.Rating
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import kotlinx.android.synthetic.main.activity_feature_preferences.*
 import kotlinx.android.synthetic.main.feature_item.view.*
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class FeaturesListAdapter(isFeaturePreferences : Boolean = true, private val featuresList: List<Feature>, private val context: Context,
                           private val onRatingsCompletedCallback: OnShareClickListener) : RecyclerView.Adapter<FeaturesListAdapter.ItemViewHolder>(){
     var ratingsChanged : Boolean = false

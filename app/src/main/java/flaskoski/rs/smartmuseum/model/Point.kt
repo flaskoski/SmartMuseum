@@ -8,6 +8,9 @@ import java.util.*
 import kotlin.collections.HashMap
 
 /**
+* Copyright (c) 2019 Felipe Ferreira Laskoski
+* código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+
  * Routable element with LatLng coordinates
  */
 open class Point(

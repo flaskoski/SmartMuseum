@@ -7,7 +7,10 @@ import flaskoski.rs.smartmuseum.util.ApplicationProperties.SOUTHERN_POINT
 import flaskoski.rs.smartmuseum.util.ApplicationProperties.WESTERN_POINT
 import java.lang.NullPointerException
 import java.util.*
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class RecommendedRouteBuilder(elements: Set<Element>){
     companion object {
         const val FIRST_ITEM_FROM_RECOMMENDED_ROUTE = 201

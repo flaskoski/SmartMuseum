@@ -1,7 +1,10 @@
 package flaskoski.rs.smartmuseum.model
 
 import java.io.Serializable
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 //Non-routable item (cannot be considered on route building but has content and rating)
 class SubItem(

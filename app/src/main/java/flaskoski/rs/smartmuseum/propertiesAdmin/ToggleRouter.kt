@@ -5,6 +5,10 @@ import java.io.Serializable
 import java.util.*
 
 /**
+ * /**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+*/
  * Created by Felipe on 10/8/2018.
  * Uses application.properties
  */

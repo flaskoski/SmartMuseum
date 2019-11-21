@@ -8,7 +8,10 @@ import flaskoski.rs.smartmuseum.model.Item
 import flaskoski.rs.smartmuseum.util.ParseTime
 import kotlin.math.roundToInt
 import flaskoski.rs.smartmuseum.R
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 class ScheduledItemMarker(map : GoogleMap, val item : Item){
     var marker : Marker? = setMarker(map)

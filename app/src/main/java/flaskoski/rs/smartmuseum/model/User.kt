@@ -4,7 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.provider.Settings
 import com.google.android.gms.maps.model.LatLng
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class User(val id: String, var age: Int? = null,
            var alreadyVisited: Boolean = false,
            var timeAvailable: Double, var location: LatLng? = null,

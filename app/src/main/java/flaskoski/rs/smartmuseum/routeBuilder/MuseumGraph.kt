@@ -5,7 +5,10 @@ import android.util.Log
 import flaskoski.rs.smartmuseum.model.*
 import java.util.*
 import kotlin.collections.HashSet
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class MuseumGraph(elements: Set<Element>) {
     val vertices = HashSet<Point>()
     val entrances = HashSet<Point>()

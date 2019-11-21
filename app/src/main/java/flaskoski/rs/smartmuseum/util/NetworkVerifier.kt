@@ -8,7 +8,10 @@ import android.annotation.TargetApi
 import android.net.*
 import android.os.Build
 import androidx.annotation.RequiresApi
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 class NetworkVerifier {
 

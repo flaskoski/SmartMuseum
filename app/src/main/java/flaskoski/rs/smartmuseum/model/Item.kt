@@ -3,7 +3,10 @@ package flaskoski.rs.smartmuseum.model
 import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
 import kotlin.collections.ArrayList
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 /**
  * Routable items (have content, can be rated and considered on recommended route) with LatLng coordinates
  * @param timeNeeded to see the item (in minutes)

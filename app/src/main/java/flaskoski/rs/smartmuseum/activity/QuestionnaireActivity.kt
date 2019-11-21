@@ -20,7 +20,10 @@ import com.google.android.material.snackbar.Snackbar
 import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import flaskoski.rs.smartmuseum.util.ParseTime
 import kotlinx.android.synthetic.main.activity_questionnaire.*
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 class QuestionnaireActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
 

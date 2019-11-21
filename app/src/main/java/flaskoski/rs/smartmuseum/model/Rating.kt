@@ -5,7 +5,10 @@ import flaskoski.rs.smartmuseum.util.ParseTime
 import java.io.Serializable
 import java.util.*
 
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class Rating(val user: String = "",
              val item: String = "",
              var rating: Float = 0F,

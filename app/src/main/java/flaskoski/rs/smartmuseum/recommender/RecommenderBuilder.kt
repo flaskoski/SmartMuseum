@@ -9,7 +9,10 @@ import net.librec.recommender.RecommenderContext
 import net.librec.recommender.cf.UserKNNRecommender
 import net.librec.similarity.CosineSimilarity
 import net.librec.similarity.PCCSimilarity
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class RecommenderBuilder{
 
     private var recommender : AbstractRecommender? = null

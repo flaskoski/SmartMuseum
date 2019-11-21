@@ -19,7 +19,10 @@ import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
 //import javax.inject.Inject
 import kotlin.collections.ArrayList
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class JourneyManager //@Inject constructor(itemRepository: ItemRepository)
     : ViewModel(), MapManager.OnUserArrivedToDestinationListener {
 

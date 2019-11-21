@@ -39,7 +39,10 @@ import flaskoski.rs.smartmuseum.viewmodel.JourneyManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.next_item.*
 import kotlinx.android.synthetic.main.next_item.view.*
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 class MainActivity : AppCompatActivity(),
         ItemsGridListAdapter.OnShareClickListener,

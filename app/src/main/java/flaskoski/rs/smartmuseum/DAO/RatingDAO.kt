@@ -7,7 +7,10 @@ import flaskoski.rs.smartmuseum.model.UserRatings
 import flaskoski.rs.smartmuseum.util.ParseTime
 import java.util.*
 import kotlin.collections.HashMap
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class RatingDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
     private val TAG = "RatingDAO"
 

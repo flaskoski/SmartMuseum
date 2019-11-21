@@ -5,6 +5,9 @@ import com.google.android.gms.maps.model.LatLng
 import java.util.*
 
 /**
+ *
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
  * Can be considered on recommended route building for path and as recommendation
  */
 interface RoutableItem : Routable, Itemizable {

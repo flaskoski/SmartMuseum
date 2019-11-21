@@ -25,7 +25,10 @@ import com.google.android.gms.maps.model.CameraPosition
 
 
 
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 
 class MapManager(private var onUserArrivedToDestinationListener: OnUserArrivedToDestinationListener? = null,

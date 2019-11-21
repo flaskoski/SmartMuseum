@@ -9,7 +9,10 @@ import androidx.core.content.pm.PackageInfoCompat
 import flaskoski.rs.smartmuseum.DAO.ConfigurationsDAO
 import flaskoski.rs.smartmuseum.model.Configurations
 import java.util.*
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 object ApplicationProperties {
     //Custom application constants

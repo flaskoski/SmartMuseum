@@ -15,7 +15,10 @@ import android.graphics.drawable.Drawable
 import flaskoski.rs.smartmuseum.R
 import flaskoski.rs.smartmuseum.model.ItemRepository
 import java.io.InputStream
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 class ItemsGridListAdapter(private val itemsList: List<Item>,
                            private val context: Context,

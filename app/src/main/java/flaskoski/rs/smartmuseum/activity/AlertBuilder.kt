@@ -11,6 +11,10 @@ import android.widget.FrameLayout
 import android.view.View
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 class AlertBuilder {
     fun showNetworkDisconnected(context: Context){

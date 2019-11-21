@@ -1,8 +1,10 @@
 package flaskoski.rs.smartmuseum.util
 
 /**
- * Created by Felipe on 9/10/2018.
- */
+ *
+* Copyright (c) 2019 Felipe Ferreira Laskoski
+* código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ * */
 
 class ParallelRequestsManager(
         internal var numberOfRequestsToFinish: Int) {

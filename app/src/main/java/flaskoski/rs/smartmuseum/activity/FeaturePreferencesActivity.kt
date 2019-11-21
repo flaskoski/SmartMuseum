@@ -25,7 +25,10 @@ import flaskoski.rs.smartmuseum.DAO.UserDAO
 import flaskoski.rs.smartmuseum.util.NetworkVerifier
 import android.text.method.LinkMovementMethod
 import flaskoski.rs.smartmuseum.R
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 
 class FeaturePreferencesActivity : AppCompatActivity(), FeaturesListAdapter.OnShareClickListener {
 

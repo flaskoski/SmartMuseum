@@ -12,7 +12,10 @@ import flaskoski.rs.smartmuseum.recommender.RecommenderManager
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
 import java.io.IOException
 import java.io.InputStream
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 //import javax.inject.Inject
 //import javax.inject.Singleton
 

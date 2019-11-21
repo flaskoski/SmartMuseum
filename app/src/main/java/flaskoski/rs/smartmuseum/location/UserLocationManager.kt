@@ -14,12 +14,9 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
-
-/***
- * UserLocationManager
- * You have to override the activity's onPause, onResume and onRequestPermissionsResult.
- *
- *
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
  */
 class UserLocationManager(private val REQUEST_CHANGE_LOCATION_SETTINGS: Int) : LocationCallback() {
 

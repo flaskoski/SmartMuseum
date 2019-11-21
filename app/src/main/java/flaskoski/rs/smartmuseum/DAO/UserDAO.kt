@@ -3,7 +3,10 @@ package flaskoski.rs.smartmuseum.DAO
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import flaskoski.rs.smartmuseum.model.User
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class UserDAO(val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
     private val TAG = "RatingDAO"
     private var age : String = ""

@@ -5,7 +5,10 @@ import androidx.lifecycle.ViewModel
 import flaskoski.rs.smartmuseum.activity.ItemDetailActivity
 import flaskoski.rs.smartmuseum.model.*
 import flaskoski.rs.smartmuseum.util.ApplicationProperties
-
+/**
+ * Copyright (c) 2019 Felipe Ferreira Laskoski
+ * código fonte licenciado pela MIT License - https://opensource.org/licenses/MIT
+ */
 class GroupItemActivityViewModel : ViewModel(){
     var isRatingChanged = false
     val recommendedSubItemList = ArrayList<SubItem>()
